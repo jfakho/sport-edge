@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "COTEGO — Analyses sportives",
+  "short_name": "COTEGO",
+  "description": "Statistiques et analyses sportives — bêta expérimentale.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0c1118",
+  "theme_color": "#111a24",
+  "lang": "fr",
+  "categories": [
+    "sports",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
