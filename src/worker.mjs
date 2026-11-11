@@ -36,7 +36,9 @@ export default {
       const response = await fetch('https://api.football-data.org/v4/competitions/'+source+'/matches', {
         method:'GET',
         headers:{'X-Auth-Token':env.FOOTBALL_DATA_API_KEY,'Accept':'application/json'},
-        redirect:'error',
+        // Workers Fetch API does not support redirect: 'error'.
+        // 'manual' avoids sending the API token to an unexpected redirect destination.
+        redirect:'manual',
         signal:AbortSignal.timeout(9000),
       });
       if (response.status === 429) return errorJSON('Quota de données atteint, veuillez réessayer plus tard',503);
