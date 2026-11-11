@@ -7,7 +7,7 @@ Application web expérimentale d'analyse statistique pour le football, le tennis
 - Domaine principal : https://cotego.fr (hébergé séparément sur Cloudflare Workers)
 - Code source de la version de référence : `index.html` de ce dépôt
 - Nom historique du dépôt : `sport-edge` ; la marque de l'application est **COTEGO**
-- L'application hébergée chez Cloudflare n'est **pas automatiquement déployée** depuis ce dépôt actuellement.
+- GitHub est connecté à Cloudflare Workers Builds sur la branche `main`. Les commits déclenchent une construction et `npx wrangler versions upload` prépare une version, **sans promotion automatique vers les 100 % du trafic**. La publication est validée séparément.
 
 ## Fonctionnalités actuellement développées
 
@@ -27,7 +27,15 @@ Ne pas placer de clés Stripe secrètes, secrets webhook, jetons Cloudflare ni m
 
 ## Déploiement
 
-Le domaine est exploité via Cloudflare Workers. Le code enregistré ici est une sauvegarde de source et ne déclenche pas de mise à jour de `cotego.fr` à lui seul. Les ressources PWA (icônes et service worker) ainsi que les pages de contenu peuvent être récupérées depuis l'archive de livraison COTEGO ; elles ne sont pas encore toutes versionnées ici.
+Le domaine est exploité via Cloudflare Workers. Le code enregistré ici est une sauvegarde de source et ne déclenche pas de mise à jour de `cotego.fr` à lui seul. Le dossier `public/` contient le site statique, le manifeste PWA, le service worker et le module de scores. La racine `index.html` est maintenue identique à `public/index.html` pour référence. Certaines ressources complémentaires peuvent encore nécessiter une vérification.
+
+## Scores récents : expérimentation du 11 novembre 2026
+
+- `public/live-scores.js` lit le flux ouvert SportScore et affiche jusqu'à huit matchs récents ou en direct sur le tableau de bord. Une consultation est tentée toutes les deux minutes **uniquement quand l'application est visible**. Cette fréquence n'est ni une garantie de données disponibles ni une indication de l'heure de mise à jour fournisseur.
+- Source et conditions d'attribution : https://sportscore.com/developers/terms/ . Le crédit visible « Powered by SportScore » est conservé dans la section.
+- Lien vers Flashscore pour comparaison manuelle uniquement. Aucun scraping de Flashscore n'est réalisé.
+- **Séparation impérative** : les scores SportScore de ce module ne sont pas encore injectés dans les archives utilisées par les probabilités. Avant ce raccordement : vérifier IDs d'équipes, compétitions, dates, scores finaux, doublons, droits d'usage, fraîcheur et tests sur données historiques.
+- Le site public ne doit pas être considéré comme mis à jour tant que la version correspondante n'est pas explicitement promue dans Cloudflare.
 
 ## Prochaines étapes
 
