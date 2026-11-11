@@ -11,6 +11,8 @@ test('supports Ligue 1 free-tier code',()=>assert.equal(COMPETITIONS['fr.1'],'FL
 test('maps a finished match into existing COTEGO dataset',()=>{
  const r=normalizeFootballDataMatch(base,'fr.1',fixedNow);
  assert.equal(r.date,'2026-11-10');
+ assert.equal(r.time,'22:00');
+ assert.equal(r._kickoffUtc,'2026-11-10T21:00:00.000Z');
  assert.deepEqual(r.score,{ft:[2,1],ht:[1,1]});
  assert.equal(r.team1,'Paris FC');
 });
@@ -38,4 +40,21 @@ test('deduplicates and sorts',()=>{
 test('alerts on stale archives',()=>{
  const report=footballDataFreshness([{date:'2026-09-20',time:'20:00',score:{ft:[1,0]}}],fixedNow);
  assert.equal(report.needsReview,true);
+});
+
+test('displays kick-off in Paris local time across midnight and winter DST',()=>{
+ const r=normalizeFootballDataMatch({...base,utcDate:'2026-11-10T23:45:00Z'},'fr.1',fixedNow);
+ assert.equal(r.date,'2026-11-11');
+ assert.equal(r.time,'00:45');
+});
+test('displays summer kick-off in Paris CEST',()=>{
+ const r=normalizeFootballDataMatch({...base,utcDate:'2026-07-10T19:45:00Z'},'fr.1',fixedNow);
+ assert.equal(r.date,'2026-07-10');
+ assert.equal(r.time,'21:45');
+});
+test('freshness uses exact UTC kick-off, not localized Paris time',()=>{
+ const match=normalizeFootballDataMatch(base,'fr.1',fixedNow);
+ const freshness=footballDataFreshness([match],new Date('2026-11-11T00:00:00Z'));
+ assert.equal(freshness.latestFinishedAt,'2026-11-10T21:00:00.000Z');
+ assert.equal(freshness.hoursSinceLatestFinished,3);
 });

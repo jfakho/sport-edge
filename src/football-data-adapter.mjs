@@ -22,9 +22,16 @@ function safeDateTime(utcDate) {
   const milliseconds = Date.parse(utcDate);
   if (!Number.isFinite(milliseconds)) return null;
   const date = new Date(milliseconds);
+  // France-facing UI uses the local Paris kick-off date and time, including DST.
+  const pieces = new Intl.DateTimeFormat('en-GB', {
+    timeZone:'Europe/Paris',
+    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',
+    hourCycle:'h23',
+  }).formatToParts(date);
+  const p = Object.fromEntries(pieces.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
   return {
-    date: date.toISOString().slice(0, 10),
-    time: date.toISOString().slice(11, 16),
+    date: p.year+'-'+p.month+'-'+p.day,
+    time: p.hour+':'+p.minute,
     timestamp: milliseconds,
   };
 }
@@ -68,6 +75,7 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
     score: hasScore ? {ft:[ft.home, ft.away], ...(validHt ? {ht:[ht.home,ht.away]} : {})} : null,
     _source: 'football-data.org',
     _sourceId: id,
+    _kickoffUtc: new Date(time.timestamp).toISOString(),
     _teamIds: [home.id,away.id],
     _status: status,
   };
@@ -89,7 +97,7 @@ export function normalizeFootballDataSeason(payload, league, now = new Date()) {
 /** Source metadata for the UI, not a guarantee of truth or live status. */
 export function footballDataFreshness(matches, now = new Date()) {
   const timestamps = matches.filter(m=>Array.isArray(m.score?.ft))
-    .map(m=>Date.parse(m.date+'T'+(m.time||'00:00')+':00Z'))
+    .map(m=>m._kickoffUtc ? Date.parse(m._kickoffUtc) : Date.parse(m.date+'T'+(m.time||'00:00')+':00Z'))
     .filter(Number.isFinite);
   const latest = timestamps.length ? Math.max(...timestamps) : null;
   const ageHours = latest === null ? null : Math.max(0,(now.getTime()-latest)/3600000);
