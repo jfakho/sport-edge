@@ -3,6 +3,11 @@
   "name": "cotego",
   "compatibility_date": "2026-11-10",
   "assets": {
-    "directory": "./public"
-  }
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "main": "./src/worker.mjs"
 }
