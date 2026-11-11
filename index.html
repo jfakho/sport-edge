@@ -112,6 +112,27 @@ body{font-size:14px;letter-spacing:0}
 #checkout-test-link{white-space:normal;text-align:center;line-height:1.5;text-decoration:none;max-width:100%;display:inline-flex}
 .membership-plan.highlighted a[href*="billing.stripe.com"]{text-decoration:underline;color:#d5e4ca}
 .membership-plan.highlighted .membership-label{color:#e9d39e;letter-spacing:.8px}
+
+/* COTEGO — section de scores consultatifs. Le modèle prédictif utilise des archives distinctes. */
+.cotego-live-panel{margin:18px 0 29px;padding:23px 25px;border:1px solid #344354;border-radius:14px;background:linear-gradient(140deg,#152332,#111b27);color:#e8eff7}
+.cotego-live-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.cotego-live-header h2{font-size:21px;line-height:1.25;margin:6px 0 5px}
+.cotego-live-header p,.cotego-live-refreshed{font-size:12px;color:#9eafbf;line-height:1.5}
+.cotego-live-tag{font-size:9px;vertical-align:middle;font-weight:800;letter-spacing:.7px;color:#c0d6a4;border:1px solid #526448;border-radius:5px;padding:4px 6px;margin-left:5px;white-space:nowrap}
+.cotego-live-status{font-size:12px;font-weight:700;color:#c5d8b8;margin-top:15px;margin-bottom:8px}
+.cotego-live-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cotego-live-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 12px;border:1px solid #2b3c4e;border-radius:9px;background:#101a26;min-width:0}
+.cotego-live-match-meta{display:flex;flex-direction:column;gap:5px;min-width:0}
+.cotego-live-team{font-size:12px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.cotego-live-stage{font-size:10px;color:#91a4b9}
+.cotego-live-stage.live{color:#b5df85}
+.cotego-live-score{font-size:18px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cotego-live-empty{grid-column:1/-1;color:#9eafbf;font-size:12px}
+.cotego-live-foot{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;border-top:1px solid #314052;padding-top:13px;margin-top:12px;font-size:11px;line-height:1.5;color:#9eafbf}
+.cotego-live-foot a{color:#c5dbab;text-decoration:underline;text-underline-offset:3px}
+.cotego-live-header button:disabled{opacity:.5;cursor:wait}
+@media(max-width:800px){.cotego-live-list{grid-template-columns:1fr}.cotego-live-panel{padding:17px}.cotego-live-header h2{font-size:17px}.cotego-live-tag{font-size:8px}.cotego-live-header button{flex-shrink:0}}
+
 </style>
   <title>COTEGO | Analyses football, tennis et basket</title>
 </head>
@@ -156,6 +177,16 @@ body{font-size:14px;letter-spacing:0}
           <div class="stat"><div class="stat-top">MODÈLES DE SCÉNARIOS <span>◎</span></div><div class="stat-number">03</div><div class="stat-desc">Cibles théoriques : 1,5 · 2 · 3</div></div>
           <div class="stat"><div class="stat-top">DERNIER SCORE ARCHIVÉ <span>◌</span></div><div class="stat-number stat-date" id="metric-latest">—</div><div class="stat-desc" id="metric-freshness">Vérifiez la fraîcheur des données</div></div>
         </div>
+        <section class="cotego-live-panel" id="cotego-live-panel" aria-labelledby="cotego-live-heading">
+          <div class="cotego-live-header">
+            <div><div class="section-overline">FOOTBALL / SCORES ACTUELS</div><h2 id="cotego-live-heading">Résultats récents <span class="cotego-live-tag">FLUX EXTERNE</span></h2><p>Score consultatif, séparé des données historiques servant aux probabilités.</p></div>
+            <button type="button" class="btn btn-outline btn-small" id="cotego-live-refresh">↻ Actualiser</button>
+          </div>
+          <div id="cotego-live-status" class="cotego-live-status" role="status">Connexion au flux de scores…</div>
+          <div id="cotego-live-list" class="cotego-live-list" aria-live="off"></div>
+          <p class="cotego-live-refreshed" id="cotego-live-refreshed">Fréquence visée : consultation toutes les 2 minutes lorsque la page est ouverte.</p>
+          <div class="cotego-live-foot"><span><a href="https://sportscore.com/" rel="dofollow" title="Sports data by SportScore" target="_blank">Powered by SportScore</a> · données fournies sans garantie d'exhaustivité ni de délai</span><a href="https://www.flashscore.fr/football/france/ligue-1/" target="_blank" rel="noopener noreferrer">Comparer avec Flashscore ↗</a></div>
+        </section>
         <div class="section-heading" id="matches-anchor"><div><div class="section-overline">FOOTBALL / CALENDRIER</div><h2>Rencontres à analyser <span id="visible-count" class="count-tag">0</span></h2><p id="dataset-subtitle">Choisissez une compétition pour charger les rencontres.</p></div><button class="btn btn-outline btn-small" id="refresh-data">↻ Actualiser</button></div>
         <div class="filters"><label class="filter-control">COMPÉTITION<select id="league-select"><option value="fr.1">🇫🇷 Ligue 1</option><option value="en.1">🏴 Premier League</option><option value="es.1">🇪🇸 La Liga</option><option value="de-live">🇩🇪 Bundesliga · résultats récents</option><option value="de.1">🇩🇪 Bundesliga · archives CC0</option><option value="it.1">🇮🇹 Serie A</option><option value="demo">◈ Ligue démo</option><option value="custom">↥ Mes données</option></select></label><label class="filter-control">HORIZON<select id="window-select"><option value="14">14 jours</option><option value="30" selected>30 jours</option><option value="90">90 jours</option><option value="365">Toute la saison</option></select></label><label class="filter-control filter-search">RECHERCHER<input id="search-input" autocomplete="off" placeholder="Nom d'une équipe…"></label><button class="filter-fav" id="favorites-toggle" aria-pressed="false" title="Afficher uniquement les favoris">☆ <span>Mes favoris</span></button></div>
         <div id="data-notice" class="notice hidden" role="status"></div>
@@ -759,5 +790,6 @@ body{font-size:14px;letter-spacing:0}
 })();
 
 </script>
+  <script src="/live-scores.js" defer></script>
 </body>
 </html>
