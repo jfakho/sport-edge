@@ -47,6 +47,7 @@ test('happy path transmits secret only in upstream header and omits it from resp
     const data=await res.json();
     assert.equal(data.matches[0].score.ft[0],2);
     assert.equal(requests.length,1);
+    assert.equal(requests[0].options.redirect,'manual');
     assert.equal(requests[0].options.headers['X-Auth-Token'],TOKEN);
     assert.ok(!JSON.stringify(data).includes(TOKEN));
   } finally {mock.restoreAll();}
