@@ -9,5 +9,10 @@
       "/api/*"
     ]
   },
-  "main": "./src/worker.mjs"
+  "main": "./src/worker.mjs",
+  "secrets": {
+    "required": [
+      "FOOTBALL_DATA_API_KEY"
+    ]
+  }
 }
