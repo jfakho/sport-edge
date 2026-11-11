@@ -476,6 +476,12 @@ body{font-size:14px;letter-spacing:0}
     return sum/weights;
   }
   function forecast(match, all) {
+    // Refuse une prévision publique basée sur un historique trop ancien.
+    // Les tests rétrospectifs sur des rencontres passées restent possibles.
+    if (match.date >= today() && state.mode !== 'demo' && state.mode !== 'custom') {
+      const latest = all.filter(m=>m.score && m.date<today()).at(-1)?.date;
+      if (!latest || daysBetween(latest,today()) > 21) return null;
+    }
     const previous=all.filter(m=>m.score && m.date<match.date && m.date<today() && daysBetween(m.date,match.date)<=550);
     if(previous.length<24) return null;
     const rows=previous.map(m=>({ ...m, weight:Math.exp(-Math.max(0,daysBetween(m.date,match.date))/240), hg:m.score[0], ag:m.score[1] }));
