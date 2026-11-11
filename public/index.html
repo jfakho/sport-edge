@@ -159,6 +159,7 @@ body{font-size:14px;letter-spacing:0}
 .analysis-btn:disabled:hover{background:#18212b}
 </style>
   <title>COTEGO | Analyses football, tennis et basket</title>
+  <link rel="stylesheet" href="/cotego-rework.css">
 </head>
 <body>
   <div class="app-shell">
@@ -166,12 +167,17 @@ body{font-size:14px;letter-spacing:0}
       <div class="brand"><div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></div><div><strong>COTE<span>GO</span></strong><small>SPORTS DATA / ANALYSES</small></div></div>
       <div class="sidebar-label">ESPACE DE TRAVAIL</div>
       <nav class="sidebar-nav" aria-label="Navigation principale">
-        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">◫</span> Tableau de bord</button>
+        <button class="nav-item active" data-page="home"><span class="nav-icon">⌂</span> À la une</button>
+        <button class="nav-item" data-page="dashboard"><span class="nav-icon">▦</span> Matchs & analyses</button>
+        <button class="nav-item" data-link="dashboard" data-favs="1"><span class="nav-icon">☆</span> Mes favoris</button>
+        <button class="nav-item" data-page="membership"><span class="nav-icon">◇</span> COTEGO Plus <span class="alpha-tag">BÊTA</span></button>
+        <div class="sidebar-label" style="margin:18px 13px 6px">EXPLORER</div>
         <button class="nav-item" data-page="history"><span class="nav-icon">◷</span> Historique & tests</button>
         <button class="nav-item" data-page="lab"><span class="nav-icon">◈</span> Tennis & basket <span class="alpha-tag">TEST</span></button>
-        <button class="nav-item" data-page="method"><span class="nav-icon">◎</span> Notre méthode</button>
+        <button class="nav-item" data-page="method"><span class="nav-icon">◎</span> Comprendre les calculs</button>
         <button class="nav-item" data-page="import"><span class="nav-icon">↥</span> Importer des données</button>
-        <button class="nav-item" data-page="membership"><span class="nav-icon">▤</span> Abonnements</button>
+        <button class="nav-item" data-page="install"><span class="nav-icon">▣</span> Installer l'application</button>
+        <button class="nav-item" data-page="about"><span class="nav-icon">ⓘ</span> À propos & sources</button>
       </nav>
       <div class="sidebar-grow"></div>
       <div class="side-highlight"><span class="mini-light"></span><div><strong>Version 0.3 · Bêta</strong><p>Modèle ouvert · Sans promesse de gain</p></div></div>
@@ -180,11 +186,39 @@ body{font-size:14px;letter-spacing:0}
     <main class="main-area">
       <header class="topbar">
         <button class="mobile-menu" id="mobile-menu" aria-label="Ouvrir le menu">☰</button>
-        <div class="breadcrumb">COTEGO <span>/</span> <span id="breadcrumb-page">Tableau de bord</span></div>
+        <div class="breadcrumb">COTEGO <span>/</span> <span id="breadcrumb-page">À la une</span></div>
         <div class="topbar-right"><span class="live-badge"><i></i> BÊTA</span><div class="avatar">CG</div></div>
       </header>
 
-      <section class="page visible" id="page-dashboard">
+      <section class="page visible" id="page-home">
+        <div class="home-intro">
+          <div>
+            <div class="home-kicker">COTEGO / LES RENCONTRES À SUIVRE</div>
+            <h1>Les matchs qui comptent.</h1>
+            <p class="home-desc">L'essentiel du football à venir, sélectionné pour son intérêt sportif et la qualité des données disponibles. Un aperçu rapide, des analyses à explorer à votre rythme.</p>
+          </div>
+          <span class="home-status" id="home-data-status" role="status"><i></i>Chargement des rencontres…</span>
+        </div>
+        <div class="home-tabs" role="group" aria-label="Choisir un championnat">
+          <button type="button" class="home-tab" data-featured-league="fr.1" aria-pressed="true">Ligue 1</button>
+          <button type="button" class="home-tab" data-featured-league="en.1" aria-pressed="false">Premier League</button>
+          <button type="button" class="home-tab" data-featured-league="es.1" aria-pressed="false">Liga</button>
+          <button type="button" class="home-tab" data-featured-league="it.1" aria-pressed="false">Serie A</button>
+          <button type="button" class="home-tab" data-featured-league="de-live" aria-pressed="false">Bundesliga</button>
+        </div>
+        <div class="home-section-head"><h2>À l'affiche</h2><span class="home-count" id="home-selection-count">Jusqu'à 4 rencontres</span></div>
+        <div class="featured-grid" id="featured-grid" aria-live="polite">
+          <div class="featured-empty">Chargement de la sélection de matchs…</div>
+        </div>
+        <div class="home-all"><button type="button" class="btn btn-outline" data-link="dashboard">Explorer tous les matchs ↗</button></div>
+        <aside class="home-benefit">
+          <div><strong>COTEGO Plus · 9,90 € / mois envisagés</strong><p>Des outils d'exploration et des analyses enrichies en préparation. Aucun abonnement payant n'est ouvert pendant la bêta.</p></div>
+          <button type="button" class="btn btn-outline" data-link="membership">Découvrir Plus ↗</button>
+        </aside>
+        <p class="home-disclaimer">Les probabilités, lorsqu'elles sont disponibles, proviennent d'un modèle statistique expérimental non validé pour prédire les résultats des paris. Elles ne sont ni des cotes de bookmaker ni des conseils de mise. Les matchs affichés sont une sélection éditoriale, pas une garantie de résultat.</p>
+      </section>
+
+      <section class="page" id="page-dashboard">
         <div class="hero">
           <div class="hero-copy">
             <div class="hero-overline">COTEGO / ANALYSES SPORTIVES</div>
@@ -263,8 +297,36 @@ body{font-size:14px;letter-spacing:0}
         <div class="method-long"><h2>Informations avant vente</h2><p>Les abonnements ne seront ouverts qu'après mise en place d'une identification des abonnés, de la vérification des paiements côté serveur, d'un processus d'annulation et des mentions légales/CGV/gestion des données personnelles. Nous ne vendons ni gains garantis ni méthodes censées augmenter les chances de gagner aux jeux d'argent.</p></div>
       </section>
 
-      <footer class="footer"><span>COTEGO · Prévisualisation du nom — version TEST Stripe — analyses expérimentales</span><span>Sources : <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball CC0 ↗</a> · <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB ODbL ↗</a> · <a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Données fournies par football-data.org ↗</a> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Prévention ANJ ↗</a></span></footer>
+            <section class="page" id="page-install">
+        <div class="section-overline">COTEGO / APPLICATION</div>
+        <h1>COTEGO, toujours à portée de main.</h1>
+        <p class="home-desc">Installez dès maintenant la version web de COTEGO depuis votre navigateur, sans achat et sans passer par une boutique d'applications.</p>
+        <div class="info-card"><h3>Sur iPhone</h3><p>Ouvrez <strong>cotego.fr</strong> dans Safari, touchez <strong>Partager</strong> puis <strong>Sur l'écran d'accueil</strong>. Confirmez l'ajout. Ce n'est pas encore une application native de l'App Store.</p></div>
+        <div class="info-card"><h3>Sur Android</h3><p>Ouvrez <strong>cotego.fr</strong> dans Chrome, utilisez le menu du navigateur puis <strong>Installer l'application</strong> ou <strong>Ajouter à l'écran d'accueil</strong> selon votre appareil.</p></div>
+        <div class="info-card"><h3>App Store et Google Play</h3><p>Les versions natives nécessitent des comptes développeur, des validations techniques et le respect des règles de facturation de chaque plateforme. Elles seront proposées après la stabilisation de la bêta.</p></div>
+      </section>
+
+      <section class="page" id="page-about">
+        <div class="section-overline">COTEGO / TRANSPARENCE</div>
+        <h1>À propos & sources.</h1>
+        <p class="home-desc">COTEGO propose une lecture statistique de rencontres sportives. Nos probabilités sont des estimations expérimentales et non des recommandations de paris.</p>
+        <div class="info-card"><h3>Origine des données</h3>
+          <p><a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Football data provided by the Football-Data.org API</a> : calendrier et scores finaux différés, selon les compétitions disponibles et les limites du fournisseur.</p>
+          <p><a href="https://sportscore.com/" target="_blank" rel="noopener noreferrer">Powered by SportScore</a> : scores consultatifs dans la rubrique correspondante, fournis séparément du modèle d'analyse.</p>
+          <p>Archives complémentaires : <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball (CC0)</a> et <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB (ODbL)</a>.</p>
+        </div>
+        <div class="info-card"><h3>Ce que les probabilités signifient</h3><p>COTEGO étudie des résultats historiques, des moyennes et des distributions mathématiques. La formule exacte et ses paramètres peuvent constituer un savoir-faire propre ; les limites et la nature des sources restent accessibles pour éviter toute confusion. Les résultats passés ne garantissent aucun résultat futur.</p></div>
+        <div class="info-card"><h3>Informations légales et prévention</h3><p>Les mentions légales complètes, la politique de confidentialité et les conditions d'abonnement devront être finalisées et publiées avant l'ouverture commerciale. COTEGO ne prend pas de paris et ne garantit aucun gain. <a href="https://www.joueurs-info-service.fr/" target="_blank" rel="noopener noreferrer">Joueurs Info Service</a> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Autorité nationale des jeux</a>.</p></div>
+      </section>
+
+      <footer class="footer"><span>COTEGO · Bêta gratuite · Analyses expérimentales</span><span class="footer-references"><a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Football data provided by the Football-Data.org API</a> · <button type="button" data-link="about" style="background:none;color:inherit;border:0;text-decoration:underline;cursor:pointer;font:inherit">À propos & sources</button> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Prévention</a></span></footer>
     </main>
+    <nav class="cotego-bottom-nav" aria-label="Navigation rapide mobile">
+      <button type="button" data-page="home" class="active"><span>⌂</span>Accueil</button>
+      <button type="button" data-page="dashboard"><span>▦</span>Matchs</button>
+      <button type="button" data-link="dashboard" data-favs="1"><span>☆</span>Favoris</button>
+      <button type="button" data-page="membership"><span>◇</span>Plus</button>
+    </nav>
   </div>
 
   <div class="modal-overlay hidden" id="analysis-modal" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-header"><div><div class="section-overline">FICHE MATCH / PROBABILITÉS</div><h2 id="modal-title">Analyse de la rencontre</h2><p id="modal-subtitle"></p></div><button class="close-modal" id="close-modal" aria-label="Fermer">×</button></div><div id="modal-content"></div></div></div>
