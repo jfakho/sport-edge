@@ -154,6 +154,9 @@ body{font-size:14px;letter-spacing:0}
 @media (max-width:390px) {
   #page-dashboard > .hero .hero-actions .btn { font-size:11px; }
 }
+/* Un bouton indisponible ne doit jamais ressembler à une action activable. */
+.analysis-btn:disabled{background:#18212b;color:#7d8997;border-color:#344254;cursor:not-allowed;opacity:.85}
+.analysis-btn:disabled:hover{background:#18212b}
 </style>
   <title>COTEGO | Analyses football, tennis et basket</title>
 </head>
@@ -636,9 +639,14 @@ body{font-size:14px;letter-spacing:0}
     }
     el.innerHTML=list.map(m=>{
       const a=forecast(m,state.matches), saved=state.favorites.has(m.id),safeId=escapeHtml(m.id),friendly=LEAGUES[state.league];
-      let levels=a?a.tiers.map(t=>`<div class="scenario-row"><div class="scenario-left"><i class="tier-dot ${t.color}"></i><div><span class="scenario-label">${escapeHtml(t.brief)}</span><span class="scenario-name">${escapeHtml(t.market?.name||'—')}</span></div></div><div class="scenario-right"><strong>${t.market?round(100*t.market.p,0)+' %':'—'}</strong><span>${t.market?'×'+(1/t.market.p).toFixed(2):''}</span></div></div>`).join(''):'<div class="small-line">Pas assez de résultats historiques pour calculer un modèle sur ce match.</div>';
-      const p=a?`<div class="prob"><strong>${(a.home*100).toFixed(0)}%</strong><span>1</span></div><div class="prob"><strong>${(a.draw*100).toFixed(0)}%</strong><span>N</span></div><div class="prob"><strong>${(a.away*100).toFixed(0)}%</strong><span>2</span></div>`:'<div class="small-line">Probabilités indisponibles</div>';
-      return `<article class="match-card"><div class="match-top"><span class="league-pill">${escapeHtml(friendly.short)}</span><span class="match-date">${formatDate(m.date)} · ${escapeHtml(m.time||'Heure inconnue')}</span></div><div class="match-teams"><div class="team-block"><div class="team-initial">${escapeHtml(initial(m.home))}</div><div class="team-name">${escapeHtml(m.home)}</div></div><div class="versus">VS</div><div class="team-block away"><div class="team-initial">${escapeHtml(initial(m.away))}</div><div class="team-name">${escapeHtml(m.away)}</div></div></div><div class="three-way">${p}</div><div class="scenario-list">${levels}</div><div class="match-bottom"><button class="analysis-btn" data-analyze="${safeId}" ${a?'':'disabled'}>Analyse détaillée ↗</button><span class="quality ${a&&a.quality==='Échantillon limité'?'low':''}">${a?escapeHtml(a.quality):'Données insuffisantes'}</span><button aria-label="${saved?'Retirer des':'Ajouter aux'} favoris" class="favorite-button ${saved?'saved':''}" data-favorite="${safeId}">${saved?'★':'☆'}</button></div></article>`;
+      const lastVerified=state.played.at(-1)?.date;
+      const tooOld=state.mode!=='demo' && state.mode!=='custom' && (!lastVerified || daysBetween(lastVerified,today())>21);
+      const missingMessage=tooOld
+        ? 'Analyse suspendue : les résultats disponibles sont trop anciens. Actualisez la source avant de consulter les probabilités.'
+        : 'Analyse indisponible : historique insuffisant pour cette rencontre.';
+      let levels=a?a.tiers.map(t=>`<div class="scenario-row"><div class="scenario-left"><i class="tier-dot ${t.color}"></i><div><span class="scenario-label">${escapeHtml(t.brief)}</span><span class="scenario-name">${escapeHtml(t.market?.name||'—')}</span></div></div><div class="scenario-right"><strong>${t.market?round(100*t.market.p,0)+' %':'—'}</strong><span>${t.market?'×'+(1/t.market.p).toFixed(2):''}</span></div></div>`).join(''):`<div class="small-line">${escapeHtml(missingMessage)}</div>`;
+      const p=a?`<div class="prob"><strong>${(a.home*100).toFixed(0)}%</strong><span>1</span></div><div class="prob"><strong>${(a.draw*100).toFixed(0)}%</strong><span>N</span></div><div class="prob"><strong>${(a.away*100).toFixed(0)}%</strong><span>2</span></div>`:`<div class="small-line">Probabilités indisponibles</div>`;
+      return `<article class="match-card"><div class="match-top"><span class="league-pill">${escapeHtml(friendly.short)}</span><span class="match-date">${formatDate(m.date)} · ${escapeHtml(m.time||'Heure inconnue')}</span></div><div class="match-teams"><div class="team-block"><div class="team-initial">${escapeHtml(initial(m.home))}</div><div class="team-name">${escapeHtml(m.home)}</div></div><div class="versus">VS</div><div class="team-block away"><div class="team-initial">${escapeHtml(initial(m.away))}</div><div class="team-name">${escapeHtml(m.away)}</div></div></div><div class="three-way">${p}</div><div class="scenario-list">${levels}</div><div class="match-bottom"><button class="analysis-btn" data-analyze="${safeId}" ${a?'':'disabled aria-disabled="true" title="'+escapeHtml(missingMessage)+'"'}>${a?'Analyse détaillée ↗':'Analyse indisponible'}</button><span class="quality ${a&&a.quality==='Échantillon limité'?'low':''}">${a?escapeHtml(a.quality):'Données insuffisantes'}</span><button aria-label="${saved?'Retirer des':'Ajouter aux'} favoris" class="favorite-button ${saved?'saved':''}" data-favorite="${safeId}">${saved?'★':'☆'}</button></div></article>`;
     }).join('');
   }
   function openAnalysis(id) {
