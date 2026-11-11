@@ -14,6 +14,13 @@
 - Secrets : `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` et gestion du D1 via bindings Cloudflare. Ne jamais enregistrer de secrets dans GitHub ni navigateur.
 - Préparer tests d'abonnements : création, reconduction, paiement refusé, litige, résiliation fin de période, remboursement, accès rétrogradé, doublons de webhooks.
 
+## Protection réelle du savoir-faire
+Actuellement, `jfakho/sport-edge` est un dépôt **public** et le moteur `forecast()` s'exécute dans `public/index.html`. Masquer le nom des fournisseurs dans l'interface n'empêche pas la lecture du code HTML/JavaScript ni l'examen du dépôt GitHub.
+- Après validation du prototype, étudier le passage à un dépôt GitHub privé en confirmant au préalable les permissions Cloudflare GitHub.
+- Déplacer les calculs avancés et les données VIP derrière des routes Worker authentifiées, sans charger d'abord l'intégralité des prédictions dans le navigateur.
+- Conserver les crédits fournisseurs obligatoires et les mentions nécessaires à la confiance des utilisateurs.
+- Ne pas prétendre à un véritable paywall tant qu'un appel anonyme peut obtenir la réponse premium ou le calcul.
+
 ## Inconnues qui bloquent la mise en production
 - Personne/société facturante, régime TVA et CGV françaises.
 - Vérification juridique de la commercialisation d'analyses statistiques associées aux paris sportifs, et de la compatibilité avec les restrictions Stripe.
