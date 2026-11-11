@@ -50,3 +50,12 @@ test('inline app JavaScript has valid syntax',()=>{
   assert.ok(inline.length>=2);
   for (const [,code] of inline) new Script(code);
 });
+
+
+test('all multi-element actions use querySelectorAll helper instead of querySelector',()=>{
+  const forbidden=/\$\((?:'[^']+'|"[^"]+")\)\.(?:forEach|map|filter|some|every)\s*\(/g;
+  assert.doesNotMatch(source,forbidden,'$ selects one element; use $$ for collections');
+  for(const selector of ['.home-tab','.odd-input','.page','.nav-item','.cotego-bottom-nav button']) {
+    assert.ok(source.includes(`$$('${selector}').forEach`),`Missing collection iteration for ${selector}`);
+  }
+});
