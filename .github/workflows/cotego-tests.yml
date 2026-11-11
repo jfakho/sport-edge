@@ -16,4 +16,4 @@ jobs:
         with:
           node-version: '22'
       - name: Test des résultats et du proxy (sans clé réelle)
-        run: node --test src/football-data-adapter.test.mjs src/worker.test.mjs
+        run: node --test src/football-data-adapter.test.mjs src/worker.test.mjs src/cotego-redesign.test.mjs
