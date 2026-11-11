@@ -289,15 +289,38 @@ body{font-size:14px;letter-spacing:0}
       </section>
 
       <section class="page" id="page-membership">
-        <div class="page-intro"><div class="section-overline">COTEGO / ABONNEMENTS</div><h1>Découvrir <em>COTEGO Plus.</em></h1><p>Les outils restent gratuits. Le paiement ci-dessous sert uniquement à tester le parcours d’abonnement Stripe : aucune carte réelle ne sera débitée et aucun accès premium n’est débloqué automatiquement.</p></div>
-        <div class="membership-grid">
-          <article class="membership-plan"><div class="membership-label">ACCÈS ACTUEL</div><h2>Découverte</h2><div class="membership-price">Gratuit</div><p>Accès aux statistiques disponibles, simulations football et calculateurs tennis/basket.</p><p class="membership-meta">Aucun compte requis · aucune donnée bancaire demandée</p><button class="btn btn-outline" data-link="dashboard">Consulter les matchs ↗</button></article>
-          <article class="membership-plan highlighted"><div class="membership-label">ENVIRONNEMENT DE TEST · AUCUN ENCAISSEMENT RÉEL</div><h2>COTEGO Plus</h2><div class="membership-price">9,90 € <span>/ mois · tarif de simulation</span></div><p>Historique enrichi, comparaisons et tableaux de bord personnels sont des fonctionnalités prévues, et non encore réservées à des abonnés.</p><div class="billing-alert" id="billing-status"><strong>SIMULATION STRIPE :</strong> ce lien ouvre Stripe en mode test. Utilisez uniquement des moyens de paiement fictifs officiels de Stripe. Les virements réels et l’accès premium sont désactivés.</div><a class="btn btn-primary" id="checkout-test-link" href="https://buy.stripe.com/test_00wdRae3p3iMfwJ0mk2VG00" rel="noopener noreferrer" target="_blank" aria-label="Ouvrir Stripe en mode test pour simuler un abonnement à 9,90 euros par mois">Simuler l’abonnement · Stripe TEST ↗</a><p class="membership-meta"><a href="https://billing.stripe.com/p/login/test_00wdRae3p3iMfwJ0mk2VG00" target="_blank" rel="noopener noreferrer">Gérer une souscription de test sur Stripe ↗</a></p><p class="membership-meta">Aucun accès premium n’est accordé au retour du paiement : seul un futur serveur pourra vérifier un événement Stripe signé et attribuer les droits. Aucune vraie vente n’est ouverte.</p></article>
+        <div class="page-intro">
+          <div class="section-overline">COTEGO / ACCÈS</div>
+          <h1>Chaque donnée à sa place.</h1>
+          <p>Une expérience accessible pour suivre les rencontres et comprendre les projections. Des outils avancés en cours de développement pour celles et ceux qui souhaitent explorer les modèles en profondeur.</p>
         </div>
-        <div class="method-long"><h2>Informations avant vente</h2><p>Les abonnements ne seront ouverts qu'après mise en place d'une identification des abonnés, de la vérification des paiements côté serveur, d'un processus d'annulation et des mentions légales/CGV/gestion des données personnelles. Nous ne vendons ni gains garantis ni méthodes censées augmenter les chances de gagner aux jeux d'argent.</p></div>
+        <div class="membership-grid">
+          <article class="membership-plan">
+            <div class="membership-label">BÊTA OUVERTE</div>
+            <h2>Découverte</h2><div class="membership-price">Gratuit</div>
+            <p>La sélection du moment, les matchs à venir, les statistiques de base et des explications sur les modèles expérimentaux.</p>
+            <p class="membership-meta">Accès gratuit pendant la phase de validation technique.</p>
+            <button type="button" class="btn btn-outline" data-link="home">Découvrir les matchs ↗</button>
+          </article>
+          <article class="membership-plan highlighted">
+            <div class="membership-label">PROJET D'ABONNEMENT · NON COMMERCIALISÉ</div>
+            <h2>COTEGO Plus</h2>
+            <div class="membership-price">9,90 € <span>/ mois envisagés</span></div>
+            <p>Fonctionnalités envisagées : filtres d'analyse avancés, comparaison de modèles, indicateurs de qualité des données, historique personnalisé et suivis enregistrés.</p>
+            <p class="membership-meta">Le tarif et les fonctionnalités devront être confirmés avant ouverture. Aucun achat réel n'est possible actuellement.</p>
+            <div class="billing-alert" id="billing-status"><strong>BÊTA GRATUITE :</strong> il n'existe pas encore de compte VIP ni de paiement en production. Les accès payants exigeront une identification fiable, des événements Stripe vérifiés et un contrôle serveur des droits.</div>
+            <details class="membership-meta">
+              <summary style="cursor:pointer;color:#b9c5d1;padding:10px 0">Tests Stripe (environnement de développement uniquement)</summary>
+              <p>Utilisez uniquement des données de paiement fictives officielles.</p>
+              <a class="btn btn-outline" id="checkout-test-link" href="https://buy.stripe.com/test_00wdRae3p3iMfwJ0mk2VG00" rel="noopener noreferrer" target="_blank" aria-label="Ouvrir Stripe en mode test pour simuler un abonnement à 9,90 euros par mois">Tester un paiement Stripe fictif ↗</a>
+              <p class="membership-meta"><a href="https://billing.stripe.com/p/login/test_00wdRae3p3iMfwJ0mk2VG00" target="_blank" rel="noopener noreferrer">Gérer un abonnement de test ↗</a></p>
+            </details>
+          </article>
+        </div>
+        <div class="method-long"><h2>Avant l'ouverture commerciale</h2><p>Des droits d'accès gérés côté serveur, des CGV et mentions légales complètes, le traitement de la TVA, des procédures de résiliation et les obligations des plateformes mobiles restent à finaliser. COTEGO n'est pas une plateforme de paris et ne promet aucun gain ou amélioration des chances de gagner aux jeux d'argent.</p></div>
       </section>
 
-            <section class="page" id="page-install">
+      <section class="page" id="page-install">
         <div class="section-overline">COTEGO / APPLICATION</div>
         <h1>COTEGO, toujours à portée de main.</h1>
         <p class="home-desc">Installez dès maintenant la version web de COTEGO depuis votre navigateur, sans achat et sans passer par une boutique d'applications.</p>
