@@ -239,7 +239,7 @@ body{font-size:14px;letter-spacing:0}
         <div class="method-long"><h2>Informations avant vente</h2><p>Les abonnements ne seront ouverts qu'après mise en place d'une identification des abonnés, de la vérification des paiements côté serveur, d'un processus d'annulation et des mentions légales/CGV/gestion des données personnelles. Nous ne vendons ni gains garantis ni méthodes censées augmenter les chances de gagner aux jeux d'argent.</p></div>
       </section>
 
-      <footer class="footer"><span>COTEGO · Prévisualisation du nom — version TEST Stripe — analyses expérimentales</span><span>Sources : <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball CC0 ↗</a> · <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB ODbL ↗</a> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Prévention ANJ ↗</a></span></footer>
+      <footer class="footer"><span>COTEGO · Prévisualisation du nom — version TEST Stripe — analyses expérimentales</span><span>Sources : <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball CC0 ↗</a> · <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB ODbL ↗</a> · <a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Données fournies par football-data.org ↗</a> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Prévention ANJ ↗</a></span></footer>
     </main>
   </div>
 
@@ -393,6 +393,25 @@ body{font-size:14px;letter-spacing:0}
         return;
       }
     }
+    // New scores source: server-side API proxy. The key never enters this browser.
+    // On API failure, clearly label the old archive as fallback.
+    let verifiedError = '';
+    try {
+      if (['fr.1','en.1','es.1','de.1','it.1'].includes(league)) {
+        const freshResponse = await fetch('/api/football/'+encodeURIComponent(league), {cache:'no-store'});
+        if (!freshResponse.ok) throw new Error('HTTP '+freshResponse.status);
+        const payload = await freshResponse.json();
+        if (!payload.ok || !Array.isArray(payload.matches)) throw new Error('Réponse non vérifiée');
+        const excludedLive = new Set(['IN_PLAY','PAUSED','LIVE','HALFTIME','EXTRA_TIME','PENALTY_SHOOTOUT']);
+        const rows = decodeDataset({matches:payload.matches.filter(m=>!excludedLive.has(m._status))},league);
+        if (!rows.length) throw new Error('Aucun match exploitable');
+        // Model training only uses finished games through applyData().
+        applyData(rows,'football-data');
+        return;
+      }
+    } catch (error) {
+      verifiedError = 'Résultats récents indisponibles ('+error.message+'). ';
+    }
     const season=seasonName(state.currentSeason),previous=seasonName(state.currentSeason-1);
     const path=s=>`https://raw.githubusercontent.com/openfootball/football.json/master/${s}/${league}.json`;
     try {
@@ -400,6 +419,7 @@ body{font-size:14px;letter-spacing:0}
       const recent=decodeDataset(current,league), older=decodeDataset(old,league);
       if(!recent.length) throw new Error('La compétition courante ne contient aucune rencontre.');
       applyData([...older,...recent],'remote');
+      if (verifiedError) setNotice(verifiedError+'Données d’archives utilisées à la place : elles peuvent être anciennes et ne sont pas considérées comme actualisées.','warning');
     } catch(e) {
       state.loaded=true;state.matches=[];state.played=[];state.upcoming=[];updateUI();
       setNotice(`Impossible de charger les archives en ligne (${e.message}). Vous pouvez tester le moteur avec « Ligue démo » ou importer votre propre fichier.`, 'error');
@@ -412,7 +432,7 @@ body{font-size:14px;letter-spacing:0}
     const label=$('#source-name'), details=$('#source-details'), flag=$('#source-flag');
     if(!label||!details||!flag)return;
     const last=state.played.at(-1)?.date,age=last?daysBetween(last,today()):null;
-    const names={openligadb:'OpenLigaDB · Bundesliga (ODbL)',remote:'OpenFootball · archives (CC0)',demo:'Jeu de démonstration',custom:'Fichier de l’utilisateur'};
+    const names={'football-data':'football-data.org · scores différés',openligadb:'OpenLigaDB · Bundesliga (ODbL)',remote:'OpenFootball · archives (CC0)',demo:'Jeu de démonstration',custom:'Fichier de l’utilisateur'};
     label.textContent=names[state.mode]||'Source non vérifiée';
     details.textContent=last?`Dernier résultat disponible : ${formatDateFull(last)} · ${state.played.length} matchs terminés`:'Aucun résultat terminé dans cette source';
     if(state.mode==='demo'){
@@ -434,6 +454,10 @@ body{font-size:14px;letter-spacing:0}
     updateUI();
     updateSourceHealth();
     const last=state.played.at(-1)?.date;
+    if(mode==='football-data'){
+      const stale=last?daysBetween(last,today()):null;
+      setNotice('Source : football-data.org · résultats définitifs différés, sans garantie de direct. '+(last?'Dernier match terminé : '+formatDateFull(last)+'.':'Aucun score final disponible.')+' Vérifier les horaires des prochaines rencontres. Données fournies sous conditions par football-data.org.',stale===null||stale>8?'warning':'info');
+    }
     if(mode==='remote'){
       const stale= last ? daysBetween(last,today()) : null;
       const qualifier=stale===null?'Aucun score dans la source.':stale>8?`Attention : le dernier score disponible date du ${formatDateFull(last)}, soit ${stale} jours. Les archives peuvent être incomplètes.`:`Dernier score disponible : ${formatDateFull(last)}.`;
@@ -571,7 +595,7 @@ body{font-size:14px;letter-spacing:0}
     $('#metric-latest').textContent=last?formatDate(last):'—';
     $('#metric-freshness').textContent=state.mode==='demo'?'Données fictives':state.mode==='custom'?'Import utilisateur':last?`${daysBetween(last,today())} j depuis le dernier score`:'Source non renseignée';
     $('#visible-count').textContent=list.length;
-    $('#dataset-subtitle').textContent=`${LEAGUES[state.league].flag} ${LEAGUES[state.league].name} · ${state.mode==='demo'?'données fictives':'archives ouvertes, pas de direct'}`;
+    $('#dataset-subtitle').textContent=`${LEAGUES[state.league].flag} ${LEAGUES[state.league].name} · ${state.mode==='demo'?'données fictives':state.mode==='football-data'?'scores définitifs différés':'archives ouvertes, pas de direct'}`;
     renderCards(list);
     if(state.currentPage==='history')renderHistory();
   }
@@ -785,8 +809,9 @@ body{font-size:14px;letter-spacing:0}
   $('#copyright-year').textContent=new Date().getFullYear();
   window.SportEdgeTest = {tabularCSV,importTennisCSV,importBasketCSV,decodeOpenLiga,normalize,decodeDataset,forecast,poissonList,makeDemo,parseCSV,MARKET_TYPES,today,goalTotals,scorerProbability,halfTimeDistribution,gameHoldProbability,normalCdf};
   loadLeague('fr.1');
-  // Foreground refresh only: no background worker is configured.
-  setInterval(()=>{if(document.visibilityState==='visible' && state.mode!=='demo' && state.mode!=='custom' && state.loaded)loadLeague(state.league,false);},3*3600*1000);
+  // Foreground refresh only; 10 minutes for the verified API, 3 hours for archives.
+  setInterval(()=>{if(document.visibilityState==='visible' && state.mode==='football-data' && state.loaded)loadLeague(state.league,true);},10*60*1000);
+  setInterval(()=>{if(document.visibilityState==='visible' && state.mode!=='football-data' && state.mode!=='demo' && state.mode!=='custom' && state.loaded)loadLeague(state.league,false);},3*3600*1000);
 })();
 
 </script>
