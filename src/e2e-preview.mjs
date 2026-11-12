@@ -34,6 +34,13 @@ try {
       await visibleButton.waitFor({state:'visible',timeout:10000});
       await visibleButton.click();
       await page.locator('#analysis-modal:not(.hidden)').waitFor({state:'visible',timeout:5000});
+      // Verify that the demo modal actually renders all three probability tiers.
+      const picks=page.locator('#modal-content .modal-pick');
+      assert.equal(await picks.count(),3,'Exactly three scenario tiers must be visible');
+      const pickText=await page.locator('#modal-content').innerText();
+      for(const target of ['1.50','2.00','3.00']){
+        assert.ok(pickText.includes(target),'Missing theoretical-odds target '+target);
+      }
       const title=await page.locator('#modal-title').innerText();
       assert.ok(title.includes(' — '),'A match title should be visible in modal');
       await page.locator('#close-modal').click();
