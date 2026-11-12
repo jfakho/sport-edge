@@ -779,6 +779,7 @@ body{font-size:14px;letter-spacing:0}
         const outcome=[['1',f.home],['N',f.draw],['2',f.away]].sort((x,y)=>y[1]-x[1])[0];
         add(textEl,'span','', 'Probabilité modélisée la plus élevée : ');
         add(textEl,'strong','',outcome[0]+' · '+Math.round(outcome[1]*100)+' %');
+        add(textEl,'span','featured-confidence',' · '+f.quality+' · '+f.historyCount+' résultats historiques');
         const scenarios=add(card,'div','featured-scenarios');
         for(const tier of f.tiers){
           const scenario=add(scenarios,'div','featured-scenario');
