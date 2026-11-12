@@ -84,3 +84,9 @@ test('football uses a single bounded recent-data API and never silently falls ba
   assert.match(source,/data-retry-league/);
   assert.match(source,/if \(state\.dataError\)/);
 });
+
+
+test('sandbox subscription UI is included only as a non-secret external script',()=>{
+ assert.match(source,/src="\/cotego-account-test\.js" defer/);
+ assert.doesNotMatch(source,/sk_test_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}/);
+});
