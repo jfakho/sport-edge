@@ -159,3 +159,11 @@ body{background:var(--bg);color:var(--white)}
 .footer .footer-references,.footer .footer-references a{color:#65717b}
 @media(max-width:1000px){#page-home .featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sidebar{background:#f0ede6}}
 @media(max-width:700px){#page-home .featured-grid{grid-template-columns:1fr}.cotego-bottom-nav{background:#f9f7f2f5;border-top-color:#dedbd4}.cotego-bottom-nav button{color:#5c6670}.cotego-bottom-nav button.active{color:#785c3c}.topbar{background:#faf9f6}}
+
+/* Three readable model scenarios on each featured match, no bookmaker odds. */
+.featured-scenarios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.featured-scenario{display:flex;flex-direction:column;gap:5px;min-width:0;padding:10px;border:1px solid #e6e1d7;border-radius:10px;background:#faf9f6;color:#34332f}
+.featured-scenario-target{font-size:11px;font-weight:700;color:#756c5b}
+.featured-scenario-market{font-size:12px;line-height:1.35}
+.featured-scenario-prob{font-size:11px;color:#6d695f;line-height:1.4}
+@media(max-width:680px){.featured-scenarios{grid-template-columns:1fr}.featured-scenario{padding:9px}}
