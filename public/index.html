@@ -381,7 +381,7 @@ body{font-size:14px;letter-spacing:0}
     { name: 'Niveau B · fréquence intermédiaire', target: 2.0, color: 'tier-balanced', brief: 'Cible ~2,00' },
     { name: 'Niveau C · fréquence plus faible', target: 3.0, color: 'tier-risk', brief: 'Cible ~3,00' }
   ];
-  const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason() };
+  const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason(), dataError:'' };
   const MARKET_TYPES = [
     ['home', 'Victoire domicile', 'result', (a,b)=>a>b],
     ['draw', 'Match nul', 'result', (a,b)=>a===b],
@@ -429,7 +429,7 @@ body{font-size:14px;letter-spacing:0}
   }
   function decodeDataset(data, league) { const arr=Array.isArray(data) ? data : data?.matches; if(!Array.isArray(arr)) throw new Error('Format JSON non reconnu.'); return arr.map(m=>normalize(m,league)).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date) || a.home.localeCompare(b.home)); }
   function setNotice(message, type='info') { const el=$('#data-notice'); if(!message) {el.className='notice hidden';el.textContent='';return;} el.className=`notice ${type}`;el.textContent=message; }
-  function setLoading() { $('#matches-list').innerHTML='<div class="loading-state"><div class="spinner"></div><strong>Chargement des données…</strong><p>Connexion à une archive publique sans clé API.</p></div>'; }
+  function setLoading() { $('#matches-list').innerHTML='<div class="loading-state"><div class="spinner"></div><strong>Connexion aux données sportives…</strong><p>Recherche des dernières rencontres disponibles.</p></div>'; }
   async function fetchJSON(url,refresh) {
     const cacheKey='sportedge_cache_'+url;
     if(!refresh){try{let c=JSON.parse(localStorage.getItem(cacheKey)||'null'); if(c&&Date.now()-c.saved<6*3600*1000) return c.data;}catch{}}
@@ -487,63 +487,69 @@ body{font-size:14px;letter-spacing:0}
     return result;
   }
 
+  let leagueRequestId = 0;
+  function setSourceUnavailable(message) {
+    state.mode = 'unavailable';
+    state.loaded = true;
+    state.matches = [];
+    state.played = [];
+    state.upcoming = [];
+    state.dataError = message;
+    updateUI();
+    setNotice(message, 'error');
+    $('#matches-list').innerHTML = '<div class="empty-panel"><strong>Données récentes indisponibles</strong><p>Les analyses sont temporairement suspendues. Aucun résultat ancien ne sera présenté comme récent.</p><div class="empty-state-actions"><button class="btn btn-primary" type="button" data-retry-league="1">Réessayer la connexion</button></div></div>';
+  }
+
   async function loadLeague(league,refresh=false) {
-    state.league=league; $('#league-select').value=league; state.loaded=false; state.archiveFallback=false;
+    const requestId=++leagueRequestId;
+    state.league=league;$('#league-select').value=league;state.loaded=false;
+    state.archiveFallback=false;state.dataError='';
     renderFeatured();
-    $('#source-name').textContent=league==='de-live'?'OpenLigaDB':league==='demo'?'Démonstration':league==='custom'?'Import local':'OpenFootball';
-    $('#source-details').textContent='Récupération des derniers fichiers accessibles…';
+    $('#source-name').textContent=league==='de-live'?'OpenLigaDB':league==='demo'?'Démonstration':league==='custom'?'Import local':'football-data.org';
+    $('#source-details').textContent='Vérification des données récentes…';
     $('#source-flag').textContent='Chargement';$('#source-flag').className='source-flag';
-    if(league==='demo') { applyData(makeDemo(), 'demo'); setNotice('DÉMONSTRATION : toutes les équipes, les rencontres et les scores sont fictifs. Aucune donnée de bookmaker.','warning'); return; }
-    if(league==='custom') { if(state.custom) {applyData(state.custom,'custom');setNotice('Données importées par vos soins, stockées uniquement dans cette session. Vérifiez leur exactitude.');} else {state.matches=[];state.played=[];state.upcoming=[];state.loaded=true;updateUI();setNotice('Aucun fichier importé. Ouvrez « Importer des données » pour charger vos rencontres.','warning');} return; }
-    setLoading(); setNotice('Connexion à une archive communautaire : résultats potentiellement incomplets et horaires non confirmés. Pas de données en direct.');
+    if(league==='demo') {applyData(makeDemo(),'demo');setNotice('DÉMONSTRATION : équipes, rencontres et résultats fictifs.','warning');return;}
+    if(league==='custom') {if(state.custom){applyData(state.custom,'custom');setNotice('Fichier utilisateur non vérifié.');}else{state.matches=[];state.played=[];state.upcoming=[];state.loaded=true;updateUI();setNotice('Aucun fichier importé.','warning');}return;}
+    setLoading();setNotice('Vérification des matchs, résultats et dates auprès du fournisseur.');
     if(league==='de-live'){
       try{
         const fresh=await loadOpenLiga(refresh);
+        if(requestId!==leagueRequestId)return;
         applyData(fresh,'openligadb');
-        return;
-      }catch(e){
-        state.loaded=true;state.matches=[];state.played=[];state.upcoming=[];updateUI();
-        setNotice(`OpenLigaDB indisponible (${e.message}). Sélectionnez « Bundesliga · archives CC0 » pour accéder aux archives ou utilisez la démo.`, 'error');
-        $('#matches-list').innerHTML='<div class="empty-panel">La source communautaire ne répond pas actuellement. Choisissez un autre championnat ou réessayez plus tard.</div>';
-        return;
+      }catch{
+        if(requestId!==leagueRequestId)return;
+        setSourceUnavailable('Bundesliga : source communautaire indisponible. Réessayez plus tard.');
       }
+      return;
     }
-    // New scores source: server-side API proxy. The key never enters this browser.
-    // On API failure, clearly label the old archive as fallback.
-    let verifiedError = '';
-    try {
-      if (['fr.1','en.1','es.1','de.1','it.1'].includes(league)) {
-        const freshResponse = await fetch('/api/football/'+encodeURIComponent(league), {cache:'no-store'});
-        if (!freshResponse.ok) throw new Error('HTTP '+freshResponse.status);
-        const payload = await freshResponse.json();
-        if (!payload.ok || !Array.isArray(payload.matches)) throw new Error('Réponse non vérifiée');
-        const excludedLive = new Set(['IN_PLAY','PAUSED','LIVE','HALFTIME','EXTRA_TIME','PENALTY_SHOOTOUT']);
-        const rows = decodeDataset({matches:payload.matches.filter(m=>!excludedLive.has(m._status))},league);
-        if (!rows.length) throw new Error('Aucun match exploitable');
-        // Model training only uses finished games through applyData().
-        applyData(rows,'football-data');
-        return;
+    if(!['fr.1','en.1','es.1','de.1','it.1'].includes(league)){
+      setSourceUnavailable('Ce championnat n’est pas pris en charge par la source récente.');
+      return;
+    }
+    const abort=new AbortController();
+    const deadline=setTimeout(()=>abort.abort(),12000);
+    try{
+      const response=await fetch('/api/football/'+encodeURIComponent(league),{cache:'no-store',signal:abort.signal});
+      if(requestId!==leagueRequestId)return;
+      if(!response.ok){
+        let reason='';
+        try{const payload=await response.json();reason=String(payload.error||'');}catch{}
+        throw new Error(reason||('Service indisponible (HTTP '+response.status+')'));
       }
-    } catch (error) {
-      verifiedError = 'Résultats récents indisponibles ('+error.message+'). ';
-    }
-    const season=seasonName(state.currentSeason),previous=seasonName(state.currentSeason-1);
-    const path=s=>`https://raw.githubusercontent.com/openfootball/football.json/master/${s}/${league}.json`;
-    try {
-      const [current,old] = await Promise.all([fetchJSON(path(season),refresh),fetchJSON(path(previous),refresh).catch(()=>({matches:[]}))]);
-      const recent=decodeDataset(current,league), older=decodeDataset(old,league);
-      if(!recent.length) throw new Error('La compétition courante ne contient aucune rencontre.');
-      applyData([...older,...recent],'remote');
-      if (verifiedError) setNotice(verifiedError+'Données d’archives utilisées à la place : elles peuvent être anciennes et ne sont pas considérées comme actualisées.','warning');
-    } catch(e) {
-      state.loaded=true;state.matches=[];state.played=[];state.upcoming=[];updateUI();
-      setNotice(`Impossible de charger les archives en ligne (${e.message}). Vous pouvez tester le moteur avec « Ligue démo » ou importer votre propre fichier.`, 'error');
-      $('#matches-list').innerHTML='<div class="empty-panel"><strong>Aucune connexion aux archives</strong><p>Le moteur reste disponible sans connexion avec des données de démonstration.</p><div class="empty-state-actions"><button class="btn btn-primary" id="fallback-demo">Ouvrir la démo ↗</button><button class="btn btn-outline" id="retry-load">Réessayer</button></div></div>';
-      $('#fallback-demo').addEventListener('click',()=>loadLeague('demo'));
-      $('#retry-load').addEventListener('click',()=>loadLeague(state.league,true));
-    }
+      const payload=await response.json();
+      if(!payload?.ok||!Array.isArray(payload.matches))throw new Error('Réponse sportive non valide');
+      const excludedLive=new Set(['IN_PLAY','PAUSED','LIVE','HALFTIME','EXTRA_TIME','PENALTY_SHOOTOUT']);
+      const rows=decodeDataset({matches:payload.matches.filter(m=>!excludedLive.has(m._status))},league);
+      if(!rows.length)throw new Error('Aucune rencontre vérifiable');
+      if(requestId!==leagueRequestId)return;
+      applyData(rows,'football-data');
+    }catch(error){
+      if(requestId!==leagueRequestId)return;
+      const reason=error?.name==='AbortError'?'Délai de réponse dépassé':String(error?.message||'Connexion indisponible').slice(0,160);
+      setSourceUnavailable('Source sportive récente indisponible : '+reason+'. Les archives anciennes ne sont plus affichées à sa place.');
+    }finally{clearTimeout(deadline);}
   }
-  function updateSourceHealth(){
+    function updateSourceHealth(){
     const label=$('#source-name'), details=$('#source-details'), flag=$('#source-flag');
     if(!label||!details||!flag)return;
     const last=state.played.at(-1)?.date,age=last?daysBetween(last,today()):null;
@@ -716,6 +722,14 @@ body{font-size:14px;letter-spacing:0}
       if(value!==undefined)el.textContent=String(value);
       parent.appendChild(el);return el;
     };
+    if (state.dataError) {
+      status.textContent='Source sportive indisponible';
+      add(root,'div','featured-empty',state.dataError);
+      const retry=add(root,'button','featured-action','Réessayer');
+      retry.type='button';retry.dataset.retryLeague='1';
+      $('#home-selection-count').textContent='Aucune donnée vérifiée';
+      return;
+    }
     if (!state.loaded) {
       status.textContent='Actualisation des rencontres…';
       add(root,'div','featured-empty','Chargement de la sélection…');
@@ -979,6 +993,7 @@ body{font-size:14px;letter-spacing:0}
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv;charset=utf-8'}));a.download='cotego-modele.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
   }
   document.addEventListener('click',e=>{
+    const retry=e.target.closest('[data-retry-league]');if(retry){loadLeague(state.league,true);return;}
     const chip=e.target.closest('[data-featured-league]');if(chip){const league=chip.dataset.featuredLeague;if(LEAGUES[league])loadLeague(league);return;}
     const nav=e.target.closest('[data-page], [data-link]');if(nav){
       if(nav.dataset.favs==='1'){$('#favorites-toggle').setAttribute('aria-pressed','true');updateUI();}

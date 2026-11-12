@@ -17,6 +17,8 @@ export default {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     if (request.method !== 'GET') return errorJSON('Méthode non autorisée',405,{allow:'GET'});
+    if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+
 
     const match = /^\/api\/football\/([^/]+)$/.exec(url.pathname);
     if (!match) return errorJSON('Route inconnue',404);

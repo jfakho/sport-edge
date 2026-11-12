@@ -61,3 +61,17 @@ test('upstream 401 is hidden from browser', async()=>{
     assert.ok(!(await res.text()).includes('token invalid'));
   } finally {mock.restoreAll();}
 });
+
+
+test('status endpoint exposes only configuration availability, not the token',async()=>{
+  const secret='never-send-secret-to-browser';
+  const r=await worker.fetch(api('/api/status'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:secret},{});
+  const result=await r.json();
+  assert.equal(r.status,200);
+  assert.equal(result.ok,true);
+  assert.equal(result.footballDataConfigured,true);
+  assert.equal(result.liveScores,false);
+  assert.ok(!(JSON.stringify(result).includes(secret)));
+  const unconfigured=await worker.fetch(api('/api/status'),envWithoutSecret,{});
+  assert.equal((await unconfigured.json()).footballDataConfigured,false);
+});

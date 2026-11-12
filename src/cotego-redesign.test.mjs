@@ -70,3 +70,17 @@ test('match detail action opens the modal and navigation uses valid multi-select
   assert.match(source, /function openAnalysis\(id\)\s*\{/);
   assert.match(source, /\$\('#analysis-modal'\)\.classList\.remove\('hidden'\)/);
 });
+
+
+test('football uses a single bounded recent-data API and never silently falls back to old archives',()=>{
+  const start=source.indexOf('async function loadLeague(');
+  const end=source.indexOf('function updateSourceHealth(',start);
+  const loader=source.slice(start,end);
+  assert.ok(start>=0 && end>start);
+  assert.match(loader,/fetch\('\/api\/football\/'/);
+  assert.match(loader,/new AbortController\(\)/);
+  assert.match(loader,/setSourceUnavailable/);
+  assert.doesNotMatch(loader,/raw\.githubusercontent\.com|applyData\(\[\.\.\.older/);
+  assert.match(source,/data-retry-league/);
+  assert.match(source,/if \(state\.dataError\)/);
+});
