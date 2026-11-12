@@ -58,3 +58,9 @@ test('freshness uses exact UTC kick-off, not localized Paris time',()=>{
  assert.equal(freshness.latestFinishedAt,'2026-11-10T21:00:00.000Z');
  assert.equal(freshness.hoursSinceLatestFinished,3);
 });
+
+test('international competitions are mapped to football-data.org codes',()=>{
+ assert.equal(COMPETITIONS['intl.cl'],'CL');
+ assert.equal(COMPETITIONS['intl.wc'],'WC');
+ assert.equal(COMPETITIONS['intl.ec'],'EC');
+});
