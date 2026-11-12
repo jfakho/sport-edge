@@ -425,7 +425,7 @@ body{font-size:14px;letter-spacing:0}
     const htVal=raw.score?.ht ?? raw.half_time ?? null;
     let ht=null;
     if(score && Array.isArray(htVal) && htVal.length>=2 && htVal.slice(0,2).every((v,i)=>v!=='' && v!==null && Number.isInteger(Number(v)) && Number(v)>=0 && Number(v)<=score[i])) ht=htVal.slice(0,2).map(Number);
-    return {date, time: String(raw.time || ''), home:String(raw.team1).trim(), away:String(raw.team2).trim(), score, ht, league, id:[league,date,raw.team1,raw.team2].join('|')};
+    return {date, time: String(raw.time || ''), home:String(raw.team1).trim(), away:String(raw.team2).trim(), score, ht, league, sourceId:raw._sourceId??null, kickoffUtc:raw._kickoffUtc??null, sourceStatus:raw._status??null, id:[league,date,raw.team1,raw.team2].join('|')};
   }
   function decodeDataset(data, league) { const arr=Array.isArray(data) ? data : data?.matches; if(!Array.isArray(arr)) throw new Error('Format JSON non reconnu.'); return arr.map(m=>normalize(m,league)).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date) || a.home.localeCompare(b.home)); }
   function setNotice(message, type='info') { const el=$('#data-notice'); if(!message) {el.className='notice hidden';el.textContent='';return;} el.className=`notice ${type}`;el.textContent=message; }
@@ -1036,7 +1036,7 @@ body{font-size:14px;letter-spacing:0}
       else if(nav.dataset.page==='dashboard'){$('#favorites-toggle').setAttribute('aria-pressed','false');updateUI();}
       navigate(nav.dataset.page||nav.dataset.link);return;
     }
-    const analyze=e.target.closest('[data-analyze]');if(analyze){const league=analyze.dataset.analyzeLeague;if(league && league!==state.league){loadLeague(league).then(()=>openAnalysis(analyze.dataset.analyze));}else openAnalysis(analyze.dataset.analyze);return;}
+    const analyze=e.target.closest('[data-analyze]');if(analyze){const league=analyze.dataset.analyzeLeague;if(league && league!==state.league){const target=analyze.dataset.analyze;loadLeague(league).then(()=>{if(state.league===league)openAnalysis(target);});}else openAnalysis(analyze.dataset.analyze);return;}
     const fav=e.target.closest('[data-favorite]');if(fav){const id=fav.dataset.favorite;state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);saveFavorites();updateUI();return;}
   });
   $('#league-select').addEventListener('change',e=>loadLeague(e.target.value));
