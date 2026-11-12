@@ -1,7 +1,7 @@
 name: COTEGO tests
 on:
   push:
-    branches: [main, feature/fresh-football-data-adapter]
+    branches: [main, feature/fresh-football-data-adapter, feature/cotego-premium-ux]
   pull_request:
     branches: [main]
 permissions:
