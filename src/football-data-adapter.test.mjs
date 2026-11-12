@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {COMPETITIONS, normalizeFootballDataMatch, normalizeFootballDataSeason, footballDataFreshness} from './football-data-adapter.mjs';
+import {COMPETITIONS, normalizeFootballDataMatch, normalizeFootballDataSeason, footballDataFreshness, selectUpcomingMatches} from './football-data-adapter.mjs';
 const fixedNow = new Date('2026-11-11T12:00:00Z');
 const base = {
  id:123, status:'FINISHED', utcDate:'2026-11-10T21:00:00Z',
@@ -63,4 +63,16 @@ test('international competitions are mapped to football-data.org codes',()=>{
  assert.equal(COMPETITIONS['intl.cl'],'CL');
  assert.equal(COMPETITIONS['intl.wc'],'WC');
  assert.equal(COMPETITIONS['intl.ec'],'EC');
+});
+
+test('featured fixtures exclude in-play and paused matches and past kickoffs',()=>{
+ const future='2026-11-14T20:00:00.000Z';
+ const fixtures=[
+  {_status:'IN_PLAY',score:null,_kickoffUtc:future},
+  {_status:'PAUSED',score:null,_kickoffUtc:future},
+  {_status:'TIMED',score:null,_kickoffUtc:future},
+  {_status:'SCHEDULED',score:null,_kickoffUtc:future},
+  {_status:'SCHEDULED',score:null,_kickoffUtc:'2026-11-10T20:00:00.000Z'},
+ ];
+ assert.deepEqual(selectUpcomingMatches(fixtures,fixedNow),[fixtures[2],fixtures[3]]);
 });
