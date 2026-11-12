@@ -59,3 +59,14 @@ test('all multi-element actions use querySelectorAll helper instead of querySele
     assert.ok(source.includes(`$$('${selector}').forEach`),`Missing collection iteration for ${selector}`);
   }
 });
+
+
+test('match detail action opens the modal and navigation uses valid multi-select helper', () => {
+  assert.doesNotMatch(source, /\$\$\$\(/, 'Unknown $$$ helper would prevent click handlers from finishing');
+  for (const selector of ['.home-tab','.odd-input','.page','.nav-item','.cotego-bottom-nav button']) {
+    assert.ok(source.includes("$$('" + selector + "').forEach"), 'Broken selector for ' + selector);
+  }
+  assert.match(source, /const analyze=e\.target\.closest\('\[data-analyze\]'\);if\(analyze\)\{openAnalysis\(analyze\.dataset\.analyze\);return;\}/);
+  assert.match(source, /function openAnalysis\(id\)\s*\{/);
+  assert.match(source, /\$\('#analysis-modal'\)\.classList\.remove\('hidden'\)/);
+});

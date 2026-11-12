@@ -829,7 +829,7 @@ body{font-size:14px;letter-spacing:0}
     $('#modal-content').innerHTML=`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>${tierHTML}${footballExtrasMarkup(f,m)}<div class="model-warning">⚠ ${escapeHtml(f.quality)}. Calcul basé sur ${f.historyCount} résultats précédant ce match, dont ${f.playedHome} matchs de l'équipe à domicile et ${f.playedAway} de l'équipe à l'extérieur (tous terrains). Dernier résultat disponible : ${escapeHtml(formatDateFull(state.played.at(-1)?.date))}. Modèle expérimental non calibré sur des données de validation indépendantes ; il n'intègre pas les absences ou compositions. Les cotes affichées sont théoriques, jamais des offres de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div>`;
     ['scorer-team','scorer-name','scorer-share','scorer-minutes'].forEach(id=>$('#'+id)?.addEventListener('input',()=>updateScorer(f)));
     $('#scorer-team')?.addEventListener('change',()=>updateScorer(f));
-    $$$('.odd-input').forEach(input=>input.addEventListener('input',e=>{
+    $$('.odd-input').forEach(input=>input.addEventListener('input',e=>{
       const i=Number(input.dataset.odd),out=$(`#odd-output-${i}`),raw=input.value.replace(',','.'),odd=Number(raw),prob=f.tiers[i].market.p;
       if(!raw){out.textContent='Aucune cote de bookmaker importée';out.className='value-output';return;}
       if(!Number.isFinite(odd)||odd<=1||odd>1000){out.textContent='Saisir une cote supérieure à 1';out.className='value-output bad';return;}
@@ -840,8 +840,8 @@ body{font-size:14px;letter-spacing:0}
   function closeModal() {$('#analysis-modal').classList.add('hidden');document.body.style.overflow='';state.selectedId=null;}
   function navigate(page){
     state.currentPage=page;
-    $$$('.page').forEach(p=>p.classList.toggle('visible',p.id===`page-${page}`));
-    $$$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+    $$('.page').forEach(p=>p.classList.toggle('visible',p.id===`page-${page}`));
+    $$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
     $('#breadcrumb-page').textContent={home:'À la une',dashboard:'Matchs & analyses',history:'Historique & tests',method:'Notre méthode',import:'Importer des données',lab:'Tennis & basket',membership:'COTEGO Plus',install:"Installer l'application",about:'À propos & sources'}[page]||'COTEGO';
     $$('.cotego-bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page || (b.dataset.favs==='1' && page==='dashboard' && $('#favorites-toggle').getAttribute('aria-pressed')==='true')));
     if(page==='home')renderFeatured();
