@@ -3,7 +3,7 @@
  * Confidential: FOOTBALL_DATA_API_KEY exists only as a Worker secret.
  * Static assets remain static; only /api/* invokes this Worker.
  */
-import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness} from './football-data-adapter.mjs';
+import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness, selectUpcomingMatches} from './football-data-adapter.mjs';
 import {handleBillingTest} from './billing-test.mjs';
 
 const CACHE_SECONDS = 600;
@@ -40,7 +40,7 @@ export default {
           });
           if (!upstream.ok) {results.push({league,ok:false,error:'Source indisponible'});continue;}
           const matches=normalizeFootballDataSeason(await upstream.json(),league);
-          results.push({league,ok:true,matches:matches.filter(x=>!x.score && Date.parse(x._kickoffUtc)>Date.now()).slice(0,12),
+          results.push({league,ok:true,matches:selectUpcomingMatches(matches),
             historicalMatches:matches.filter(x=>!!x.score).slice(-80)});
         } catch {results.push({league,ok:false,error:'Source indisponible'});}
       }
