@@ -100,3 +100,13 @@ test('featured cards show all three scenario targets and their model probabiliti
   assert.match(source,/featured-scenario-prob/);
   assert.match(css,/\.featured-scenarios/);
 });
+
+
+test('analysis modal never renders infinite theoretical odds for missing scenarios',()=>{
+  assert.match(source,/const theoreticalOdd=p>0 \? \(1\/p\)\.toFixed\(2\) : 'Indisponible'/);
+  const start=source.indexOf('const tierHTML=f.tiers.map');
+  const end=source.indexOf("}).join('');",start);
+  const html=source.slice(start,end);
+  assert.match(html,/\$\{theoreticalOdd\}/);
+  assert.doesNotMatch(html,/\$\{\(1\/p\)\.toFixed\(2\)\}/);
+});
