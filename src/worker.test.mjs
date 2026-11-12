@@ -75,3 +75,20 @@ test('status endpoint exposes only configuration availability, not the token',as
   const unconfigured=await worker.fetch(api('/api/status'),envWithoutSecret,{});
   assert.equal((await unconfigured.json()).footballDataConfigured,false);
 });
+
+test('cross-league endpoint exposes five independent competitions and never leaks token',async()=>{
+  const seen=[];
+  mock.method(globalThis,'fetch',async url=>{
+    seen.push(String(url));
+    return new Response(JSON.stringify({matches:[match]}),{status:200,headers:{'content-type':'application/json'}});
+  });
+  try {
+    const response=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'private-token'},{});
+    assert.equal(response.status,200);
+    const payload=await response.json();
+    assert.equal(payload.competitions.length,5);
+    assert.deepEqual(payload.competitions.map(x=>x.league),['fr.1','en.1','es.1','de.1','it.1']);
+    assert.equal(seen.length,5);
+    assert.ok(!JSON.stringify(payload).includes('private-token'));
+  } finally {mock.restoreAll();}
+});
