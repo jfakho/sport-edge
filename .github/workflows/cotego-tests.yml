@@ -19,7 +19,7 @@ jobs:
         run: node --test src/*.test.mjs
 
   smoke-preview:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
     needs: unit-tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -62,7 +62,7 @@ jobs:
           echo 'Verified delayed football data available'
 
   browser-preview:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
     needs: unit-tests
     runs-on: ubuntu-latest
     timeout-minutes: 12
