@@ -92,3 +92,11 @@ test('sandbox subscription UI is included only as a non-secret external script',
 });
 
 test('approved light palette and three featured cards',()=>{assert.match(css,/--bg:#f6f4ef/);assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);assert.match(source,/name="color-scheme" content="light"/);});
+
+test('featured cards show all three scenario targets and their model probabilities',()=>{
+  assert.match(source,/featured-scenarios/);
+  assert.match(source,/for\(const tier of f\.tiers\)/);
+  assert.match(source,/featured-scenario-target/);
+  assert.match(source,/featured-scenario-prob/);
+  assert.match(css,/\.featured-scenarios/);
+});
