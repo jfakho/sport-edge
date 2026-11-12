@@ -122,3 +122,10 @@ test('sparse historical data uses transparent priors instead of suppressing fore
   assert.match(model,/Simulation sans historique/);
   assert.match(model,/Fiabilité très faible/);
 });
+
+test('homepage shows three scenarios and explicit confidence with historical sample size',()=>{
+  assert.match(source,/className\s*=\s*['"]featured-scenarios/);
+  assert.match(source,/for\(const tier of f\.tiers\)/);
+  assert.match(source,/featured-confidence/);
+  assert.match(source,/f\.historyCount\+' résultats historiques'/);
+});
