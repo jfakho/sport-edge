@@ -66,8 +66,8 @@ test('match detail action opens the modal and navigation uses valid multi-select
   for (const selector of ['.home-tab','.odd-input','.page','.nav-item','.cotego-bottom-nav button']) {
     assert.ok(source.includes("$$('" + selector + "').forEach"), 'Broken selector for ' + selector);
   }
-  assert.match(source, /const analyze=e\\.target\\.closest\\('\\[data-analyze\\]'\\);if\\(analyze\\)\\{/);
-  assert.match(source, /loadLeague\\(league\\)\\.then/);
+  assert.ok(source.includes("const analyze=e.target.closest('[data-analyze]');if(analyze){"));
+  assert.ok(source.includes('loadLeague(league).then'));
   assert.match(source, /function openAnalysis\(id\)\s*\{/);
   assert.match(source, /\$\('#analysis-modal'\)\.classList\.remove\('hidden'\)/);
 });
