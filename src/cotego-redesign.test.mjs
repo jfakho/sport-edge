@@ -110,3 +110,15 @@ test('analysis modal never renders infinite theoretical odds for missing scenari
   assert.match(html,/\$\{theoreticalOdd\}/);
   assert.doesNotMatch(html,/\$\{\(1\/p\)\.toFixed\(2\)\}/);
 });
+
+test('sparse historical data uses transparent priors instead of suppressing forecasts',()=>{
+  const start=source.indexOf('function forecast(match, all)');
+  const end=source.indexOf('function poissonList(lambda)',start);
+  const model=source.slice(start,end);
+  assert.ok(start>=0 && end>start);
+  assert.doesNotMatch(model,/if\s*\(previous\.length\s*<\s*24\)\s*return null/);
+  assert.doesNotMatch(model,/if\s*\(playedHome\s*<\s*2\s*\|\|\s*playedAway\s*<\s*2\)\s*return null/);
+  assert.match(model,/priorWeight=12/);
+  assert.match(model,/Simulation sans historique/);
+  assert.match(model,/Fiabilité très faible/);
+});
