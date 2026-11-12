@@ -22,6 +22,37 @@ export default {
     if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 
 
+    // Cross-league fixtures: one client request, five upstream requests max.
+    // No stale or fabricated fixtures; each competition reports its own availability.
+    if (url.pathname === '/api/football-featured') {
+      if (!env.FOOTBALL_DATA_API_KEY) return errorJSON('Source de résultats non configurée',503);
+      const leagues=['fr.1','en.1','es.1','de.1','it.1'];
+      const cache = typeof caches !== 'undefined' ? caches.default : null;
+      const cacheKey=new Request(url.origin+'/api/football-featured',{method:'GET'});
+      if (cache) {const cached=await cache.match(cacheKey);if(cached)return cached;}
+      const results=[];
+      // Sequential requests stay below the free provider's 10 calls/minute limit.
+      for (const league of leagues) {
+        try {
+          const upstream=await fetch('https://api.football-data.org/v4/competitions/'+COMPETITIONS[league]+'/matches',{
+            headers:{'X-Auth-Token':env.FOOTBALL_DATA_API_KEY,Accept:'application/json'},
+            redirect:'manual',signal:AbortSignal.timeout(9000),
+          });
+          if (!upstream.ok) {results.push({league,ok:false,error:'Source indisponible'});continue;}
+          const matches=normalizeFootballDataSeason(await upstream.json(),league);
+          results.push({league,ok:true,matches:matches.filter(x=>!x.score && Date.parse(x._kickoffUtc)>Date.now()).slice(0,12),
+            historicalMatches:matches.filter(x=>!!x.score).slice(-80)});
+        } catch {results.push({league,ok:false,error:'Source indisponible'});}
+      }
+      const ok=results.some(x=>x.ok);
+      if (!ok)return errorJSON('Aucune compétition disponible',503);
+      const response=new Response(JSON.stringify({ok:true,source:'football-data.org',receivedAt:new Date().toISOString(),competitions:results}),{
+        headers:{'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=120, s-maxage=600','x-content-type-options':'nosniff'},
+      });
+      if(cache&&context?.waitUntil)context.waitUntil(cache.put(cacheKey,response.clone()));
+      return response;
+    }
+
     const match = /^\/api\/football\/([^/]+)$/.exec(url.pathname);
     if (!match) return errorJSON('Route inconnue',404);
     const league = decodeURIComponent(match[1]);
