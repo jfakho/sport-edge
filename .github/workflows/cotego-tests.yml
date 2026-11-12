@@ -16,4 +16,42 @@ jobs:
         with:
           node-version: '22'
       - name: Test des résultats et du proxy (sans clé réelle)
-        run: node --test src/football-data-adapter.test.mjs src/worker.test.mjs src/cotego-redesign.test.mjs
+        run: node --test src/*.test.mjs
+
+  smoke-preview:
+    if: github.event_name == 'pull_request'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Cloudflare Preview API configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          ready=0
+          for attempt in $(seq 1 10); do
+            status=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-health.json --write-out '%{http_code}' "$BASE/api/status" || true)
+            if [ "$status" = '200' ] && jq -e '.ok==true and .footballDataConfigured==true' /tmp/cotego-health.json >/dev/null 2>&1; then
+              ready=1; break
+            fi
+            sleep 12
+          done
+          if [ "$ready" != '1' ]; then
+            echo 'COTEGO Preview unavailable or football source secret missing'
+            cat /tmp/cotego-health.json || true
+            exit 1
+          fi
+          echo 'Preview API status is healthy'
+      - name: Check actual Ligue 1 match feed and freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          code=$(curl --silent --show-error --max-time 25 --output /tmp/cotego-football.json --write-out '%{http_code}' "$BASE/api/football/fr.1" || true)
+          if [ "$code" != '200' ] || ! jq -e '.ok==true and (.matches|length>=20) and .freshness.latestFinishedAt!=null' /tmp/cotego-football.json >/dev/null 2>&1; then
+            echo 'COTEGO Preview football data missing; inspect Cloudflare Preview secret and API provider'
+            head -c 700 /tmp/cotego-football.json || true
+            exit 1
+          fi
+          echo 'Verified delayed football data available'
