@@ -4,6 +4,7 @@
  * Static assets remain static; only /api/* invokes this Worker.
  */
 import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness} from './football-data-adapter.mjs';
+import {handleBillingTest} from './billing-test.mjs';
 
 const CACHE_SECONDS = 600;
 const CODES = Object.keys(COMPETITIONS);
@@ -16,6 +17,7 @@ export default {
   async fetch(request, env, context) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    if (url.pathname.startsWith('/api/account/') || url.pathname.startsWith('/api/billing/')) return handleBillingTest(request,env);
     if (request.method !== 'GET') return errorJSON('Méthode non autorisée',405,{allow:'GET'});
     if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 
