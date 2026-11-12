@@ -54,8 +54,8 @@ async function webhook(r,env){
  if(!await verifyStripeSignature(raw,r.headers.get("stripe-signature"),env.STRIPE_TEST_WEBHOOK_SECRET))return error("Invalid signature",400);
  let event;try{event=JSON.parse(raw);}catch{return error("Invalid event",400);}
  if(event.livemode!==false||!/^evt_/.test(event.id||""))return error("Live event rejected",400);
- const insert=await env.COTEGO_DB.prepare("INSERT OR IGNORE INTO billing_events (event_id,created_at) VALUES (?,?)").bind(event.id,event.created||0).run();
- if(!insert.meta?.changes)return json({ok:true,duplicate:true});
+ const existing=await env.COTEGO_DB.prepare("SELECT event_id FROM billing_events WHERE event_id=?").bind(event.id).first();
+ if(existing)return json({ok:true,duplicate:true});
  const obj=event.data?.object||{};
  if(event.type==="checkout.session.completed"){
    const user=String(obj.client_reference_id||"");
@@ -74,6 +74,8 @@ async function webhook(r,env){
      }
    }
  }
+ // Record as processed only after all entitlement changes succeeded.
+ await env.COTEGO_DB.prepare("INSERT OR IGNORE INTO billing_events (event_id,created_at) VALUES (?,?)").bind(event.id,event.created||0).run();
  return json({ok:true});
 }
 export async function handleBillingTest(r,env){
@@ -116,7 +118,7 @@ export async function handleBillingTest(r,env){
  if(!user)return error("Sign in required",401);
  if(path==="/api/account/me"&&r.method==="GET"){
    const sub=await env.COTEGO_DB.prepare("SELECT status,period_end FROM subscriptions WHERE user_id=?").bind(user.id).first();
-   const isPlus=sub?.status==="active"&&(!sub.period_end||sub.period_end*1000>Date.now());
+   const isPlus=sub?.status==="active"&&Number(sub.period_end)>0&&Number(sub.period_end)*1000>Date.now();
    return json({ok:true,email:user.email,plan:isPlus?"plus":"free",subscriptionStatus:sub?.status||null});
  }
  if(path==="/api/billing/checkout"&&r.method==="POST"){
