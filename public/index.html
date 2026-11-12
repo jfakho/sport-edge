@@ -778,6 +778,16 @@ body{font-size:14px;letter-spacing:0}
         const outcome=[['1',f.home],['N',f.draw],['2',f.away]].sort((x,y)=>y[1]-x[1])[0];
         add(textEl,'span','', 'Probabilité modélisée la plus élevée : ');
         add(textEl,'strong','',outcome[0]+' · '+Math.round(outcome[1]*100)+' %');
+        const scenarios=add(card,'div','featured-scenarios');
+        for(const tier of f.tiers){
+          const scenario=add(scenarios,'div','featured-scenario');
+          add(scenario,'span','featured-scenario-target','Cible ×'+tier.target.toFixed(2).replace('.',','));
+          const probability=tier.market?.p;
+          add(scenario,'strong','featured-scenario-market',tier.market?.name||'Données insuffisantes');
+          add(scenario,'span','featured-scenario-prob',Number.isFinite(probability) && probability>0
+            ? Math.round(probability*100)+' % estimés · cote théorique ×'+(1/probability).toFixed(2).replace('.',',')
+            : 'Probabilité indisponible');
+        }
       } else add(textEl,'span','', 'Analyse statistique indisponible');
       const action=add(bottom,'button','featured-action',f?'Voir l’analyse ↗':'Données insuffisantes');
       action.type='button';
