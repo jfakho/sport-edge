@@ -211,7 +211,7 @@ body{font-size:14px;letter-spacing:0}
           <button type="button" class="home-tab" data-featured-league="it.1" aria-pressed="false">Serie A</button>
           <button type="button" class="home-tab" data-featured-league="de-live" aria-pressed="false">Bundesliga</button>
         </div>
-        <div class="home-section-head"><h2>À l'affiche</h2><span class="home-count" id="home-selection-count">Jusqu'à 4 rencontres</span></div>
+        <div class="home-section-head"><h2>À l'affiche</h2><span class="home-count" id="home-selection-count">3 rencontres</span></div>
         <div class="featured-grid" id="featured-grid" aria-live="polite">
           <div class="featured-empty">Chargement de la sélection de matchs…</div>
         </div>
@@ -381,7 +381,7 @@ body{font-size:14px;letter-spacing:0}
     { name: 'Niveau B · fréquence intermédiaire', target: 2.0, color: 'tier-balanced', brief: 'Cible ~2,00' },
     { name: 'Niveau C · fréquence plus faible', target: 3.0, color: 'tier-risk', brief: 'Cible ~3,00' }
   ];
-  const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason(), dataError:'' };
+  const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason(), dataError:'', featuredData:null, featuredLoading:false };
   const MARKET_TYPES = [
     ['home', 'Victoire domicile', 'result', (a,b)=>a>b],
     ['draw', 'Match nul', 'result', (a,b)=>a===b],
@@ -711,6 +711,24 @@ body{font-size:14px;letter-spacing:0}
 
 
   /* Courte sélection éditoriale, sans garantie de succès. */
+  async function loadFeatured() {
+    if(state.featuredLoading)return;
+    state.featuredLoading=true;
+    try {
+      const response=await fetch('/api/football-featured',{cache:'no-store'});
+      if(!response.ok)throw new Error('Sélection multi-championnats indisponible');
+      const payload=await response.json();
+      if(!payload.ok||!Array.isArray(payload.competitions))throw new Error('Réponse invalide');
+      const data={};
+      for(const c of payload.competitions){
+        if(!c.ok||!Array.isArray(c.matches)||!Array.isArray(c.historicalMatches))continue;
+        data[c.league]=decodeDataset([...c.historicalMatches,...c.matches],c.league);
+      }
+      if(Object.keys(data).length)state.featuredData=data;
+    }catch{/* Preserve the current-league selection when the feed is unavailable. */}
+    finally{state.featuredLoading=false;renderFeatured();}
+  }
+
   function renderFeatured() {
     const root = $('#featured-grid');
     const status = $('#home-data-status');
@@ -750,13 +768,18 @@ body{font-size:14px;letter-spacing:0}
       const normalized=String(team).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
       return majors.some(v=>normalized.includes(v)) ? 1 : 0;
     };
-    const upcoming=state.upcoming.filter(m=>daysBetween(today(),m.date)>=0 && daysBetween(today(),m.date)<=30);
-    const scored=upcoming.map(match=>{
-      const analysis=forecast(match,state.matches);
+    const featuredLeagues=state.featuredData && state.mode!=='demo' && state.mode!=='custom'
+      ? Object.entries(state.featuredData).map(([league,matches])=>({league,matches}))
+      : [{league:state.league,matches:state.matches}];
+    const upcoming=featuredLeagues.flatMap(({league,matches})=>matches
+      .filter(m=>!m.score && daysBetween(today(),m.date)>=0 && daysBetween(today(),m.date)<=30)
+      .map(match=>({match,league,matches})));
+    const scored=upcoming.map(({match,league,matches})=>{
+      const analysis=forecast(match,matches);
       const popularity=prestige(match.home)+prestige(match.away);
       const days=daysBetween(today(),match.date);
       const score=(analysis?30:0)+(analysis?.historyCount||0)*.25+popularity*11-days*.45;
-      return {match,analysis,score};
+      return {match,analysis,score,league};
     }).sort((a,b)=>b.score-a.score || a.match.date.localeCompare(b.match.date)).slice(0,3);
     $('#home-selection-count').textContent=scored.length+' match'+(scored.length>1?'s':'')+' sélectionné'+(scored.length>1?'s':'');
     if (!scored.length) {
@@ -767,7 +790,7 @@ body{font-size:14px;letter-spacing:0}
       const m=item.match, f=item.analysis;
       const card=add(root,'article','featured-card');
       const head=add(card,'div','featured-top');
-      add(head,'span','featured-league',LEAGUES[state.league]?.name||'Football');
+      add(head,'span','featured-league',LEAGUES[item.league]?.name||'Football');
       add(head,'span','featured-time',formatDate(m.date)+' · '+(m.time||'Heure à confirmer'));
       const fixture=add(card,'div','featured-fixture');
       add(fixture,'span','featured-team',m.home);
@@ -793,7 +816,7 @@ body{font-size:14px;letter-spacing:0}
       } else add(textEl,'span','', 'Analyse statistique indisponible');
       const action=add(bottom,'button','featured-action',f?'Voir l’analyse ↗':'Données insuffisantes');
       action.type='button';
-      if(f) action.dataset.analyze=m.id;
+      if(f) {action.dataset.analyze=m.id;action.dataset.analyzeLeague=item.league;}
       else action.disabled=true;
     }
   }
@@ -1013,7 +1036,7 @@ body{font-size:14px;letter-spacing:0}
       else if(nav.dataset.page==='dashboard'){$('#favorites-toggle').setAttribute('aria-pressed','false');updateUI();}
       navigate(nav.dataset.page||nav.dataset.link);return;
     }
-    const analyze=e.target.closest('[data-analyze]');if(analyze){openAnalysis(analyze.dataset.analyze);return;}
+    const analyze=e.target.closest('[data-analyze]');if(analyze){const league=analyze.dataset.analyzeLeague;if(league && league!==state.league){loadLeague(league).then(()=>openAnalysis(analyze.dataset.analyze));}else openAnalysis(analyze.dataset.analyze);return;}
     const fav=e.target.closest('[data-favorite]');if(fav){const id=fav.dataset.favorite;state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);saveFavorites();updateUI();return;}
   });
   $('#league-select').addEventListener('change',e=>loadLeague(e.target.value));
@@ -1046,6 +1069,7 @@ body{font-size:14px;letter-spacing:0}
   $('#copyright-year').textContent=new Date().getFullYear();
   window.SportEdgeTest = {tabularCSV,importTennisCSV,importBasketCSV,decodeOpenLiga,normalize,decodeDataset,forecast,poissonList,makeDemo,parseCSV,MARKET_TYPES,today,goalTotals,scorerProbability,halfTimeDistribution,gameHoldProbability,normalCdf};
   loadLeague('fr.1');
+  loadFeatured();
   // Foreground refresh only; 10 minutes for the verified API, 3 hours for archives.
   setInterval(()=>{if(document.visibilityState==='visible' && state.mode==='football-data' && state.loaded)loadLeague(state.league,true);},10*60*1000);
   setInterval(()=>{if(document.visibilityState==='visible' && state.mode!=='football-data' && state.mode!=='demo' && state.mode!=='custom' && state.loaded)loadLeague(state.league,false);},3*3600*1000);
