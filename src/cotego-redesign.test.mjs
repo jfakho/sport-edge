@@ -17,7 +17,7 @@ test('home route is visible by default and original dashboard is separate',()=>{
 });
 
 test('featured content is restricted to three cards without replacing the full catalog',()=>{
-  assert.match(source,/\.slice\(0,4\)/);
+  assert.match(source,/\.slice\(0,3\)/);
   assert.match(source,/function renderFeatured\(\)/);
   assert.match(source,/id="featured-grid"/);
   assert.match(source,/data-link="dashboard"/);
