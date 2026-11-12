@@ -83,7 +83,7 @@ test('football uses a single bounded recent-data API and never silently falls ba
   assert.match(loader,/setSourceUnavailable/);
   assert.doesNotMatch(loader,/raw\.githubusercontent\.com|applyData\(\[\.\.\.older/);
   assert.match(source,/data-retry-league/);
-  assert.match(source,/if \(state\.dataError\)/);
+  assert.match(source,/if \(state\.dataError && !state\.featuredData\)/);
 });
 
 
