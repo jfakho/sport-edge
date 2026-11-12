@@ -724,7 +724,7 @@ body{font-size:14px;letter-spacing:0}
         if(!c.ok||!Array.isArray(c.matches)||!Array.isArray(c.historicalMatches))continue;
         data[c.league]=decodeDataset([...c.historicalMatches,...c.matches],c.league);
       }
-      if(Object.keys(data).length)state.featuredData=data;
+      if(Object.keys(data).length){state.featuredData=data;renderFeatured();}
     }catch{/* Preserve the current-league selection when the feed is unavailable. */}
     finally{state.featuredLoading=false;renderFeatured();}
   }
@@ -741,7 +741,9 @@ body{font-size:14px;letter-spacing:0}
       if(value!==undefined)el.textContent=String(value);
       parent.appendChild(el);return el;
     };
-    if (state.dataError) {
+    // Featured matches from verified competitions remain usable when the selected
+    // league endpoint fails independently (e.g. provider rate limiting).
+    if (state.dataError && !state.featuredData) {
       status.textContent='Source sportive indisponible';
       add(root,'div','featured-empty',state.dataError);
       const retry=add(root,'button','featured-action','Réessayer');
@@ -749,7 +751,7 @@ body{font-size:14px;letter-spacing:0}
       $('#home-selection-count').textContent='Aucune donnée vérifiée';
       return;
     }
-    if (!state.loaded) {
+    if (!state.loaded && !state.featuredData) {
       status.textContent='Actualisation des rencontres…';
       add(root,'div','featured-empty','Chargement de la sélection…');
       $('#home-selection-count').textContent='Sélection en préparation';
@@ -757,7 +759,9 @@ body{font-size:14px;letter-spacing:0}
     }
     const last=state.played.at(-1)?.date;
     const age=last?daysBetween(last,today()):null;
-    status.textContent=last
+    status.textContent=state.dataError && state.featuredData
+      ? 'Sélection multi-championnats disponible · championnat sélectionné temporairement indisponible'
+      : last
       ? (age>8 ? 'Données à contrôler · '+age+' j depuis le dernier score' : 'Dernier résultat · '+formatDate(last))
       : 'Aucun score terminé disponible';
     const majors=['paris saint','psg','olympique de marseille','marseille','olympique lyonnais',
