@@ -125,3 +125,37 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
+
+/* COTEGO V2 — light editorial theme, approved 12 Nov 2026 */
+:root{--bg:#f6f4ef;--sidebar:#f0ede6;--panel:#ffffff;--panel2:#f7f5f0;--line:#dedbd4;--muted:#66717b;--soft:#4b5661;--white:#20262d;--lime:#806747;--amber:#9a7953;--blue:#526c86;--accent:#806747}
+body{background:var(--bg);color:var(--white)}
+.sidebar{background:#f0ede6;border-right-color:#dedbd4}
+.sidebar-label,.side-bottom{color:#73736f!important}
+.nav-item{color:#45505a}.nav-item:hover{background:#e7e2d8;color:#252b31}
+.nav-item.active{background:#e5dbca;color:#473827;border-color:#d5c4aa}
+.side-highlight{background:#fff;border-color:#dedbd4}
+.topbar{background:#faf9f6;border-bottom-color:#dedbd4}
+.breadcrumb,.breadcrumb span:last-child{color:#34404a}
+.page{color:#242b31}
+.btn-primary{background:#8a7050;color:#fff}.btn-primary:hover{background:#71593d}
+.btn-outline{background:#fff;color:#34404a;border-color:#d6d2c9}
+.btn-outline:hover{background:#f4f0e9;border-color:#bba98f}
+#page-home .home-kicker{color:#84694a}
+#page-home .home-desc,#page-home .home-status{color:#5b6670}
+#page-home .home-tab{background:#fff;color:#46525c;border-color:#ddd8cf}
+#page-home .home-tab[aria-pressed="true"]{background:#e9dfcf;color:#4a3825;border-color:#c7b394}
+#page-home .featured-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#page-home .featured-card{background:#fff;border-color:#dedbd4;box-shadow:0 5px 18px #242b3109}
+#page-home .featured-league{color:#665641}
+#page-home .featured-time,#page-home .featured-prob{color:#5d6973}
+#page-home .featured-prob strong{color:#222a30}
+#page-home .featured-action{color:#755736}
+#page-home .featured-empty{background:#fff;border-color:#dedbd4;color:#4b5661}
+#page-home .home-benefit{background:#ede6db;border-color:#d8c9b4}
+#page-home .home-benefit strong{color:#352e26}
+#page-home .home-benefit p,#page-home .home-disclaimer{color:#59636b}
+#page-about .info-card,#page-install .info-card,#page-membership .membership-plan{background:#fff}
+#page-about a,#page-install a{color:#755736}
+.footer .footer-references,.footer .footer-references a{color:#65717b}
+@media(max-width:1000px){#page-home .featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sidebar{background:#f0ede6}}
+@media(max-width:700px){#page-home .featured-grid{grid-template-columns:1fr}.cotego-bottom-nav{background:#f9f7f2f5;border-top-color:#dedbd4}.cotego-bottom-nav button{color:#5c6670}.cotego-bottom-nav button.active{color:#785c3c}.topbar{background:#faf9f6}}
