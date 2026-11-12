@@ -111,3 +111,13 @@ export function footballDataFreshness(matches, now = new Date()) {
       : 'Dates à recouper avec la source',
   };
 }
+
+/** Upcoming fixtures must be genuinely scheduled, not matches already in play. */
+export function selectUpcomingMatches(matches, now = new Date(), limit = 12) {
+  const nowMs = now.getTime();
+  if (!Number.isFinite(nowMs)) throw new TypeError('now must be a valid Date');
+  return matches.filter(m => m.score === null
+    && (m._status === 'SCHEDULED' || m._status === 'TIMED')
+    && Number.isFinite(Date.parse(m._kickoffUtc))
+    && Date.parse(m._kickoffUtc) > nowMs).slice(0,limit);
+}
