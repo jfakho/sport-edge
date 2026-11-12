@@ -24,10 +24,11 @@ try {
       assert.ok(loaded,'Preview must respond HTTP 2xx');
       assert.equal(await page.locator('#page-home').count(),1);
       // Switch to isolated synthetic fixtures. No dependency on private APIs.
-      await page.locator('button[data-page="dashboard"]').first().click();
+      const nav=viewport.width<700?'.cotego-bottom-nav button':'.sidebar button';
+      await page.locator(nav+'[data-page="dashboard"]').click();
       await page.locator('#page-dashboard').waitFor({state:'visible',timeout:8000});
       await page.locator('#league-select').selectOption('demo');
-      await page.locator('button[data-page="home"]').first().click();
+      await page.locator(nav+'[data-page="home"]').click();
       await page.locator('#page-home').waitFor({state:'visible',timeout:8000});
       const visibleButton=page.locator('#featured-grid button.featured-action:not([disabled])').first();
       await visibleButton.waitFor({state:'visible',timeout:10000});
