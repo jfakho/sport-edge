@@ -16,7 +16,7 @@ test('home route is visible by default and original dashboard is separate',()=>{
   assert.match(source,/currentPage: 'home'/);
 });
 
-test('featured content is restricted to four cards without replacing the full catalog',()=>{
+test('featured content is restricted to three cards without replacing the full catalog',()=>{
   assert.match(source,/\.slice\(0,4\)/);
   assert.match(source,/function renderFeatured\(\)/);
   assert.match(source,/id="featured-grid"/);
@@ -90,3 +90,5 @@ test('sandbox subscription UI is included only as a non-secret external script',
  assert.match(source,/src="\/cotego-account-test\.js" defer/);
  assert.doesNotMatch(source,/sk_test_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}/);
 });
+
+test('approved light palette and three featured cards',()=>{assert.match(css,/--bg:#f6f4ef/);assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);assert.match(source,/name="color-scheme" content="light"/);});
