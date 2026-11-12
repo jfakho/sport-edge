@@ -1,6 +1,6 @@
 /**
  * COTEGO — adaptation des rencontres football-data.org v4.
- * Préparatoire : NON branché au site public ou au Worker.
+ * Adaptateur utilisé par le Worker /api/football/:league.
  * API : https://www.football-data.org/documentation/api
  * Aucune clé n'est demandée ici. Utiliser plus tard un secret Cloudflare côté serveur.
  */
@@ -8,6 +8,7 @@
 export const COMPETITIONS = Object.freeze({
   'fr.1': 'FL1', 'en.1': 'PL', 'es.1': 'PD',
   'de.1': 'BL1', 'it.1': 'SA',
+  'intl.cl': 'CL', 'intl.wc': 'WC', 'intl.ec': 'EC',
 });
 
 const INVALID_STATUS = new Set(['CANCELLED', 'POSTPONED', 'SUSPENDED']);
