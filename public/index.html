@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101318">
+  <meta name="theme-color" content="#f6f4ef">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="COTEGO">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="description" content="COTEGO : statistiques de matchs et probabilités football, tennis et basket. Retrouvez les buts attendus, les scénarios et les sources des données.">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex,nofollow">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="COTEGO">
@@ -756,7 +756,7 @@ body{font-size:14px;letter-spacing:0}
       const days=daysBetween(today(),match.date);
       const score=(analysis?30:0)+(analysis?.historyCount||0)*.25+popularity*11-days*.45;
       return {match,analysis,score};
-    }).sort((a,b)=>b.score-a.score || a.match.date.localeCompare(b.match.date)).slice(0,4);
+    }).sort((a,b)=>b.score-a.score || a.match.date.localeCompare(b.match.date)).slice(0,3);
     $('#home-selection-count').textContent=scored.length+' match'+(scored.length>1?'s':'')+' sélectionné'+(scored.length>1?'s':'');
     if (!scored.length) {
       add(root,'div','featured-empty','Aucune rencontre disponible dans les 30 prochains jours. Retrouvez les autres championnats dans les onglets ou la rubrique Matchs & analyses.');
