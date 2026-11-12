@@ -597,23 +597,18 @@ body{font-size:14px;letter-spacing:0}
     return sum/weights;
   }
   function forecast(match, all) {
-    // Refuse une prévision publique basée sur un historique trop ancien.
-    // Les tests rétrospectifs sur des rencontres passées restent possibles.
-    if (match.date >= today() && state.mode !== 'demo' && state.mode !== 'custom') {
-      const latest = all.filter(m=>m.score && m.date<today()).at(-1)?.date;
-      if (!latest || daysBetween(latest,today()) > 21) return null;
-    }
+    // Low-data fallback: estimates are always labeled by evidence quality.
     const previous=all.filter(m=>m.score && m.date<match.date && m.date<today() && daysBetween(m.date,match.date)<=550);
-    if(previous.length<24) return null;
     const rows=previous.map(m=>({ ...m, weight:Math.exp(-Math.max(0,daysBetween(m.date,match.date))/240), hg:m.score[0], ag:m.score[1] }));
     const totalWeight=rows.reduce((s,m)=>s+m.weight,0);
-    const avgHome=clamp(rows.reduce((s,m)=>s+m.hg*m.weight,0)/totalWeight,.6,3.4);
-    const avgAway=clamp(rows.reduce((s,m)=>s+m.ag*m.weight,0)/totalWeight,.45,3.1);
+    // Generic assumptions, not observed league statistics.
+    const priorWeight=12;
+    const avgHome=clamp((rows.reduce((s,m)=>s+m.hg*m.weight,0)+priorWeight*1.45)/(totalWeight+priorWeight),.6,3.4);
+    const avgAway=clamp((rows.reduce((s,m)=>s+m.ag*m.weight,0)+priorWeight*1.15)/(totalWeight+priorWeight),.45,3.1);
     const homeMatches=rows.filter(m=>m.home===match.home);
     const awayMatches=rows.filter(m=>m.away===match.away);
     const playedHome=rows.filter(m=>m.home===match.home || m.away===match.home).length;
     const playedAway=rows.filter(m=>m.home===match.away || m.away===match.away).length;
-    if(playedHome<2 || playedAway<2) return null;
     const homeOff=weightedMean(homeMatches,'hg',avgHome)/avgHome;
     const homeDef=weightedMean(homeMatches,'ag',avgAway)/avgAway;
     const awayOff=weightedMean(awayMatches,'ag',avgAway)/avgAway;
@@ -636,7 +631,13 @@ body{font-size:14px;letter-spacing:0}
       return {...t,market:pick};
     });
     const strength=Math.min(playedHome,playedAway);
-    return { lh,la,home,draw,away,tiers,playedHome,playedAway,historyCount:previous.length,quality:strength<6?'Échantillon limité':strength<12?'Échantillon modéré':'Échantillon étoffé',grid };
+    const latest=previous.at(-1)?.date;
+    const stale=!latest || daysBetween(latest,today())>21;
+    const quality=previous.length===0?'Simulation sans historique — hypothèses génériques uniquement'
+      :stale?'Fiabilité très faible — historique ancien'
+      :previous.length<24 || strength<2?'Fiabilité très faible — historique insuffisant'
+      :strength<6?'Échantillon limité':strength<12?'Échantillon modéré':'Échantillon étoffé';
+    return { lh,la,home,draw,away,tiers,playedHome,playedAway,historyCount:previous.length,quality,grid };
   }
   function poissonList(lambda) { let p=Math.exp(-lambda),arr=[p]; for(let k=1;k<=10;k++){p*=lambda/k;arr.push(p);} return arr; }
 
