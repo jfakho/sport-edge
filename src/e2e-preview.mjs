@@ -23,6 +23,21 @@ try {
       }
       assert.ok(loaded,'Preview must respond HTTP 2xx');
       assert.equal(await page.locator('#page-home').count(),1);
+      // Regression: every featured league tab must be interactive on mobile and desktop.
+      // This checks the selected state without claiming upstream match availability.
+      for(const league of ['fr.1','en.1','es.1','it.1','de-live']){
+        const tab=page.locator('.home-tab[data-featured-league="'+league+'"]');
+        assert.equal(await tab.count(),1,'Missing featured tab '+league);
+        await tab.click();
+        await assert.doesNotReject(
+          () => tab.waitFor({state:'visible',timeout:3000}),
+          'League tab disappeared: '+league
+        );
+        assert.equal(await tab.getAttribute('aria-pressed'),'true','League tab did not activate: '+league);
+        const selected=await page.locator('.home-tab[aria-pressed="true"]').count();
+        assert.equal(selected,1,'Exactly one featured league must be selected');
+      }
+      console.log('PASS featured league tabs: all five selectable at '+viewport.width+'px');
       // Switch to isolated synthetic fixtures. No dependency on private APIs.
       const nav=viewport.width<700?'.cotego-bottom-nav button':'.sidebar button';
       await page.locator(nav+'[data-page="dashboard"]').click();
