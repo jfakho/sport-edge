@@ -116,8 +116,15 @@ export function footballDataFreshness(matches, now = new Date()) {
 export function selectUpcomingMatches(matches, now = new Date(), limit = 12) {
   const nowMs = now.getTime();
   if (!Number.isFinite(nowMs)) throw new TypeError('now must be a valid Date');
-  return matches.filter(m => m.score === null
+  // Never rely on the upstream API ordering: always show the next real fixtures first.
+  // Avoid mutating the cached source array, and break same-kickoff ties consistently.
+  if (!Array.isArray(matches)) throw new TypeError('matches must be an array');
+  if (!Number.isSafeInteger(limit) || limit < 0) throw new RangeError('limit must be a non-negative integer');
+  return matches.filter(m => m && m.score === null
     && (m._status === 'SCHEDULED' || m._status === 'TIMED')
     && Number.isFinite(Date.parse(m._kickoffUtc))
-    && Date.parse(m._kickoffUtc) > nowMs).slice(0,limit);
+    && Date.parse(m._kickoffUtc) > nowMs)
+    .sort((a,b) => Date.parse(a._kickoffUtc) - Date.parse(b._kickoffUtc)
+      || Number(a._sourceId || 0) - Number(b._sourceId || 0))
+    .slice(0,limit);
 }
