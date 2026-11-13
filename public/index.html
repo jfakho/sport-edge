@@ -546,7 +546,15 @@ body{font-size:14px;letter-spacing:0}
     }catch(error){
       if(requestId!==leagueRequestId)return;
       const reason=error?.name==='AbortError'?'Délai de réponse dépassé':String(error?.message||'Connexion indisponible').slice(0,160);
-      setSourceUnavailable('Source sportive récente indisponible : '+reason+'. Les archives anciennes ne sont plus affichées à sa place.');
+      // A verified multi-league feed can safely replace a failed single-league
+      // request; never substitute a different league or fictional data.
+      const cached=state.featuredData?.[league];
+      if(Array.isArray(cached) && cached.length){
+        applyData(cached,'football-data');
+        setNotice('Rencontres vérifiées via la sélection multi-championnats. Actualisation individuelle indisponible : '+reason,'warning');
+      }else{
+        setSourceUnavailable('Source sportive récente indisponible : '+reason+'. Aucune donnée fictive ne sera substituée.');
+      }
     }finally{clearTimeout(deadline);}
   }
     function updateSourceHealth(){
