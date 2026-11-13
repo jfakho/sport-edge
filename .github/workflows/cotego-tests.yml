@@ -80,6 +80,7 @@ jobs:
             .ok==true and .source=="football-data.org" and
             (.competitions|type=="array" and length==5) and
             ([.competitions[].league]|sort)==(["fr.1","en.1","es.1","de.1","it.1"]|sort) and
+            any(.competitions[]; .ok==true and (.matches|type)=="array" and (.matches|length)>0) and
             all(.competitions[]; (.ok|type)=="boolean" and (if .ok then (.matches|type)=="array" else (.error|type)=="string" end))
           ' /tmp/cotego-featured.json >/dev/null 2>&1; then
             echo '::error title=Five-league feed invalid::The preview featured feed is unavailable or missing a competition/status.'
@@ -87,7 +88,7 @@ jobs:
             exit 1
           fi
           jq -r '.competitions[] | "\(.league): \(if .ok then "available" else "unavailable" end)"' /tmp/cotego-featured.json
-          echo 'All five competitions explicitly represented; individual upstream failures are not hidden.'
+          echo 'All five competitions explicitly represented; at least one has actual matches and upstream failures are not hidden.'
 
   browser-preview:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
