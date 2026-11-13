@@ -38,7 +38,12 @@ export default {
             headers:{'X-Auth-Token':env.FOOTBALL_DATA_API_KEY,Accept:'application/json'},
             redirect:'manual',signal:AbortSignal.timeout(9000),
           });
-          if (!upstream.ok) {results.push({league,ok:false,error:'Source indisponible'});continue;}
+          if (!upstream.ok) {
+            const error = upstream.status === 429 ? 'Quota de données atteint'
+              : upstream.status === 401 || upstream.status === 403 ? 'Accès à cette compétition non autorisé'
+              : 'Source indisponible';
+            results.push({league,ok:false,error});continue;
+          }
           const matches=normalizeFootballDataSeason(await upstream.json(),league);
           results.push({league,ok:true,matches:selectUpcomingMatches(matches),
             historicalMatches:matches.filter(x=>!!x.score).slice(-80)});
