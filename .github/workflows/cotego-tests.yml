@@ -89,6 +89,18 @@ jobs:
           fi
           jq -r '.competitions[] | "\(.league): \(if .ok then "available" else "unavailable" end)"' /tmp/cotego-featured.json
           echo 'All five competitions explicitly represented; at least one has actual matches and upstream failures are not hidden.'
+      - name: Recheck preview secret binding after feed checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          code=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-status-after.json --write-out '%{http_code}' "$BASE/api/status" || true)
+          if [ "$code" != '200' ] || ! jq -e '.ok==true and .footballDataConfigured==true' /tmp/cotego-status-after.json >/dev/null 2>&1; then
+            echo '::error title=Preview secret regression::The preview lost its FOOTBALL_DATA_API_KEY binding or became unavailable during the smoke test. Check Cloudflare deployment environment and runtime secrets.'
+            exit 1
+          fi
+          echo 'Preview runtime secret binding still present after data checks'
+
 
   browser-preview:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
