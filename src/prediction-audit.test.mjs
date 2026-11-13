@@ -17,12 +17,12 @@ test('rejects post-kickoff predictions and invalid probabilities',()=>{
 test('settles only finished verified fixtures',()=>{
   const p=createPredictionRecord(fixture,before);
   assert.equal(settleFootballPrediction(p,{status:'IN_PLAY'}).status,'pending');
-  assert.equal(settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z'}).hit,true);
+  assert.equal(settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'}).hit,true);
   assert.equal(settleFootballPrediction(p,{status:'FINISHED',home:2,away:1}).status,'unverifiable');
 });
 test('reports hit rate only over evaluated predictions and deduplicates',()=>{
   const p=createPredictionRecord(fixture,before);
-  const good={prediction:p,evaluation:settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z'})};
+  const good={prediction:p,evaluation:settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'})};
   const pending={prediction:{...p,id:'other'},evaluation:{status:'pending'}};
   assert.deepEqual(summarizePredictions([good,good,pending]),{
     total:2,evaluated:1,pending:1,unverifiable:0,hits:1,hitRate:1,
@@ -43,4 +43,14 @@ test('a verified score cannot settle a prediction for a different fixture',()=>{
  assert.equal(settleFootballPrediction(p,final).status,'unverifiable');
  assert.equal(settleFootballPrediction(p,{...final,sourceMatchId:'123'}).status,'settled');
  assert.equal(settleFootballPrediction(p,{...final,source:'untrusted-source',sourceMatchId:'123'}).status,'unverifiable');
+});
+
+test('anonymous final results cannot inflate verified hit rate',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const anonymous={status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z'};
+ const evaluation=settleFootballPrediction(p,anonymous);
+ assert.equal(evaluation.status,'unverifiable');
+ const summary=summarizePredictions([{prediction:p,evaluation}]);
+ assert.equal(summary.evaluated,0);
+ assert.equal(summary.hitRate,null);
 });
