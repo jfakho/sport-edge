@@ -55,7 +55,19 @@ export function summarizePredictions(records) {
     if (!unique.has(entry.prediction.id)) unique.set(entry.prediction.id,entry);
   }
   const values=[...unique.values()];
-  const settled=values.filter(x=>x.evaluation?.status==='settled');
+  // A malformed or fabricated evaluation must never inflate public hit rates.
+  // Only well-formed, pre-kickoff records with an explicit binary outcome count.
+  const settled=values.filter(x=>{
+    const p=x.prediction, e=x.evaluation;
+    return e?.status==='settled' && typeof e.hit==='boolean'
+      && isNumber(e.brierScore) && e.brierScore>=0 && e.brierScore<=1
+      && isNumber(p.probability) && p.probability>=0 && p.probability<=1
+      && Number.isFinite(isoMs(p.createdAt)) && Number.isFinite(isoMs(p.kickoffUtc))
+      && isoMs(p.createdAt)<isoMs(p.kickoffUtc)
+      && Array.isArray(e.actualScore) && e.actualScore.length===2
+      && e.actualScore.every(n=>Number.isInteger(n)&&n>=0&&n<=35)
+      && Math.abs(e.brierScore-(p.probability-Number(e.hit))**2)<1e-10;
+  });
   const hits=settled.filter(x=>x.evaluation.hit).length;
   const avgBrier=settled.length
     ? settled.reduce((sum,x)=>sum+x.evaluation.brierScore,0)/settled.length : null;
