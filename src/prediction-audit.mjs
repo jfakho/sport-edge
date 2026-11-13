@@ -7,7 +7,7 @@ const isoMs = value => typeof value === 'string' ? Date.parse(value) : NaN;
  * Do not modify records after creation: use append-only storage and an audit timestamp. */
 export function createPredictionRecord(input, now = new Date()) {
   const {source,sourceMatchId,sport,competition,kickoffUtc,market,probability,modelVersion} = input || {};
-  const createdAt = now instanceof Date ? now.toISOString() : '';
+  const createdAt = now instanceof Date && Number.isFinite(now.getTime()) ? now.toISOString() : '';
   const kickoff = isoMs(kickoffUtc);
   if (!source || !sourceMatchId || !sport || !competition || !modelVersion ||
       !MARKETS.has(market) || !isNumber(probability) || probability < 0 || probability > 1 ||
@@ -26,8 +26,13 @@ export function settleFootballPrediction(prediction, result) {
   const {home,away} = result;
   if (![home,away].every(n=>Number.isInteger(n)&&n>=0&&n<=35)) return {status:'unverifiable'};
   const finishedAt = isoMs(result.finishedAt);
-  if (!Number.isFinite(finishedAt) || finishedAt < isoMs(prediction.kickoffUtc) ||
+  if (!Number.isFinite(finishedAt) || !Number.isFinite(isoMs(prediction.kickoffUtc)) ||
+      !Number.isFinite(isoMs(prediction.createdAt)) || finishedAt < isoMs(prediction.kickoffUtc) ||
       isoMs(prediction.createdAt) >= isoMs(prediction.kickoffUtc)) return {status:'unverifiable'};
+  // If source identifiers are supplied, they must match the pre-match record.
+  // This prevents attaching a different fixture's final score to an audit entry.
+  if (result.source !== undefined && String(result.source) !== prediction.source) return {status:'unverifiable'};
+  if (result.sourceMatchId !== undefined && String(result.sourceMatchId) !== prediction.sourceMatchId) return {status:'unverifiable'};
   const outcomes = {
     home:home>away,draw:home===away,away:home<away,
     over_2_5:home+away>2.5,under_2_5:home+away<2.5,
