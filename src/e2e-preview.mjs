@@ -23,6 +23,27 @@ try {
       }
       assert.ok(loaded,'Preview must respond HTTP 2xx');
       assert.equal(await page.locator('#page-home').count(),1);
+      // PWA regression: the deployed preview must expose install metadata and assets.
+      // This validates HTTP availability, not actual OS installation or offline support.
+      const manifestLink=page.locator('link[rel="manifest"]');
+      assert.equal(await manifestLink.count(),1,'PWA manifest link missing');
+      const manifestUrl=new URL(await manifestLink.getAttribute('href'),base);
+      assert.equal(manifestUrl.origin,new URL(base).origin,'PWA manifest must be same-origin');
+      const manifestResponse=await ctx.request.get(manifestUrl.href);
+      assert.ok(manifestResponse.ok(),'PWA manifest must be accessible');
+      const manifest=await manifestResponse.json();
+      assert.equal(manifest.display,'standalone','PWA standalone mode missing');
+      assert.equal(manifest.start_url,'/','PWA start URL must be root');
+      assert.equal(manifest.scope,'/','PWA scope must cover the app');
+      assert.ok(Array.isArray(manifest.icons)&&manifest.icons.length>0,'PWA icon missing');
+      for(const icon of manifest.icons){
+        const iconUrl=new URL(icon.src,manifestUrl);
+        assert.equal(iconUrl.origin,manifestUrl.origin,'PWA icon must be same-origin');
+        assert.ok((await ctx.request.get(iconUrl.href)).ok(),'PWA icon unavailable: '+icon.src);
+      }
+      const swResponse=await ctx.request.get(new URL('/sw.js',base).href);
+      assert.ok(swResponse.ok(),'PWA service worker script unavailable');
+      console.log('PASS PWA assets and manifest at '+viewport.width+'px');
       // Regression: every featured league tab must be interactive on mobile and desktop.
       // This checks the selected state without claiming upstream match availability.
       for(const league of ['fr.1','en.1','es.1','it.1','de-live']){
