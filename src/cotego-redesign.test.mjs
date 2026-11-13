@@ -130,3 +130,11 @@ test('homepage shows three scenarios and explicit confidence with historical sam
   assert.match(source,/featured-confidence/);
   assert.match(source,/f\.historyCount\+' résultats historiques'/);
 });
+
+test('home competition tabs filter featured matches by the selected league',()=>{
+ assert.match(source,/const selectedLeague=state\.league==='de-live'\?'de\.1':state\.league/);
+ assert.match(source,/state\.featuredData\[selectedLeague\]/);
+ assert.match(source,/const featuredLeagues=\[\{league:selectedLeague,matches:selectedMatches\|\|state\.matches\}\]/);
+ assert.match(source,/data-featured-league="en\.1"/);
+ assert.match(source,/data-featured-league="de-live"/);
+});
