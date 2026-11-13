@@ -76,3 +76,16 @@ test('featured fixtures exclude in-play and paused matches and past kickoffs',()
  ];
  assert.deepEqual(selectUpcomingMatches(fixtures,fixedNow),[fixtures[2],fixtures[3]]);
 });
+
+test('upcoming fixtures sort by actual UTC kickoff even when provider order is reversed',()=>{
+ const later={_sourceId:8,_status:'SCHEDULED',score:null,_kickoffUtc:'2026-11-16T20:00:00Z'};
+ const sooner={_sourceId:9,_status:'TIMED',score:null,_kickoffUtc:'2026-11-13T20:00:00Z'};
+ const input=[later,sooner];
+ assert.deepEqual(selectUpcomingMatches(input,fixedNow,1),[sooner]);
+ assert.deepEqual(input,[later,sooner], 'cached provider data must not be mutated');
+});
+test('upcoming fixtures reject invalid limits and ignore null entries',()=>{
+ assert.deepEqual(selectUpcomingMatches([null,{_status:'SCHEDULED',score:null,_kickoffUtc:'2026-11-14T20:00:00Z'}],fixedNow).length,1);
+ assert.throws(()=>selectUpcomingMatches([],fixedNow,-1),RangeError);
+ assert.throws(()=>selectUpcomingMatches([],fixedNow,1.5),RangeError);
+});
