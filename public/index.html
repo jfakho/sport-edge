@@ -548,6 +548,12 @@ body{font-size:14px;letter-spacing:0}
       const reason=error?.name==='AbortError'?'Délai de réponse dépassé':String(error?.message||'Connexion indisponible').slice(0,160);
       // A verified multi-league feed can safely replace a failed single-league
       // request; never substitute a different league or fictional data.
+      // The homepage feed may still be loading when a tab is selected.
+      // Try it once before declaring this competition unavailable.
+      if(!state.featuredData?.[league] && !state.featuredLoading){
+        await loadFeatured();
+      }
+      if(requestId!==leagueRequestId)return;
       const cached=state.featuredData?.[league];
       if(Array.isArray(cached) && cached.length){
         applyData(cached,'football-data');
