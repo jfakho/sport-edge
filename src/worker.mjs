@@ -31,14 +31,22 @@ export default {
       const cacheKey=new Request(url.origin+'/api/football-featured',{method:'GET'});
       if (cache) {const cached=await cache.match(cacheKey);if(cached)return cached;}
       const results=[];
+      let quotaExhausted=false;
       // Sequential requests stay below the free provider's 10 calls/minute limit.
       for (const league of leagues) {
+        if (quotaExhausted) {
+          results.push({league,ok:false,error:'Quota de données atteint'});
+          continue;
+        }
         try {
           const upstream=await fetch('https://api.football-data.org/v4/competitions/'+COMPETITIONS[league]+'/matches',{
             headers:{'X-Auth-Token':env.FOOTBALL_DATA_API_KEY,Accept:'application/json'},
             redirect:'manual',signal:AbortSignal.timeout(9000),
           });
           if (!upstream.ok) {
+            // A provider-wide 429 must stop this batch immediately: retrying
+            // the remaining leagues only wastes quota and can prolong throttling.
+            if (upstream.status === 429) quotaExhausted=true;
             const error = upstream.status === 429 ? 'Quota de données atteint'
               : upstream.status === 401 || upstream.status === 403 ? 'Accès à cette compétition non autorisé'
               : 'Source indisponible';
