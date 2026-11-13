@@ -92,3 +92,36 @@ test('cross-league endpoint exposes five independent competitions and never leak
     assert.ok(!JSON.stringify(payload).includes('private-token'));
   } finally {mock.restoreAll();}
 });
+
+test('partial five-league failures are not cached and are retried',async()=>{
+  const cached=[];
+  let calls=0;
+  mock.method(globalThis,'fetch',async ()=>{
+    calls++;
+    if(calls===2) return new Response('temporarily unavailable',{status:503});
+    return new Response(JSON.stringify({matches:[match]}),{status:200,headers:{'content-type':'application/json'}});
+  });
+  const previousCaches=globalThis.caches;
+  globalThis.caches={default:{
+    match:async()=>undefined,
+    put:async (_key,response)=>{cached.push(await response.json());},
+  }};
+  try {
+    const pending=[];
+    const context={waitUntil:p=>pending.push(p)};
+    const env={...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'};
+    const first=await (await worker.fetch(api('/api/football-featured'),env,context)).json();
+    assert.equal(first.competitions.filter(x=>!x.ok).length,1);
+    assert.equal(cached.length,0);
+    assert.equal(pending.length,0);
+    const second=await (await worker.fetch(api('/api/football-featured'),env,context)).json();
+    assert.equal(second.competitions.filter(x=>!x.ok).length,0);
+    await Promise.all(pending);
+    assert.equal(cached.length,1);
+    assert.equal(calls,10);
+  } finally {
+    if(previousCaches===undefined) delete globalThis.caches;
+    else globalThis.caches=previousCaches;
+    mock.restoreAll();
+  }
+});
