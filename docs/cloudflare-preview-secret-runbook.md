@@ -24,3 +24,27 @@ GitHub Actions run 43443141739, job `smoke-preview`, returned HTTP 200 with `ok=
 - Once the root cause is fixed, prove persistence across **two successive preview-only deployments**. Record both deployment IDs and passing CI runs before declaring the issue resolved.
 
 No paid Cloudflare features are required by this procedure.
+
+## Verified Cloudflare Worker Previews recovery procedure (official Wrangler CLI)
+
+Cloudflare distinguishes **Workers Builds variables** (available to the build process) from **Preview runtime secrets** (available as `env.FOOTBALL_DATA_API_KEY` in requests). A build secret does not automatically provide a runtime binding. Worker Previews are isolated from Production.
+
+Official references:
+- https://developers.cloudflare.com/workers/previews/configuration/
+- https://developers.cloudflare.com/workers/wrangler/commands/workers/
+- https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
+
+**Only when an operator has authorized Cloudflare access and can enter the existing secret privately**, run these commands from a checked-out repository using the configured Wrangler version. Never paste the secret into chat, a shell command argument, a CI variable, or a tracked file:
+
+```sh
+npx wrangler preview secret list --name feature/cotego-premium-ux --worker-name cotego
+# If missing, prompt privately for the existing key (do not echo it):
+npx wrangler preview secret put FOOTBALL_DATA_API_KEY --name feature/cotego-premium-ux --worker-name cotego
+npx wrangler preview secret list --name feature/cotego-premium-ux --worker-name cotego
+```
+
+The `secret put` command **creates a new Preview deployment**; it is not a read-only operation. Do not run it without the operator's consent. It must not target Production. Confirm the resulting Preview URL and `/api/status` after this operation. If no authenticated Wrangler session is available, the operator must perform this step through their Cloudflare account; GitHub read/write access alone cannot provision the runtime secret.
+
+**Previews Base is not a retroactive fix:** `npx wrangler preview base-config secret put FOOTBALL_DATA_API_KEY` seeds **newly created** Previews only. Cloudflare explicitly says later Base secret changes do not update existing Previews. Avoid deleting/recreating the existing Preview just to inherit Base settings; this risks unnecessary disruption. Set the existing Preview secret directly first. The `previews` object in `wrangler.jsonc` is for non-secret configuration and cannot hold the secret value.
+
+After setting the secret, verify `footballDataConfigured:true`, deploy a preview-only code change, verify again, and repeat once. If the binding vanishes, capture the exact Wrangler command/version and Preview deployment IDs, then escalate with reproducible evidence. Never claim persistence based on a single successful health check.
