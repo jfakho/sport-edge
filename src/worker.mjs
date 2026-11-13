@@ -49,7 +49,9 @@ export default {
       const response=new Response(JSON.stringify({ok:true,source:'football-data.org',receivedAt:new Date().toISOString(),competitions:results}),{
         headers:{'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=120, s-maxage=600','x-content-type-options':'nosniff'},
       });
-      if(cache&&context?.waitUntil)context.waitUntil(cache.put(cacheKey,response.clone()));
+      // Do not cache partial upstream failures: a temporarily unavailable league
+      // must be retried on the next request rather than hidden for ten minutes.
+      if(cache&&context?.waitUntil&&results.every(x=>x.ok))context.waitUntil(cache.put(cacheKey,response.clone()));
       return response;
     }
 
