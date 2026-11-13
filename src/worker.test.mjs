@@ -129,3 +129,22 @@ test('partial five-league failures are not cached and are retried',async()=>{
     mock.restoreAll();
   }
 });
+
+test('featured feed stops further upstream calls on rate limit and marks remaining leagues unavailable',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    if(calls===2) return new Response('rate limited',{status:429});
+    return new Response(JSON.stringify({matches:[match]}),{status:200,headers:{'content-type':'application/json'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,200);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    const body=await res.json();
+    assert.equal(calls,2);
+    assert.equal(body.competitions.length,5);
+    assert.equal(body.competitions[0].ok,true);
+    assert.ok(body.competitions.slice(1).every(x=>!x.ok && /Quota/.test(x.error)));
+  } finally {mock.restoreAll();}
+});
