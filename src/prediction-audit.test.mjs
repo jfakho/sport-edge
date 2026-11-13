@@ -54,3 +54,16 @@ test('anonymous final results cannot inflate verified hit rate',()=>{
  assert.equal(summary.evaluated,0);
  assert.equal(summary.hitRate,null);
 });
+
+test('malformed settled entries never inflate the public hit rate',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const final={status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z',
+   source:'football-data.org',sourceMatchId:'123'};
+ const valid={prediction:p,evaluation:settleFootballPrediction(p,final)};
+ const fake={prediction:{...p,id:'fake'},evaluation:{status:'settled',hit:true,brierScore:0}};
+ const impossible={prediction:{...p,id:'impossible'},evaluation:{status:'settled',hit:true,brierScore:0,actualScore:[2,1]}};
+ const report=summarizePredictions([valid,fake,impossible]);
+ assert.equal(report.evaluated,1);
+ assert.equal(report.hits,1);
+ assert.equal(report.hitRate,1);
+});
