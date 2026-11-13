@@ -138,3 +138,10 @@ test('home competition tabs filter featured matches by the selected league',()=>
  assert.match(source,/data-featured-league="en\.1"/);
  assert.match(source,/data-featured-league="de-live"/);
 });
+
+test('failed single-league API uses only verified matches from the same league',()=>{
+ assert.match(source,/const cached=state\.featuredData\?\.\[league\]/);
+ assert.match(source,/applyData\(cached,'football-data'\)/);
+ assert.match(source,/if\(Array\.isArray\(cached\) && cached\.length\)/);
+ assert.match(source,/Aucune donnée fictive ne sera substituée/);
+});
