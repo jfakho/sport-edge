@@ -31,6 +31,7 @@ try {
       assert.equal(manifestUrl.origin,new URL(base).origin,'PWA manifest must be same-origin');
       const manifestResponse=await ctx.request.get(manifestUrl.href);
       assert.ok(manifestResponse.ok(),'PWA manifest must be accessible');
+      assert.match(manifestResponse.headers()['content-type']||'',/application\/(manifest\+json|json)/i,'PWA manifest must return JSON, not an HTML fallback');
       const manifest=await manifestResponse.json();
       assert.equal(manifest.display,'standalone','PWA standalone mode missing');
       assert.equal(manifest.start_url,'/','PWA start URL must be root');
@@ -39,10 +40,14 @@ try {
       for(const icon of manifest.icons){
         const iconUrl=new URL(icon.src,manifestUrl);
         assert.equal(iconUrl.origin,manifestUrl.origin,'PWA icon must be same-origin');
-        assert.ok((await ctx.request.get(iconUrl.href)).ok(),'PWA icon unavailable: '+icon.src);
+        const iconResponse=await ctx.request.get(iconUrl.href);
+        assert.ok(iconResponse.ok(),'PWA icon unavailable: '+icon.src);
+        assert.match(iconResponse.headers()['content-type']||'',/^image\//i,'PWA icon must return an image, not an HTML fallback: '+icon.src);
       }
       const swResponse=await ctx.request.get(new URL('/sw.js',base).href);
       assert.ok(swResponse.ok(),'PWA service worker script unavailable');
+      assert.match(swResponse.headers()['content-type']||'',/(javascript|ecmascript)/i,'Service worker must return JavaScript, not an HTML fallback');
+      assert.match(await swResponse.text(),/\b(?:self|addEventListener)\b/,'Service worker script appears empty or invalid');
       console.log('PASS PWA assets and manifest at '+viewport.width+'px');
       // Regression: every featured league tab must be interactive on mobile and desktop.
       // This checks the selected state without claiming upstream match availability.
