@@ -67,3 +67,23 @@ test('malformed settled entries never inflate the public hit rate',()=>{
  assert.equal(report.hits,1);
  assert.equal(report.hitRate,1);
 });
+
+test('a forged hit flag cannot override the verified final score',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const real=settleFootballPrediction(p,{status:'FINISHED',home:0,away:2,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'});
+ assert.equal(real.hit,false);
+ const forged={...real,hit:true,brierScore:(p.probability-1)**2};
+ const report=summarizePredictions([{prediction:p,evaluation:forged}]);
+ assert.equal(report.evaluated,0);
+ assert.equal(report.hitRate,null);
+});
+test('correctly recorded losing forecasts still count in the denominator',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const evaluation=settleFootballPrediction(p,{status:'FINISHED',home:0,away:2,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'});
+ const report=summarizePredictions([{prediction:p,evaluation}]);
+ assert.equal(report.evaluated,1);
+ assert.equal(report.hits,0);
+ assert.equal(report.hitRate,0);
+});
