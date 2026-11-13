@@ -69,7 +69,10 @@ export default {
 
     const match = /^\/api\/football\/([^/]+)$/.exec(url.pathname);
     if (!match) return errorJSON('Route inconnue',404);
-    const league = decodeURIComponent(match[1]);
+    // Malformed percent-encoding must return a controlled client error, not a 500.
+    let league;
+    try { league = decodeURIComponent(match[1]); }
+    catch { return errorJSON('Identifiant de compétition invalide',400); }
     if (!CODES.includes(league)) return errorJSON('Compétition non prise en charge',400);
     if (!env.FOOTBALL_DATA_API_KEY) return errorJSON('Source de résultats non configurée',503);
 
