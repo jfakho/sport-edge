@@ -30,21 +30,31 @@ jobs:
           set -euo pipefail
           BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
           ready=0
+          missing_secret_count=0
+          last_http='none'
           for attempt in $(seq 1 10); do
+            rm -f /tmp/cotego-health.json
             status=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-health.json --write-out '%{http_code}' "$BASE/api/status" || true)
+            last_http="$status"
             if [ "$status" = '200' ] && jq -e '.ok==true and .footballDataConfigured==true' /tmp/cotego-health.json >/dev/null 2>&1; then
-              ready=1; break
+              ready=1
+              break
             fi
             if [ "$status" = '200' ] && jq -e '.ok==true and .footballDataConfigured==false' /tmp/cotego-health.json >/dev/null 2>&1; then
-              echo 'Preview secret absent on attempt' "$attempt" '(will retry)'
-              cat /tmp/cotego-health.json
-              echo 'Preview secret not available yet; retrying to tolerate deployment propagation'
+              missing_secret_count=$((missing_secret_count + 1))
+              echo "Preview Worker responds but API key binding is missing (attempt $attempt)"
+              if [ "$missing_secret_count" -ge 3 ]; then
+                echo '::error title=Cloudflare Worker binding absent::Preview Worker returned footballDataConfigured=false three times. Verify FOOTBALL_DATA_API_KEY is bound to the deployed preview Worker (not just the GitHub Actions environment or a different Cloudflare environment).'
+                exit 1
+              fi
+            else
+              missing_secret_count=0
+              echo "Preview status unavailable or malformed: HTTP $status (attempt $attempt)"
             fi
-            sleep 12
+            if [ "$attempt" -lt 10 ]; then sleep 12; fi
           done
           if [ "$ready" != '1' ]; then
-            echo '::error title=Cloudflare Preview not configured::FOOTBALL_DATA_API_KEY remains unavailable after retries. Check the secret on the exact preview Worker feature-cotego-premium-ux-cotego; do not paste its value in logs.'
-            cat /tmp/cotego-health.json || true
+            echo "::error title=Cloudflare Preview unavailable::Health check did not become ready (last HTTP $last_http). Inspect preview URL, deployment and Worker logs."
             exit 1
           fi
           echo 'Preview API status is healthy'
