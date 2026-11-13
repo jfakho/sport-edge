@@ -36,14 +36,14 @@ jobs:
               ready=1; break
             fi
             if [ "$status" = '200' ] && jq -e '.ok==true and .footballDataConfigured==false' /tmp/cotego-health.json >/dev/null 2>&1; then
-              echo '::error title=Cloudflare Preview secret missing::Set FOOTBALL_DATA_API_KEY as an encrypted Worker secret for feature-cotego-premium-ux-cotego in Cloudflare. Do not paste the key into GitHub, source code, or chat.'
+              echo 'Preview secret absent on attempt' "$attempt" '(will retry)'
               cat /tmp/cotego-health.json
               echo 'Preview secret not available yet; retrying to tolerate deployment propagation'
             fi
             sleep 12
           done
           if [ "$ready" != '1' ]; then
-            echo 'COTEGO Preview unavailable or football source secret missing'
+            echo '::error title=Cloudflare Preview not configured::FOOTBALL_DATA_API_KEY remains unavailable after retries. Check the secret on the exact preview Worker feature-cotego-premium-ux-cotego; do not paste its value in logs.'
             cat /tmp/cotego-health.json || true
             exit 1
           fi
@@ -60,6 +60,24 @@ jobs:
             exit 1
           fi
           echo 'Verified delayed football data available'
+      - name: Verify five-league featured feed structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          code=$(curl --silent --show-error --max-time 55 --output /tmp/cotego-featured.json --write-out '%{http_code}' "$BASE/api/football-featured" || true)
+          if [ "$code" != '200' ] || ! jq -e '
+            .ok==true and .source=="football-data.org" and
+            (.competitions|type=="array" and length==5) and
+            ([.competitions[].league]|sort)==(["fr.1","en.1","es.1","de.1","it.1"]|sort) and
+            all(.competitions[]; (.ok|type)=="boolean" and (if .ok then (.matches|type)=="array" else (.error|type)=="string" end))
+          ' /tmp/cotego-featured.json >/dev/null 2>&1; then
+            echo '::error title=Five-league feed invalid::The preview featured feed is unavailable or missing a competition/status.'
+            head -c 900 /tmp/cotego-featured.json || true
+            exit 1
+          fi
+          jq -r '.competitions[] | "\(.league): \(if .ok then "available" else "unavailable" end)"' /tmp/cotego-featured.json
+          echo 'All five competitions explicitly represented; individual upstream failures are not hidden.'
 
   browser-preview:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
