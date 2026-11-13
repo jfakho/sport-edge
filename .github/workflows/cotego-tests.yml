@@ -94,9 +94,31 @@ jobs:
         run: |
           set -euo pipefail
           BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
-          code=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-status-after.json --write-out '%{http_code}' "$BASE/api/status" || true)
-          if [ "$code" != '200' ] || ! jq -e '.ok==true and .footballDataConfigured==true' /tmp/cotego-status-after.json >/dev/null 2>&1; then
-            echo '::error title=Preview secret regression::The preview lost its FOOTBALL_DATA_API_KEY binding or became unavailable during the smoke test. Check Cloudflare deployment environment and runtime secrets.'
+          ready=0
+          missing=0
+          last_http=none
+          for attempt in $(seq 1 5); do
+            rm -f /tmp/cotego-status-after.json
+            code=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-status-after.json --write-out '%{http_code}' "$BASE/api/status" || true)
+            last_http="$code"
+            if [ "$code" = '200' ] && jq -e '.ok==true and .footballDataConfigured==true' /tmp/cotego-status-after.json >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            if [ "$code" = '200' ] && jq -e '.ok==true and .footballDataConfigured==false' /tmp/cotego-status-after.json >/dev/null 2>&1; then
+              missing=$((missing + 1))
+              if [ "$missing" -ge 3 ]; then
+                echo '::error title=Preview secret binding absent::Three responses explicitly reported footballDataConfigured=false after feed checks.'
+                exit 1
+              fi
+            else
+              missing=0
+              echo "Preview status temporarily unavailable (HTTP $code, attempt $attempt)"
+            fi
+            if [ "$attempt" -lt 5 ]; then sleep 5; fi
+          done
+          if [ "$ready" != '1' ]; then
+            echo "::error title=Preview health unavailable::Post-feed status did not recover (last HTTP $last_http). This does not establish that the secret was removed."
             exit 1
           fi
           echo 'Preview runtime secret binding still present after data checks'
