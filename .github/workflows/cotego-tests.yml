@@ -38,7 +38,7 @@ jobs:
             if [ "$status" = '200' ] && jq -e '.ok==true and .footballDataConfigured==false' /tmp/cotego-health.json >/dev/null 2>&1; then
               echo '::error title=Cloudflare Preview secret missing::Set FOOTBALL_DATA_API_KEY as an encrypted Worker secret for feature-cotego-premium-ux-cotego in Cloudflare. Do not paste the key into GitHub, source code, or chat.'
               cat /tmp/cotego-health.json
-              exit 1
+              echo 'Preview secret not available yet; retrying to tolerate deployment propagation'
             fi
             sleep 12
           done
