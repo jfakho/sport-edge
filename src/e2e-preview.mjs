@@ -47,6 +47,11 @@ try {
       // Regression: every featured league tab must be interactive on mobile and desktop.
       // This checks the selected state without claiming upstream match availability.
       for(const league of ['fr.1','en.1','es.1','it.1','de-live']){
+        // A highlighted tab alone is not enough: the match panel must rerender.
+        // Track the actual DOM node rather than assuming an upstream feed exists.
+        await page.evaluate(() => {
+          window.__cotegoPreviousFeaturedNode = document.querySelector('#featured-grid')?.firstElementChild ?? null;
+        });
         const tab=page.locator('.home-tab[data-featured-league="'+league+'"]');
         assert.equal(await tab.count(),1,'Missing featured tab '+league);
         await tab.click();
@@ -57,6 +62,12 @@ try {
         assert.equal(await tab.getAttribute('aria-pressed'),'true','League tab did not activate: '+league);
         const selected=await page.locator('.home-tab[aria-pressed="true"]').count();
         assert.equal(selected,1,'Exactly one featured league must be selected');
+        await page.waitForFunction(() => {
+          const root=document.querySelector('#featured-grid');
+          return root && root.firstElementChild && root.firstElementChild !== window.__cotegoPreviousFeaturedNode;
+        },null,{timeout:5000});
+        assert.ok((await page.locator('#featured-grid').innerText()).trim().length>0,
+          'Featured panel must show match cards or an explicit availability message for '+league);
       }
       console.log('PASS featured league tabs: all five selectable at '+viewport.width+'px');
       // Switch to isolated synthetic fixtures. No dependency on private APIs.
