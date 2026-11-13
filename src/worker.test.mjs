@@ -110,11 +110,15 @@ test('partial five-league failures are not cached and are retried',async()=>{
     const pending=[];
     const context={waitUntil:p=>pending.push(p)};
     const env={...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'};
-    const first=await (await worker.fetch(api('/api/football-featured'),env,context)).json();
+    const firstResponse=await worker.fetch(api('/api/football-featured'),env,context);
+    const first=await firstResponse.json();
+    assert.equal(firstResponse.headers.get('cache-control'),'no-store');
     assert.equal(first.competitions.filter(x=>!x.ok).length,1);
     assert.equal(cached.length,0);
     assert.equal(pending.length,0);
-    const second=await (await worker.fetch(api('/api/football-featured'),env,context)).json();
+    const secondResponse=await worker.fetch(api('/api/football-featured'),env,context);
+    const second=await secondResponse.json();
+    assert.match(secondResponse.headers.get('cache-control'),/max-age=120/);
     assert.equal(second.competitions.filter(x=>!x.ok).length,0);
     await Promise.all(pending);
     assert.equal(cached.length,1);
