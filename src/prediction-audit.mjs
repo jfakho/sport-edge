@@ -29,10 +29,12 @@ export function settleFootballPrediction(prediction, result) {
   if (!Number.isFinite(finishedAt) || !Number.isFinite(isoMs(prediction.kickoffUtc)) ||
       !Number.isFinite(isoMs(prediction.createdAt)) || finishedAt < isoMs(prediction.kickoffUtc) ||
       isoMs(prediction.createdAt) >= isoMs(prediction.kickoffUtc)) return {status:'unverifiable'};
-  // If source identifiers are supplied, they must match the pre-match record.
-  // This prevents attaching a different fixture's final score to an audit entry.
-  if (result.source !== undefined && String(result.source) !== prediction.source) return {status:'unverifiable'};
-  if (result.sourceMatchId !== undefined && String(result.sourceMatchId) !== prediction.sourceMatchId) return {status:'unverifiable'};
+  // A final score is not independently auditable without both provider identifiers.
+  // Never include an anonymous result in the published prediction hit rate.
+  if (!result.source || result.sourceMatchId == null ||
+      String(result.source) !== prediction.source ||
+      String(result.sourceMatchId) !== prediction.sourceMatchId)
+    return {status:'unverifiable'};
   const outcomes = {
     home:home>away,draw:home===away,away:home<away,
     over_2_5:home+away>2.5,under_2_5:home+away<2.5,
