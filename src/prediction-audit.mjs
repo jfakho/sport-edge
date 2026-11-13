@@ -66,6 +66,18 @@ export function summarizePredictions(records) {
       && isoMs(p.createdAt)<isoMs(p.kickoffUtc)
       && Array.isArray(e.actualScore) && e.actualScore.length===2
       && e.actualScore.every(n=>Number.isInteger(n)&&n>=0&&n<=35)
+      // Recalculate the market outcome from the recorded final score; never trust
+      // a stored hit flag by itself when publishing performance statistics.
+      && MARKETS.has(p.market)
+      && (() => {
+        const [home,away]=e.actualScore;
+        const outcomes={
+          home:home>away,draw:home===away,away:home<away,
+          over_2_5:home+away>2.5,under_2_5:home+away<2.5,
+          btts_yes:home>0&&away>0,btts_no:home===0||away===0,
+        };
+        return e.hit===outcomes[p.market];
+      })()
       && Math.abs(e.brierScore-(p.probability-Number(e.hit))**2)<1e-10;
   });
   const hits=settled.filter(x=>x.evaluation.hit).length;
