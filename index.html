@@ -772,9 +772,13 @@ body{font-size:14px;letter-spacing:0}
       const normalized=String(team).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
       return majors.some(v=>normalized.includes(v)) ? 1 : 0;
     };
-    const featuredLeagues=state.featuredData && state.mode!=='demo' && state.mode!=='custom'
-      ? Object.entries(state.featuredData).map(([league,matches])=>({league,matches}))
-      : [{league:state.league,matches:state.matches}];
+    // Home tabs are competition filters: never show another league's fixtures
+    // after the visitor selects Premier League, Bundesliga, etc.
+    const selectedLeague=state.league==='de-live'?'de.1':state.league;
+    const selectedMatches=state.featuredData && state.mode!=='demo' && state.mode!=='custom'
+      ? state.featuredData[selectedLeague]
+      : null;
+    const featuredLeagues=[{league:selectedLeague,matches:selectedMatches||state.matches}];
     const upcoming=featuredLeagues.flatMap(({league,matches})=>matches
       .filter(m=>!m.score && daysBetween(today(),m.date)>=0 && daysBetween(today(),m.date)<=30)
       .map(match=>({match,league,matches})));
@@ -787,7 +791,7 @@ body{font-size:14px;letter-spacing:0}
     }).sort((a,b)=>b.score-a.score || a.match.date.localeCompare(b.match.date)).slice(0,3);
     $('#home-selection-count').textContent=scored.length+' match'+(scored.length>1?'s':'')+' sélectionné'+(scored.length>1?'s':'');
     if (!scored.length) {
-      add(root,'div','featured-empty','Aucune rencontre disponible dans les 30 prochains jours. Retrouvez les autres championnats dans les onglets ou la rubrique Matchs & analyses.');
+      add(root,'div','featured-empty','Aucune rencontre vérifiée disponible pour ce championnat dans les 30 prochains jours. Choisissez un autre onglet ou réessayez l’actualisation.');
       return;
     }
     for (const item of scored) {
