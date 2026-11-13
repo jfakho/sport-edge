@@ -46,6 +46,7 @@ export default {
           }
           const matches=normalizeFootballDataSeason(await upstream.json(),league);
           results.push({league,ok:true,matches:selectUpcomingMatches(matches),
+            freshness:footballDataFreshness(matches),
             historicalMatches:matches.filter(x=>!!x.score).slice(-80)});
         } catch {results.push({league,ok:false,error:'Source indisponible'});}
       }
