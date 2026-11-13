@@ -52,7 +52,7 @@ export default {
       const ok=results.some(x=>x.ok);
       if (!ok)return errorJSON('Aucune compétition disponible',503);
       const response=new Response(JSON.stringify({ok:true,source:'football-data.org',receivedAt:new Date().toISOString(),competitions:results}),{
-        headers:{'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=120, s-maxage=600','x-content-type-options':'nosniff'},
+        headers:{'content-type':'application/json; charset=utf-8','cache-control':results.every(x=>x.ok) ? 'public, max-age=120, s-maxage=600' : 'no-store','x-content-type-options':'nosniff'},
       });
       // Do not cache partial upstream failures: a temporarily unavailable league
       // must be retried on the next request rather than hidden for ten minutes.
