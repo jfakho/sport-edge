@@ -32,3 +32,15 @@ test('reports hit rate only over evaluated predictions and deduplicates',()=>{
 test('never implies a hit rate with zero settled results',()=>{
   assert.equal(summarizePredictions([]).hitRate,null);
 });
+
+test('invalid clock fails with domain validation rather than RangeError',()=>{
+ assert.throws(()=>createPredictionRecord(fixture,new Date('invalid')),/Prévision invalide/);
+});
+test('a verified score cannot settle a prediction for a different fixture',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const final={status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z',
+   source:'football-data.org',sourceMatchId:'999'};
+ assert.equal(settleFootballPrediction(p,final).status,'unverifiable');
+ assert.equal(settleFootballPrediction(p,{...final,sourceMatchId:'123'}).status,'settled');
+ assert.equal(settleFootballPrediction(p,{...final,source:'untrusted-source',sourceMatchId:'123'}).status,'unverifiable');
+});
