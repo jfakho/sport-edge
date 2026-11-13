@@ -45,6 +45,12 @@ export default {
             results.push({league,ok:false,error});continue;
           }
           const matches=normalizeFootballDataSeason(await upstream.json(),league);
+          // An empty provider response is not verified coverage. Keep it visible
+          // as unavailable and retry next time rather than caching false success.
+          if (matches.length === 0) {
+            results.push({league,ok:false,error:'Aucune rencontre vérifiable reçue'});
+            continue;
+          }
           results.push({league,ok:true,matches:selectUpcomingMatches(matches),
             freshness:footballDataFreshness(matches),
             historicalMatches:matches.filter(x=>!!x.score).slice(-80)});
