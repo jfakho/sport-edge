@@ -87,9 +87,18 @@ export function normalizeFootballDataSeason(payload, league, now = new Date()) {
   if (!payload || !Array.isArray(payload.matches)) throw new Error('Invalid football-data.org match list');
   if (!COMPETITIONS[league]) throw new Error('Unknown competition');
   const result = new Map();
+  const conflicts = new Set();
   for (const match of payload.matches) {
     const normalized = normalizeFootballDataMatch(match,league,now);
-    if (!normalized) continue;
+    if (!normalized || conflicts.has(normalized._sourceId)) continue;
+    const previous = result.get(normalized._sourceId);
+    // Never silently overwrite contradictory records for the same provider ID:
+    // a different fixture, status or final score makes the result unauditable.
+    if (previous && JSON.stringify(previous) !== JSON.stringify(normalized)) {
+      result.delete(normalized._sourceId);
+      conflicts.add(normalized._sourceId);
+      continue;
+    }
     result.set(normalized._sourceId, normalized);
   }
   return [...result.values()].sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
