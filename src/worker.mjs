@@ -32,11 +32,12 @@ export default {
       if (cache) {const cached=await cache.match(cacheKey);if(cached)return cached;}
       const results=[];
       let quotaExhausted=false;
+      let accessDenied=false;
       let quotaRetrySeconds=60;
       // Sequential requests stay below the free provider's 10 calls/minute limit.
       for (const league of leagues) {
-        if (quotaExhausted) {
-          results.push({league,ok:false,error:'Quota de données atteint'});
+        if (quotaExhausted || accessDenied) {
+          results.push({league,ok:false,error:quotaExhausted ? 'Quota de données atteint' : 'Accès à la source non autorisé'});
           continue;
         }
         try {
@@ -47,6 +48,7 @@ export default {
           if (!upstream.ok) {
             // A provider-wide 429 must stop this batch immediately: retrying
             // the remaining leagues only wastes quota and can prolong throttling.
+            if (upstream.status === 401 || upstream.status === 403) accessDenied=true;
             if (upstream.status === 429) {
               quotaExhausted=true;
               const rawRetry=upstream.headers.get('retry-after');
