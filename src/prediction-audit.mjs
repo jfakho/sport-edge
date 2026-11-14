@@ -43,6 +43,7 @@ export function settleFootballPrediction(prediction, result) {
   if (!Object.hasOwn(outcomes,prediction.market) || !isNumber(prediction.probability))
     return {status:'unverifiable'};
   return {status:'settled',hit:outcomes[prediction.market],actualScore:[home,away],
+    verifiedResult:{source:String(result.source),sourceMatchId:String(result.sourceMatchId),finishedAt:new Date(finishedAt).toISOString()},
     brierScore:(prediction.probability-Number(outcomes[prediction.market]))**2};
 }
 
@@ -69,6 +70,11 @@ export function summarizePredictions(records) {
       // Recalculate the market outcome from the recorded final score; never trust
       // a stored hit flag by itself when publishing performance statistics.
       && MARKETS.has(p.market)
+      // Public metrics require a traceable final result, not only a plausible score.
+      && e.verifiedResult?.source===p.source
+      && e.verifiedResult?.sourceMatchId===p.sourceMatchId
+      && Number.isFinite(isoMs(e.verifiedResult?.finishedAt))
+      && isoMs(e.verifiedResult.finishedAt)>=isoMs(p.kickoffUtc)
       && (() => {
         const [home,away]=e.actualScore;
         const outcomes={
