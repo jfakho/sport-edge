@@ -239,3 +239,36 @@ test('malformed upstream retry delay falls back to one minute',async()=>{
     assert.equal(res.headers.get('retry-after'),'60');
   } finally {mock.restoreAll();}
 });
+
+test('featured feed stops after provider authentication rejection without caching',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    return new Response('private provider authentication failure',{status:401});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,1);
+    assert.ok(!(await res.text()).includes('private provider authentication failure'));
+  } finally {mock.restoreAll();}
+});
+
+test('featured feed preserves available matches but skips remaining leagues after access denial',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    return calls===1 ? new Response(JSON.stringify({matches:[match]}),{status:200}) : new Response('',{status:403});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,200);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,2);
+    const body=await res.json();
+    assert.equal(body.competitions.length,5);
+    assert.equal(body.competitions[0].ok,true);
+    assert.ok(body.competitions.slice(1).every(x=>!x.ok));
+  } finally {mock.restoreAll();}
+});
