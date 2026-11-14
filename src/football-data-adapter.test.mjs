@@ -89,3 +89,15 @@ test('upcoming fixtures reject invalid limits and ignore null entries',()=>{
  assert.throws(()=>selectUpcomingMatches([],fixedNow,-1),RangeError);
  assert.throws(()=>selectUpcomingMatches([],fixedNow,1.5),RangeError);
 });
+
+test('excludes contradictory duplicate provider IDs instead of trusting the last score',()=>{
+ const contradictory={...base,score:{...base.score,fullTime:{home:0,away:3}}};
+ const clean={...base,id:125};
+ const rows=normalizeFootballDataSeason({matches:[base,clean,contradictory,base]},'fr.1',fixedNow);
+ assert.deepEqual(rows.map(m=>m._sourceId),[125]);
+});
+test('identical duplicate provider records remain deduplicated',()=>{
+ const rows=normalizeFootballDataSeason({matches:[base,{...base}]},'fr.1',fixedNow);
+ assert.equal(rows.length,1);
+ assert.deepEqual(rows[0].score,{ft:[2,1],ht:[1,1]});
+});
