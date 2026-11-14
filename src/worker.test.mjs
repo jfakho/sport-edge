@@ -214,3 +214,28 @@ test('featured feed does not cache an entirely unavailable response',async()=>{
     mock.restoreAll();
   }
 });
+
+
+test('provider rate limit supplies bounded retry delay without exposing upstream details',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    return new Response('provider quota private detail',{status:429,headers:{'retry-after':'99999'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football/fr.1'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('retry-after'),'3600');
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,1);
+    assert.ok(!(await res.text()).includes('provider quota private detail'));
+  } finally {mock.restoreAll();}
+});
+
+test('malformed upstream retry delay falls back to one minute',async()=>{
+  mock.method(globalThis,'fetch',async()=>new Response('',{status:429,headers:{'retry-after':'not-a-number'}}));
+  try {
+    const res=await worker.fetch(api('/api/football/fr.1'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.headers.get('retry-after'),'60');
+  } finally {mock.restoreAll();}
+});
