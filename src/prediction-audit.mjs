@@ -102,6 +102,8 @@ export function summarizePredictions(records) {
   const avgBrier=settled.length
     ? settled.reduce((sum,x)=>sum+x.evaluation.brierScore,0)/settled.length : null;
   return {total:values.length,evaluated:settled.length,pending:values.filter(x=>x.evaluation?.status==='pending').length,
-    unverifiable:values.filter(x=>x.evaluation?.status==='unverifiable').length,
+    // Every non-pending entry that fails strict settlement verification is
+    // explicitly reported as unverifiable rather than silently disappearing.
+    unverifiable:values.length-settled.length-values.filter(x=>x.evaluation?.status==='pending').length,
     hits,hitRate:settled.length?hits/settled.length:null,averageBrierScore:avgBrier};
 }
