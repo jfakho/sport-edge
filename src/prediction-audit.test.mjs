@@ -127,3 +127,20 @@ test('forged record IDs cannot inflate public prediction performance',()=>{
    assert.equal(summary.hitRate,null);
  }
 });
+
+test('conflicting duplicate audit entries are quarantined regardless of order',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const win=settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'});
+ const loss=settleFootballPrediction(p,{status:'FINISHED',home:0,away:1,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'});
+ const a={prediction:p,evaluation:win},b={prediction:p,evaluation:loss};
+ for(const entries of [[a,b],[b,a],[a,b,a]]) {
+   const report=summarizePredictions(entries);
+   assert.equal(report.total,1);
+   assert.equal(report.evaluated,0);
+   assert.equal(report.unverifiable,1);
+   assert.equal(report.hitRate,null);
+ }
+ assert.equal(summarizePredictions([a,a]).evaluated,1);
+});
