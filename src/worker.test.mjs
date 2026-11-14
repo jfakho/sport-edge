@@ -176,3 +176,41 @@ test('upstream redirects are never followed with the private token',async()=>{
     assert.equal(res.headers.get('cache-control'),'no-store');
   } finally {mock.restoreAll();}
 });
+
+
+test('featured feed never follows upstream redirects or exposes the private key',async()=>{
+  const TOKEN='featured-private-test-token';
+  const requests=[];
+  mock.method(globalThis,'fetch',async (url,options)=>{
+    requests.push({url:String(url),redirect:options.redirect,token:options.headers['X-Auth-Token']});
+    return new Response(null,{status:302,headers:{location:'https://untrusted.example/collect'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:TOKEN},{});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(requests.length,5);
+    assert.ok(requests.every(x=>x.redirect==='manual' && x.token===TOKEN));
+    const body=await res.text();
+    assert.ok(!body.includes(TOKEN));
+    assert.ok(!body.includes('untrusted.example'));
+  } finally {mock.restoreAll();}
+});
+
+test('featured feed does not cache an entirely unavailable response',async()=>{
+  const previousCaches=globalThis.caches;
+  let writes=0;
+  globalThis.caches={default:{match:async()=>undefined,put:async()=>{writes++;}}};
+  mock.method(globalThis,'fetch',async()=>new Response('provider down',{status:503}));
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{waitUntil(){throw new Error('must not cache');}});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(writes,0);
+    assert.ok(!(await res.text()).includes('provider down'));
+  } finally {
+    if(previousCaches===undefined) delete globalThis.caches;
+    else globalThis.caches=previousCaches;
+    mock.restoreAll();
+  }
+});
