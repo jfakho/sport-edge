@@ -144,3 +144,18 @@ test('conflicting duplicate audit entries are quarantined regardless of order',(
  }
  assert.equal(summarizePredictions([a,a]).evaluated,1);
 });
+
+test('rejected settled predictions are counted as unverifiable, not silently omitted',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const verified=settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'});
+ const forged={prediction:{...p,id:'tampered'},evaluation:verified};
+ const pending={prediction:{...p,id:'pending'},evaluation:{status:'pending'}};
+ const report=summarizePredictions([{prediction:p,evaluation:verified},forged,pending]);
+ assert.equal(report.total,3);
+ assert.equal(report.evaluated,1);
+ assert.equal(report.pending,1);
+ assert.equal(report.unverifiable,1);
+ assert.equal(report.hits,1);
+ assert.equal(report.hitRate,1);
+});
