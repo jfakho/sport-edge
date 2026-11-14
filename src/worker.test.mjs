@@ -148,3 +148,31 @@ test('featured feed stops further upstream calls on rate limit and marks remaini
     assert.ok(body.competitions.slice(1).every(x=>!x.ok && /Quota/.test(x.error)));
   } finally {mock.restoreAll();}
 });
+
+
+test('malformed encoded league returns 400 without contacting upstream',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{calls++;throw new Error('unexpected upstream request');});
+  try {
+    const res=await worker.fetch(api('/api/football/%E0%A4%A'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,400);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,0);
+  } finally {mock.restoreAll();}
+});
+
+test('upstream redirects are never followed with the private token',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async(_url,options)=>{
+    calls++;
+    assert.equal(options.redirect,'manual');
+    return new Response(null,{status:302,headers:{location:'https://untrusted.example/collect'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football/fr.1'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'private-test-token'},{});
+    assert.equal(res.status,503);
+    assert.equal(calls,1);
+    assert.ok(!(await res.text()).includes('untrusted.example'));
+    assert.equal(res.headers.get('cache-control'),'no-store');
+  } finally {mock.restoreAll();}
+});
