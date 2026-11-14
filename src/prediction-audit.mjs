@@ -53,7 +53,15 @@ export function summarizePredictions(records) {
   const unique=new Map();
   for (const entry of records||[]) {
     if (!entry?.prediction?.id) continue;
-    if (!unique.has(entry.prediction.id)) unique.set(entry.prediction.id,entry);
+    const id=entry.prediction.id;
+    if (!unique.has(id)) unique.set(id,entry);
+    else {
+      const previous=unique.get(id);
+      // Identical replays are harmless; conflicting versions of one prediction
+      // cannot be resolved by insertion order without compromising the audit.
+      if (JSON.stringify(previous) !== JSON.stringify(entry))
+        unique.set(id,{prediction:previous.prediction,evaluation:{status:'unverifiable'}});
+    }
   }
   const values=[...unique.values()];
   // A malformed or fabricated evaluation must never inflate public hit rates.
