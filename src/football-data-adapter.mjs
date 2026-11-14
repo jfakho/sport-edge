@@ -132,7 +132,9 @@ export function selectUpcomingMatches(matches, now = new Date(), limit = 12) {
   return matches.filter(m => m && m.score === null
     && (m._status === 'SCHEDULED' || m._status === 'TIMED')
     && Number.isFinite(Date.parse(m._kickoffUtc))
-    && Date.parse(m._kickoffUtc) > nowMs)
+    && Date.parse(m._kickoffUtc) > nowMs
+    // Do not advertise distant fixtures as current editorial picks.
+    && Date.parse(m._kickoffUtc) <= nowMs + 30 * 24 * 60 * 60 * 1000)
     .sort((a,b) => Date.parse(a._kickoffUtc) - Date.parse(b._kickoffUtc)
       || Number(a._sourceId || 0) - Number(b._sourceId || 0))
     .slice(0,limit);
