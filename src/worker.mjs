@@ -3,7 +3,8 @@
  * Confidential: FOOTBALL_DATA_API_KEY exists only as a Worker secret.
  * Static assets remain static; only /api/* invokes this Worker.
  */
-import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness} from './football-data-adapter.mjs';
+import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness, selectUpcomingMatches} from './football-data-adapter.mjs';
+import {handleBillingTest} from './billing-test.mjs';
 
 const CACHE_SECONDS = 600;
 const CODES = Object.keys(COMPETITIONS);
@@ -16,11 +17,79 @@ export default {
   async fetch(request, env, context) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    if (url.pathname.startsWith('/api/account/') || url.pathname.startsWith('/api/billing/')) return handleBillingTest(request,env);
     if (request.method !== 'GET') return errorJSON('Méthode non autorisée',405,{allow:'GET'});
+    if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+
+
+    // Cross-league fixtures: one client request, five upstream requests max.
+    // No stale or fabricated fixtures; each competition reports its own availability.
+    if (url.pathname === '/api/football-featured') {
+      if (!env.FOOTBALL_DATA_API_KEY) return errorJSON('Source de résultats non configurée',503);
+      const leagues=['fr.1','en.1','es.1','de.1','it.1'];
+      const cache = typeof caches !== 'undefined' ? caches.default : null;
+      const cacheKey=new Request(url.origin+'/api/football-featured',{method:'GET'});
+      if (cache) {const cached=await cache.match(cacheKey);if(cached)return cached;}
+      const results=[];
+      let quotaExhausted=false;
+      let accessDenied=false;
+      let quotaRetrySeconds=60;
+      // Sequential requests stay below the free provider's 10 calls/minute limit.
+      for (const league of leagues) {
+        if (quotaExhausted || accessDenied) {
+          results.push({league,ok:false,error:quotaExhausted ? 'Quota de données atteint' : 'Accès à la source non autorisé'});
+          continue;
+        }
+        try {
+          const upstream=await fetch('https://api.football-data.org/v4/competitions/'+COMPETITIONS[league]+'/matches',{
+            headers:{'X-Auth-Token':env.FOOTBALL_DATA_API_KEY,Accept:'application/json'},
+            redirect:'manual',signal:AbortSignal.timeout(9000),
+          });
+          if (!upstream.ok) {
+            // A provider-wide 429 must stop this batch immediately: retrying
+            // the remaining leagues only wastes quota and can prolong throttling.
+            if (upstream.status === 401 || upstream.status === 403) accessDenied=true;
+            if (upstream.status === 429) {
+              quotaExhausted=true;
+              const rawRetry=upstream.headers.get('retry-after');
+              quotaRetrySeconds=rawRetry !== null && /^\d{1,5}$/.test(rawRetry.trim())
+                ? Math.min(Math.max(Number(rawRetry.trim()),1),3600) : 60;
+            }
+            const error = upstream.status === 429 ? 'Quota de données atteint'
+              : upstream.status === 401 || upstream.status === 403 ? 'Accès à cette compétition non autorisé'
+              : 'Source indisponible';
+            results.push({league,ok:false,error});continue;
+          }
+          const matches=normalizeFootballDataSeason(await upstream.json(),league);
+          // An empty provider response is not verified coverage. Keep it visible
+          // as unavailable and retry next time rather than caching false success.
+          if (matches.length === 0) {
+            results.push({league,ok:false,error:'Aucune rencontre vérifiable reçue'});
+            continue;
+          }
+          results.push({league,ok:true,matches:selectUpcomingMatches(matches),
+            freshness:footballDataFreshness(matches),
+            historicalMatches:matches.filter(x=>!!x.score).slice(-80)});
+        } catch {results.push({league,ok:false,error:'Source indisponible'});}
+      }
+      const ok=results.some(x=>x.ok);
+      if (!ok)return errorJSON('Aucune compétition disponible',503,
+        quotaExhausted ? {'retry-after':String(quotaRetrySeconds)} : {});
+      const response=new Response(JSON.stringify({ok:true,source:'football-data.org',receivedAt:new Date().toISOString(),competitions:results}),{
+        headers:{'content-type':'application/json; charset=utf-8','cache-control':results.every(x=>x.ok) ? 'public, max-age=120, s-maxage=600' : 'no-store','x-content-type-options':'nosniff',...(quotaExhausted ? {'retry-after':String(quotaRetrySeconds)} : {})},
+      });
+      // Do not cache partial upstream failures: a temporarily unavailable league
+      // must be retried on the next request rather than hidden for ten minutes.
+      if(cache&&context?.waitUntil&&results.every(x=>x.ok))context.waitUntil(cache.put(cacheKey,response.clone()));
+      return response;
+    }
 
     const match = /^\/api\/football\/([^/]+)$/.exec(url.pathname);
     if (!match) return errorJSON('Route inconnue',404);
-    const league = decodeURIComponent(match[1]);
+    // Malformed percent-encoding must return a controlled client error, not a 500.
+    let league;
+    try { league = decodeURIComponent(match[1]); }
+    catch { return errorJSON('Identifiant de compétition invalide',400); }
     if (!CODES.includes(league)) return errorJSON('Compétition non prise en charge',400);
     if (!env.FOOTBALL_DATA_API_KEY) return errorJSON('Source de résultats non configurée',503);
 
@@ -41,7 +110,15 @@ export default {
         redirect:'manual',
         signal:AbortSignal.timeout(9000),
       });
-      if (response.status === 429) return errorJSON('Quota de données atteint, veuillez réessayer plus tard',503);
+      if (response.status === 429) {
+        // Honor a provider Retry-After delay when it is a bounded number of seconds.
+        // Never relay arbitrary upstream headers or reveal provider internals.
+        const rawRetry = response.headers.get('retry-after');
+        const seconds = rawRetry !== null && /^\d{1,5}$/.test(rawRetry.trim())
+          ? Number(rawRetry.trim()) : 60;
+        return errorJSON('Quota de données atteint, veuillez réessayer plus tard',503,
+          {'retry-after':String(Math.min(Math.max(seconds,1),3600))});
+      }
       if (response.status === 401 || response.status === 403)
         return errorJSON('Accès à la source non autorisé pour cette compétition',503);
       if (!response.ok) return errorJSON('Service de données indisponible',503);

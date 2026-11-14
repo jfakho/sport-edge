@@ -1,0 +1,169 @@
+
+/* COTEGO 2026 — proposition de refonte éditoriale, sobre et différenciée.
+   Navigation inspirée des interfaces sportives rapides; aucune identité copiée. */
+:root{
+  --bg:#101318;--sidebar:#11151c;--panel:#1a2029;--panel2:#202832;--line:#303844;
+  --muted:#98a5b4;--soft:#cad0d7;--white:#f1f2f1;--lime:#dbc9aa;--amber:#d6b794;
+  --blue:#b3c3d4;--accent:#dbc9aa;
+}
+body {background:var(--bg);color:var(--white);-webkit-font-smoothing:antialiased}
+.sidebar{background:#11151c;border-right:1px solid #29303a}
+.brand{margin-bottom:36px}
+.brand-symbol{background:transparent!important;border:1px solid #b6a68f!important;transform:none!important}
+.brand-symbol span{background:#e5d3b6!important}
+.brand strong{letter-spacing:-.9px}
+.brand strong span{color:#d5b995}
+.sidebar-label{color:#717c8b!important}
+.sidebar-nav{gap:4px}
+.nav-item{border-radius:7px;font-size:12.5px;padding:12px 13px}
+.nav-item.active{background:#292c2f;color:#e9d4b3;border-color:#414143}
+.nav-item:hover{background:#222933}
+.side-highlight{background:#1b2129;border:1px solid #303945}
+.side-highlight .mini-light{background:#d7c09f}
+.topbar{background:#12171d;min-height:67px;height:67px;border-bottom:1px solid #2c333d}
+.live-badge{background:#262a2b;color:#e3d7c7;border-color:#545047}
+.live-badge i{background:#dbc9aa}
+.page{max-width:1250px;padding-top:25px}
+.btn-primary{background:#d6c3a5;color:#1d2228;border-color:transparent}
+.btn-primary:hover{background:#e6d5b9}
+.btn-outline{border-color:#444d5c;background:#ffffff05;color:#e8e9e9}
+.btn-outline:hover{background:#ffffff0c;border-color:#7b7e7d}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #edd1a4;outline-offset:3px}
+
+/* Page d'accueil : seulement une sélection éditoriale, pas le catalogue entier */
+#page-home .home-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin:15px 0 25px}
+#page-home .home-kicker{font-size:10px;letter-spacing:2.1px;font-weight:800;color:#ceb697}
+#page-home h1{font-size:clamp(27px,3.3vw,43px);letter-spacing:-1.4px;font-weight:750;line-height:1.1;margin:9px 0 10px}
+#page-home .home-desc{font-size:13px;line-height:1.55;color:#aeb8c4;max-width:630px;margin:0}
+#page-home .home-status{font-size:11px;color:#aeb8c4;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+#page-home .home-status i{width:7px;height:7px;border-radius:50%;background:#cbb791;display:inline-block}
+#page-home .home-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 15px;scrollbar-width:none}
+#page-home .home-tabs::-webkit-scrollbar{display:none}
+#page-home .home-tab{border:1px solid #363e48;border-radius:6px;background:#19202a;color:#b4c1cd;padding:11px 15px;white-space:nowrap;font-size:12px;font-weight:700}
+#page-home .home-tab[aria-pressed="true"]{background:#35312d;color:#f4e5d0;border-color:#766a58}
+#page-home .home-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0 15px}
+#page-home .home-section-head h2{font-size:17px;letter-spacing:-.25px;margin:0}
+#page-home .home-section-head .home-count{font-size:11px;color:#93a2b4}
+#page-home .featured-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#page-home .featured-card{min-width:0;background:#1b222b;border:1px solid #35404b;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:13px}
+#page-home .featured-top{display:flex;align-items:center;justify-content:space-between;gap:9px}
+#page-home .featured-league{color:#c6cfd7;font-weight:780;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+#page-home .featured-time{font-size:11px;color:#8e9faf;white-space:nowrap}
+#page-home .featured-fixture{display:flex;justify-content:space-between;align-items:center;gap:9px;line-height:1.25;font-size:17px;font-weight:730;letter-spacing:-.3px}
+#page-home .featured-fixture .fixture-vs{color:#7f8c9b;font-size:10px;font-weight:700;flex:0 0 auto}
+#page-home .featured-fixture .featured-team{flex:1;overflow-wrap:anywhere}
+#page-home .featured-fixture .featured-team:last-child{text-align:right}
+#page-home .featured-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #343d48;padding-top:12px}
+#page-home .featured-prob{color:#b9c4cf;font-size:11px;line-height:1.45}
+#page-home .featured-prob strong{color:#e8e9e8;font-size:14px}
+#page-home .featured-action{font-size:11px;font-weight:800;color:#e7d0ac;white-space:nowrap;border:0;background:none;cursor:pointer;padding:8px 0}
+#page-home .featured-action:disabled{color:#7f8c9c;cursor:not-allowed}
+#page-home .featured-empty{grid-column:1/-1;border:1px solid #343d47;border-radius:10px;background:#1c222b;padding:23px;color:#a7b7c4;line-height:1.6;font-size:13px}
+#page-home .home-all{margin-top:17px;display:flex;justify-content:flex-end}
+#page-home .home-all .btn{width:auto}
+#page-home .home-benefit{display:flex;justify-content:space-between;align-items:center;gap:16px;border:1px solid #3f3c39;background:#262626;border-radius:10px;padding:18px 20px;margin:25px 0 14px}
+#page-home .home-benefit strong{font-size:14px;color:#f0e8de}
+#page-home .home-benefit p{color:#a4afb7;font-size:12px;margin:6px 0 0;line-height:1.5}
+#page-home .home-benefit .btn{white-space:nowrap}
+#page-home .home-disclaimer{font-size:11px;color:#8793a2;line-height:1.65;margin:14px 0 30px}
+
+/* Navigation : catalogue et outils avancés vivent sur des pages dédiées. */
+#page-dashboard > .hero{display:none}
+#page-dashboard .section-heading{margin-top:23px}
+#page-dashboard .data-status{margin-top:0}
+#page-dashboard .cotego-live-panel{margin-top:14px}
+#page-about h1,#page-install h1{font-size:clamp(29px,4vw,42px);line-height:1.15;letter-spacing:-1px;margin:12px 0 14px}
+#page-about .info-card,#page-install .info-card{max-width:780px;margin:12px 0;background:#1b222b}
+#page-about .info-card h3,#page-install .info-card h3{margin:0 0 8px;font-size:17px}
+#page-about .info-card p,#page-install .info-card p{font-size:13px;line-height:1.7}
+#page-about a,#page-install a{color:#e2c7a0;text-underline-offset:3px}
+.footer{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
+.footer .footer-references{font-size:10px;color:#8996a7}
+.footer .footer-references a{color:#b2b8c2}
+
+/* No false scarcity or inaccessible paid links in this pre-commercial phase */
+#page-membership .membership-plan.highlighted{border-color:#736350}
+#page-membership .membership-label{color:#d1b995}
+#page-membership .membership-grid{align-items:stretch}
+#page-membership .membership-plan{background:#1c222b}
+#page-membership .membership-plan p{line-height:1.65}
+#page-membership .membership-price{font-weight:760}
+
+/* Stronger visual distinction for unavailable analysis */
+.analysis-btn:disabled{background:#232932!important;color:#7f90a0!important;border-color:#36414d!important;cursor:not-allowed!important}
+
+/* mobile bottom navigation: compact, thumb reachable */
+.cotego-bottom-nav{display:none}
+@media(max-width:1000px){
+  .sidebar{background:#161b22}
+  .page{padding:20px 16px 34px}
+  #page-home .home-intro{margin:5px 0 19px;align-items:flex-start}
+  #page-home .featured-grid{gap:10px}
+}
+@media(max-width:700px){
+  .main-area{padding-bottom:70px}
+  .topbar{position:sticky;top:0;z-index:2;height:60px;min-height:60px}
+  #page-home .home-intro{display:block}
+  #page-home .home-status{margin-top:10px;white-space:normal}
+  #page-home h1{font-size:30px}
+  #page-home .home-desc{font-size:12px}
+  #page-home .home-tabs{gap:7px}
+  #page-home .home-tab{padding:11px 13px}
+  #page-home .featured-grid{grid-template-columns:1fr}
+  #page-home .featured-card{padding:15px;gap:13px}
+  #page-home .featured-fixture{font-size:16px}
+  #page-home .featured-bottom{padding-top:12px}
+  #page-home .home-benefit{display:block;padding:16px}
+  #page-home .home-benefit .btn{margin-top:12px;width:100%}
+  #page-home .home-all .btn{width:100%}
+  #page-home .home-all{display:block}
+  .cotego-bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:8;justify-content:space-around;align-items:stretch;padding:7px 8px calc(7px + env(safe-area-inset-bottom));border-top:1px solid #41454a;background:#151a20f7;backdrop-filter:blur(12px)}
+  .cotego-bottom-nav button{background:none;border:0;color:#a3afbd;font:700 11px system-ui;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;min-width:62px;min-height:43px}
+  .cotego-bottom-nav button span{font-size:18px;line-height:1.1;font-weight:500}
+  .cotego-bottom-nav button.active{color:#e7d2b3}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+
+/* COTEGO V2 — light editorial theme, approved 12 Nov 2026 */
+:root{--bg:#f6f4ef;--sidebar:#f0ede6;--panel:#ffffff;--panel2:#f7f5f0;--line:#dedbd4;--muted:#66717b;--soft:#4b5661;--white:#20262d;--lime:#806747;--amber:#9a7953;--blue:#526c86;--accent:#806747}
+body{background:var(--bg);color:var(--white)}
+.sidebar{background:#f0ede6;border-right-color:#dedbd4}
+.sidebar-label,.side-bottom{color:#73736f!important}
+.nav-item{color:#45505a}.nav-item:hover{background:#e7e2d8;color:#252b31}
+.nav-item.active{background:#e5dbca;color:#473827;border-color:#d5c4aa}
+.side-highlight{background:#fff;border-color:#dedbd4}
+.topbar{background:#faf9f6;border-bottom-color:#dedbd4}
+.breadcrumb,.breadcrumb span:last-child{color:#34404a}
+.page{color:#242b31}
+.btn-primary{background:#8a7050;color:#fff}.btn-primary:hover{background:#71593d}
+.btn-outline{background:#fff;color:#34404a;border-color:#d6d2c9}
+.btn-outline:hover{background:#f4f0e9;border-color:#bba98f}
+#page-home .home-kicker{color:#84694a}
+#page-home .home-desc,#page-home .home-status{color:#5b6670}
+#page-home .home-tab{background:#fff;color:#46525c;border-color:#ddd8cf}
+#page-home .home-tab[aria-pressed="true"]{background:#e9dfcf;color:#4a3825;border-color:#c7b394}
+#page-home .featured-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#page-home .featured-card{background:#fff;border-color:#dedbd4;box-shadow:0 5px 18px #242b3109}
+#page-home .featured-league{color:#665641}
+#page-home .featured-time,#page-home .featured-prob{color:#5d6973}
+#page-home .featured-prob strong{color:#222a30}
+#page-home .featured-action{color:#755736}
+#page-home .featured-empty{background:#fff;border-color:#dedbd4;color:#4b5661}
+#page-home .home-benefit{background:#ede6db;border-color:#d8c9b4}
+#page-home .home-benefit strong{color:#352e26}
+#page-home .home-benefit p,#page-home .home-disclaimer{color:#59636b}
+#page-about .info-card,#page-install .info-card,#page-membership .membership-plan{background:#fff}
+#page-about a,#page-install a{color:#755736}
+.footer .footer-references,.footer .footer-references a{color:#65717b}
+@media(max-width:1000px){#page-home .featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sidebar{background:#f0ede6}}
+@media(max-width:700px){#page-home .featured-grid{grid-template-columns:1fr}.cotego-bottom-nav{background:#f9f7f2f5;border-top-color:#dedbd4}.cotego-bottom-nav button{color:#5c6670}.cotego-bottom-nav button.active{color:#785c3c}.topbar{background:#faf9f6}}
+
+/* Three readable model scenarios on each featured match, no bookmaker odds. */
+.featured-scenarios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.featured-scenario{display:flex;flex-direction:column;gap:5px;min-width:0;padding:10px;border:1px solid #e6e1d7;border-radius:10px;background:#faf9f6;color:#34332f}
+.featured-scenario-target{font-size:11px;font-weight:700;color:#756c5b}
+.featured-scenario-market{font-size:12px;line-height:1.35}
+.featured-scenario-prob{font-size:11px;color:#6d695f;line-height:1.4}
+@media(max-width:680px){.featured-scenarios{grid-template-columns:1fr}.featured-scenario{padding:9px}}

@@ -61,3 +61,233 @@ test('upstream 401 is hidden from browser', async()=>{
     assert.ok(!(await res.text()).includes('token invalid'));
   } finally {mock.restoreAll();}
 });
+
+
+test('status endpoint exposes only configuration availability, not the token',async()=>{
+  const secret='never-send-secret-to-browser';
+  const r=await worker.fetch(api('/api/status'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:secret},{});
+  const result=await r.json();
+  assert.equal(r.status,200);
+  assert.equal(result.ok,true);
+  assert.equal(result.footballDataConfigured,true);
+  assert.equal(result.liveScores,false);
+  assert.ok(!(JSON.stringify(result).includes(secret)));
+  const unconfigured=await worker.fetch(api('/api/status'),envWithoutSecret,{});
+  assert.equal((await unconfigured.json()).footballDataConfigured,false);
+});
+
+test('cross-league endpoint exposes five independent competitions and never leaks token',async()=>{
+  const seen=[];
+  mock.method(globalThis,'fetch',async url=>{
+    seen.push(String(url));
+    return new Response(JSON.stringify({matches:[match]}),{status:200,headers:{'content-type':'application/json'}});
+  });
+  try {
+    const response=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'private-token'},{});
+    assert.equal(response.status,200);
+    const payload=await response.json();
+    assert.equal(payload.competitions.length,5);
+    assert.deepEqual(payload.competitions.map(x=>x.league),['fr.1','en.1','es.1','de.1','it.1']);
+    assert.equal(seen.length,5);
+    assert.ok(!JSON.stringify(payload).includes('private-token'));
+  } finally {mock.restoreAll();}
+});
+
+test('partial five-league failures are not cached and are retried',async()=>{
+  const cached=[];
+  let calls=0;
+  mock.method(globalThis,'fetch',async ()=>{
+    calls++;
+    if(calls===2) return new Response('temporarily unavailable',{status:503});
+    return new Response(JSON.stringify({matches:[match]}),{status:200,headers:{'content-type':'application/json'}});
+  });
+  const previousCaches=globalThis.caches;
+  globalThis.caches={default:{
+    match:async()=>undefined,
+    put:async (_key,response)=>{cached.push(await response.json());},
+  }};
+  try {
+    const pending=[];
+    const context={waitUntil:p=>pending.push(p)};
+    const env={...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'};
+    const firstResponse=await worker.fetch(api('/api/football-featured'),env,context);
+    const first=await firstResponse.json();
+    assert.equal(firstResponse.headers.get('cache-control'),'no-store');
+    assert.equal(first.competitions.filter(x=>!x.ok).length,1);
+    assert.equal(cached.length,0);
+    assert.equal(pending.length,0);
+    const secondResponse=await worker.fetch(api('/api/football-featured'),env,context);
+    const second=await secondResponse.json();
+    assert.match(secondResponse.headers.get('cache-control'),/max-age=120/);
+    assert.equal(second.competitions.filter(x=>!x.ok).length,0);
+    await Promise.all(pending);
+    assert.equal(cached.length,1);
+    assert.equal(calls,10);
+  } finally {
+    if(previousCaches===undefined) delete globalThis.caches;
+    else globalThis.caches=previousCaches;
+    mock.restoreAll();
+  }
+});
+
+test('featured feed stops further upstream calls on rate limit and marks remaining leagues unavailable',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    if(calls===2) return new Response('rate limited',{status:429});
+    return new Response(JSON.stringify({matches:[match]}),{status:200,headers:{'content-type':'application/json'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,200);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    const body=await res.json();
+    assert.equal(calls,2);
+    assert.equal(body.competitions.length,5);
+    assert.equal(body.competitions[0].ok,true);
+    assert.ok(body.competitions.slice(1).every(x=>!x.ok && /Quota/.test(x.error)));
+  } finally {mock.restoreAll();}
+});
+
+
+test('malformed encoded league returns 400 without contacting upstream',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{calls++;throw new Error('unexpected upstream request');});
+  try {
+    const res=await worker.fetch(api('/api/football/%E0%A4%A'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,400);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,0);
+  } finally {mock.restoreAll();}
+});
+
+test('upstream redirects are never followed with the private token',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async(_url,options)=>{
+    calls++;
+    assert.equal(options.redirect,'manual');
+    return new Response(null,{status:302,headers:{location:'https://untrusted.example/collect'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football/fr.1'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'private-test-token'},{});
+    assert.equal(res.status,503);
+    assert.equal(calls,1);
+    assert.ok(!(await res.text()).includes('untrusted.example'));
+    assert.equal(res.headers.get('cache-control'),'no-store');
+  } finally {mock.restoreAll();}
+});
+
+
+test('featured feed never follows upstream redirects or exposes the private key',async()=>{
+  const TOKEN='featured-private-test-token';
+  const requests=[];
+  mock.method(globalThis,'fetch',async (url,options)=>{
+    requests.push({url:String(url),redirect:options.redirect,token:options.headers['X-Auth-Token']});
+    return new Response(null,{status:302,headers:{location:'https://untrusted.example/collect'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:TOKEN},{});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(requests.length,5);
+    assert.ok(requests.every(x=>x.redirect==='manual' && x.token===TOKEN));
+    const body=await res.text();
+    assert.ok(!body.includes(TOKEN));
+    assert.ok(!body.includes('untrusted.example'));
+  } finally {mock.restoreAll();}
+});
+
+test('featured feed does not cache an entirely unavailable response',async()=>{
+  const previousCaches=globalThis.caches;
+  let writes=0;
+  globalThis.caches={default:{match:async()=>undefined,put:async()=>{writes++;}}};
+  mock.method(globalThis,'fetch',async()=>new Response('provider down',{status:503}));
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{waitUntil(){throw new Error('must not cache');}});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(writes,0);
+    assert.ok(!(await res.text()).includes('provider down'));
+  } finally {
+    if(previousCaches===undefined) delete globalThis.caches;
+    else globalThis.caches=previousCaches;
+    mock.restoreAll();
+  }
+});
+
+
+test('provider rate limit supplies bounded retry delay without exposing upstream details',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    return new Response('provider quota private detail',{status:429,headers:{'retry-after':'99999'}});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football/fr.1'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('retry-after'),'3600');
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,1);
+    assert.ok(!(await res.text()).includes('provider quota private detail'));
+  } finally {mock.restoreAll();}
+});
+
+test('malformed upstream retry delay falls back to one minute',async()=>{
+  mock.method(globalThis,'fetch',async()=>new Response('',{status:429,headers:{'retry-after':'not-a-number'}}));
+  try {
+    const res=await worker.fetch(api('/api/football/fr.1'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.headers.get('retry-after'),'60');
+  } finally {mock.restoreAll();}
+});
+
+test('featured feed stops after provider authentication rejection without caching',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    return new Response('private provider authentication failure',{status:401});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,503);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,1);
+    assert.ok(!(await res.text()).includes('private provider authentication failure'));
+  } finally {mock.restoreAll();}
+});
+
+test('featured feed preserves available matches but skips remaining leagues after access denial',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    return calls===1 ? new Response(JSON.stringify({matches:[match]}),{status:200}) : new Response('',{status:403});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,200);
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,2);
+    const body=await res.json();
+    assert.equal(body.competitions.length,5);
+    assert.equal(body.competitions[0].ok,true);
+    assert.ok(body.competitions.slice(1).every(x=>!x.ok));
+  } finally {mock.restoreAll();}
+});
+
+test('partially available featured feed exposes bounded retry delay after upstream quota exhaustion',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    if(calls===2) return new Response('private quota details',{status:429,headers:{'retry-after':'99999'}});
+    return new Response(JSON.stringify({matches:[match]}),{status:200});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,200);
+    assert.equal(res.headers.get('retry-after'),'3600');
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,2);
+    const body=await res.json();
+    assert.equal(body.competitions.filter(x=>x.ok).length,1);
+    assert.ok(!JSON.stringify(body).includes('private quota details'));
+  } finally {mock.restoreAll();}
+});

@@ -1,6 +1,6 @@
 /**
  * COTEGO — adaptation des rencontres football-data.org v4.
- * Préparatoire : NON branché au site public ou au Worker.
+ * Adaptateur utilisé par le Worker /api/football/:league.
  * API : https://www.football-data.org/documentation/api
  * Aucune clé n'est demandée ici. Utiliser plus tard un secret Cloudflare côté serveur.
  */
@@ -8,6 +8,7 @@
 export const COMPETITIONS = Object.freeze({
   'fr.1': 'FL1', 'en.1': 'PL', 'es.1': 'PD',
   'de.1': 'BL1', 'it.1': 'SA',
+  'intl.cl': 'CL', 'intl.wc': 'WC', 'intl.ec': 'EC',
 });
 
 const INVALID_STATUS = new Set(['CANCELLED', 'POSTPONED', 'SUSPENDED']);
@@ -22,9 +23,16 @@ function safeDateTime(utcDate) {
   const milliseconds = Date.parse(utcDate);
   if (!Number.isFinite(milliseconds)) return null;
   const date = new Date(milliseconds);
+  // France-facing UI uses the local Paris kick-off date and time, including DST.
+  const pieces = new Intl.DateTimeFormat('en-GB', {
+    timeZone:'Europe/Paris',
+    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',
+    hourCycle:'h23',
+  }).formatToParts(date);
+  const p = Object.fromEntries(pieces.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
   return {
-    date: date.toISOString().slice(0, 10),
-    time: date.toISOString().slice(11, 16),
+    date: p.year+'-'+p.month+'-'+p.day,
+    time: p.hour+':'+p.minute,
     timestamp: milliseconds,
   };
 }
@@ -68,6 +76,7 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
     score: hasScore ? {ft:[ft.home, ft.away], ...(validHt ? {ht:[ht.home,ht.away]} : {})} : null,
     _source: 'football-data.org',
     _sourceId: id,
+    _kickoffUtc: new Date(time.timestamp).toISOString(),
     _teamIds: [home.id,away.id],
     _status: status,
   };
@@ -78,9 +87,18 @@ export function normalizeFootballDataSeason(payload, league, now = new Date()) {
   if (!payload || !Array.isArray(payload.matches)) throw new Error('Invalid football-data.org match list');
   if (!COMPETITIONS[league]) throw new Error('Unknown competition');
   const result = new Map();
+  const conflicts = new Set();
   for (const match of payload.matches) {
     const normalized = normalizeFootballDataMatch(match,league,now);
-    if (!normalized) continue;
+    if (!normalized || conflicts.has(normalized._sourceId)) continue;
+    const previous = result.get(normalized._sourceId);
+    // Never silently overwrite contradictory records for the same provider ID:
+    // a different fixture, status or final score makes the result unauditable.
+    if (previous && JSON.stringify(previous) !== JSON.stringify(normalized)) {
+      result.delete(normalized._sourceId);
+      conflicts.add(normalized._sourceId);
+      continue;
+    }
     result.set(normalized._sourceId, normalized);
   }
   return [...result.values()].sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
@@ -89,7 +107,7 @@ export function normalizeFootballDataSeason(payload, league, now = new Date()) {
 /** Source metadata for the UI, not a guarantee of truth or live status. */
 export function footballDataFreshness(matches, now = new Date()) {
   const timestamps = matches.filter(m=>Array.isArray(m.score?.ft))
-    .map(m=>Date.parse(m.date+'T'+(m.time||'00:00')+':00Z'))
+    .map(m=>m._kickoffUtc ? Date.parse(m._kickoffUtc) : Date.parse(m.date+'T'+(m.time||'00:00')+':00Z'))
     .filter(Number.isFinite);
   const latest = timestamps.length ? Math.max(...timestamps) : null;
   const ageHours = latest === null ? null : Math.max(0,(now.getTime()-latest)/3600000);
@@ -101,4 +119,21 @@ export function footballDataFreshness(matches, now = new Date()) {
       : ageHours > 7*24 ? 'Résultats anciens : analyse à contrôler'
       : 'Dates à recouper avec la source',
   };
+}
+
+/** Upcoming fixtures must be genuinely scheduled, not matches already in play. */
+export function selectUpcomingMatches(matches, now = new Date(), limit = 12) {
+  const nowMs = now.getTime();
+  if (!Number.isFinite(nowMs)) throw new TypeError('now must be a valid Date');
+  // Never rely on the upstream API ordering: always show the next real fixtures first.
+  // Avoid mutating the cached source array, and break same-kickoff ties consistently.
+  if (!Array.isArray(matches)) throw new TypeError('matches must be an array');
+  if (!Number.isSafeInteger(limit) || limit < 0) throw new RangeError('limit must be a non-negative integer');
+  return matches.filter(m => m && m.score === null
+    && (m._status === 'SCHEDULED' || m._status === 'TIMED')
+    && Number.isFinite(Date.parse(m._kickoffUtc))
+    && Date.parse(m._kickoffUtc) > nowMs)
+    .sort((a,b) => Date.parse(a._kickoffUtc) - Date.parse(b._kickoffUtc)
+      || Number(a._sourceId || 0) - Number(b._sourceId || 0))
+    .slice(0,limit);
 }
