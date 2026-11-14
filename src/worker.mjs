@@ -105,7 +105,7 @@ export default {
         // Honor a provider Retry-After delay when it is a bounded number of seconds.
         // Never relay arbitrary upstream headers or reveal provider internals.
         const rawRetry = response.headers.get('retry-after');
-        const seconds = rawRetry !== null && /^\\d{1,5}$/.test(rawRetry.trim())
+        const seconds = rawRetry !== null && /^\d{1,5}$/.test(rawRetry.trim())
           ? Number(rawRetry.trim()) : 60;
         return errorJSON('Quota de données atteint, veuillez réessayer plus tard',503,
           {'retry-after':String(Math.min(Math.max(seconds,1),3600))});
