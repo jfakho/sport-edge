@@ -114,3 +114,16 @@ test('numeric and string provider match IDs settle identically in published stat
  assert.equal(summarizePredictions([{prediction:p,evaluation:numeric}]).evaluated,1);
  assert.equal(summarizePredictions([{prediction:p,evaluation:{...numeric,verifiedResult:{...numeric.verifiedResult,sourceMatchId:999}}}]).evaluated,0);
 });
+
+
+test('forged record IDs cannot inflate public prediction performance',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const evaluation=settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'});
+ assert.equal(summarizePredictions([{prediction:p,evaluation}]).evaluated,1);
+ for(const forged of [{...p,id:'another-match'}, {...p,sourceMatchId:'999'}, {...p,modelVersion:'v2'}]) {
+   const summary=summarizePredictions([{prediction:forged,evaluation}]);
+   assert.equal(summary.evaluated,0);
+   assert.equal(summary.hitRate,null);
+ }
+});
