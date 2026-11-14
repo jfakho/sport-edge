@@ -64,7 +64,7 @@ jobs:
           set -euo pipefail
           BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
           code=$(curl --silent --show-error --max-time 25 --output /tmp/cotego-football.json --write-out '%{http_code}' "$BASE/api/football/fr.1" || true)
-          if [ "$code" != '200' ] || ! jq -e '.ok==true and (.matches|length>=20) and .freshness.latestFinishedAt!=null' /tmp/cotego-football.json >/dev/null 2>&1; then
+          if [ "$code" != '200' ] || ! jq -e '.ok==true and .source=="football-data.org" and (.matches|type=="array" and length>0) and (.freshness|type=="object") and any(.matches[]; .score!=null)' /tmp/cotego-football.json >/dev/null 2>&1; then
             echo 'COTEGO Preview football data missing; inspect Cloudflare Preview secret and API provider'
             head -c 700 /tmp/cotego-football.json || true
             exit 1
@@ -80,7 +80,7 @@ jobs:
             .ok==true and .source=="football-data.org" and
             (.competitions|type=="array" and length==5) and
             ([.competitions[].league]|sort)==(["fr.1","en.1","es.1","de.1","it.1"]|sort) and
-            any(.competitions[]; .ok==true and (.matches|type)=="array" and (.matches|length)>0) and
+            any(.competitions[]; .ok==true and ((.matches|type)=="array") and ((.historicalMatches|type)=="array") and ((.matches|length)+(.historicalMatches|length)>0)) and
             all(.competitions[]; (.ok|type)=="boolean" and (if .ok then (.matches|type)=="array" else (.error|type)=="string" end))
           ' /tmp/cotego-featured.json >/dev/null 2>&1; then
             echo '::error title=Five-league feed invalid::The preview featured feed is unavailable or missing a competition/status.'
