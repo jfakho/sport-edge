@@ -32,6 +32,7 @@ export default {
       if (cache) {const cached=await cache.match(cacheKey);if(cached)return cached;}
       const results=[];
       let quotaExhausted=false;
+      let quotaRetrySeconds=60;
       // Sequential requests stay below the free provider's 10 calls/minute limit.
       for (const league of leagues) {
         if (quotaExhausted) {
@@ -46,7 +47,12 @@ export default {
           if (!upstream.ok) {
             // A provider-wide 429 must stop this batch immediately: retrying
             // the remaining leagues only wastes quota and can prolong throttling.
-            if (upstream.status === 429) quotaExhausted=true;
+            if (upstream.status === 429) {
+              quotaExhausted=true;
+              const rawRetry=upstream.headers.get('retry-after');
+              quotaRetrySeconds=rawRetry !== null && /^\d{1,5}$/.test(rawRetry.trim())
+                ? Math.min(Math.max(Number(rawRetry.trim()),1),3600) : 60;
+            }
             const error = upstream.status === 429 ? 'Quota de données atteint'
               : upstream.status === 401 || upstream.status === 403 ? 'Accès à cette compétition non autorisé'
               : 'Source indisponible';
@@ -65,7 +71,8 @@ export default {
         } catch {results.push({league,ok:false,error:'Source indisponible'});}
       }
       const ok=results.some(x=>x.ok);
-      if (!ok)return errorJSON('Aucune compétition disponible',503);
+      if (!ok)return errorJSON('Aucune compétition disponible',503,
+        quotaExhausted ? {'retry-after':String(quotaRetrySeconds)} : {});
       const response=new Response(JSON.stringify({ok:true,source:'football-data.org',receivedAt:new Date().toISOString(),competitions:results}),{
         headers:{'content-type':'application/json; charset=utf-8','cache-control':results.every(x=>x.ok) ? 'public, max-age=120, s-maxage=600' : 'no-store','x-content-type-options':'nosniff'},
       });
