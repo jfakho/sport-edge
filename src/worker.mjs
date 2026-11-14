@@ -101,7 +101,15 @@ export default {
         redirect:'manual',
         signal:AbortSignal.timeout(9000),
       });
-      if (response.status === 429) return errorJSON('Quota de données atteint, veuillez réessayer plus tard',503);
+      if (response.status === 429) {
+        // Honor a provider Retry-After delay when it is a bounded number of seconds.
+        // Never relay arbitrary upstream headers or reveal provider internals.
+        const rawRetry = response.headers.get('retry-after');
+        const seconds = rawRetry !== null && /^\\d{1,5}$/.test(rawRetry.trim())
+          ? Number(rawRetry.trim()) : 60;
+        return errorJSON('Quota de données atteint, veuillez réessayer plus tard',503,
+          {'retry-after':String(Math.min(Math.max(seconds,1),3600))});
+      }
       if (response.status === 401 || response.status === 403)
         return errorJSON('Accès à la source non autorisé pour cette compétition',503);
       if (!response.ok) return errorJSON('Service de données indisponible',503);
