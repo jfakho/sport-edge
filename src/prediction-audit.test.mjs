@@ -87,3 +87,20 @@ test('correctly recorded losing forecasts still count in the denominator',()=>{
  assert.equal(report.hits,0);
  assert.equal(report.hitRate,0);
 });
+
+test('public statistics reject plausible scores without verified result provenance',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const verified=settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:'123'});
+ assert.equal(verified.verifiedResult.sourceMatchId,'123');
+ for(const evaluation of [
+   {...verified,verifiedResult:undefined},
+   {...verified,verifiedResult:{...verified.verifiedResult,sourceMatchId:'999'}},
+   {...verified,verifiedResult:{...verified.verifiedResult,finishedAt:'2026-11-14T14:00:00Z'}},
+ ]) {
+   const report=summarizePredictions([{prediction:p,evaluation}]);
+   assert.equal(report.evaluated,0);
+   assert.equal(report.hitRate,null);
+ }
+ assert.equal(summarizePredictions([{prediction:p,evaluation:verified}]).evaluated,1);
+});
