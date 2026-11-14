@@ -61,6 +61,9 @@ export function summarizePredictions(records) {
   const settled=values.filter(x=>{
     const p=x.prediction, e=x.evaluation;
     return e?.status==='settled' && typeof e.hit==='boolean'
+      // Reject forged or mismatched record IDs in published performance metrics.
+      && [p.source,p.sourceMatchId,p.market,p.modelVersion].every(v=>v!=null)
+      && p.id===[p.source,p.sourceMatchId,p.market,p.modelVersion].map(encodeURIComponent).join(':')
       && isNumber(e.brierScore) && e.brierScore>=0 && e.brierScore<=1
       && isNumber(p.probability) && p.probability>=0 && p.probability<=1
       && Number.isFinite(isoMs(p.createdAt)) && Number.isFinite(isoMs(p.kickoffUtc))
