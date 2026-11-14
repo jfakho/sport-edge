@@ -6,7 +6,7 @@ self.addEventListener('fetch', event => {
   const request=event.request;
   if(request.method!=='GET' || new URL(request.url).origin!==self.location.origin)return;
   // Live match feeds and prediction audit must never be served from the offline shell cache.
-  if(new URL(request.url).pathname.startsWith('/api/'))return;
+  if(new URL(request.url).pathname === '/api' || new URL(request.url).pathname.startsWith('/api/'))return;
   if(request.mode==='navigate')event.respondWith(fetch(request).catch(()=>caches.match('/')));
   else event.respondWith(caches.match(request).then(response=>response||fetch(request)));
 });
