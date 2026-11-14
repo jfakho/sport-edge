@@ -272,3 +272,22 @@ test('featured feed preserves available matches but skips remaining leagues afte
     assert.ok(body.competitions.slice(1).every(x=>!x.ok));
   } finally {mock.restoreAll();}
 });
+
+test('partially available featured feed exposes bounded retry delay after upstream quota exhaustion',async()=>{
+  let calls=0;
+  mock.method(globalThis,'fetch',async()=>{
+    calls++;
+    if(calls===2) return new Response('private quota details',{status:429,headers:{'retry-after':'99999'}});
+    return new Response(JSON.stringify({matches:[match]}),{status:200});
+  });
+  try {
+    const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'},{});
+    assert.equal(res.status,200);
+    assert.equal(res.headers.get('retry-after'),'3600');
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(calls,2);
+    const body=await res.json();
+    assert.equal(body.competitions.filter(x=>x.ok).length,1);
+    assert.ok(!JSON.stringify(body).includes('private quota details'));
+  } finally {mock.restoreAll();}
+});
