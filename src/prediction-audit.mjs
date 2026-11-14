@@ -72,7 +72,8 @@ export function summarizePredictions(records) {
       && MARKETS.has(p.market)
       // Public metrics require a traceable final result, not only a plausible score.
       && e.verifiedResult?.source===p.source
-      && e.verifiedResult?.sourceMatchId===p.sourceMatchId
+      && e.verifiedResult?.sourceMatchId!=null
+      && String(e.verifiedResult.sourceMatchId)===String(p.sourceMatchId)
       && Number.isFinite(isoMs(e.verifiedResult?.finishedAt))
       && isoMs(e.verifiedResult.finishedAt)>=isoMs(p.kickoffUtc)
       && (() => {
