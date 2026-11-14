@@ -1,5 +1,6 @@
 name: COTEGO tests
 on:
+  workflow_dispatch: # Recheck preview without changing code or production
   push:
     branches: [main, feature/fresh-football-data-adapter, feature/cotego-premium-ux]
   pull_request:
