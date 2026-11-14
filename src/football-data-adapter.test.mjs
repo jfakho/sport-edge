@@ -101,3 +101,9 @@ test('identical duplicate provider records remain deduplicated',()=>{
  assert.equal(rows.length,1);
  assert.deepEqual(rows[0].score,{ft:[2,1],ht:[1,1]});
 });
+
+test('featured fixtures do not promote matches more than 30 days away',()=>{
+ const near={_sourceId:1,_status:'SCHEDULED',score:null,_kickoffUtc:'2026-11-20T20:00:00Z'};
+ const distant={_sourceId:2,_status:'SCHEDULED',score:null,_kickoffUtc:'2027-02-20T20:00:00Z'};
+ assert.deepEqual(selectUpcomingMatches([distant,near],fixedNow),[near]);
+});
