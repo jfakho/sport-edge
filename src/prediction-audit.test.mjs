@@ -104,3 +104,13 @@ test('public statistics reject plausible scores without verified result provenan
  }
  assert.equal(summarizePredictions([{prediction:p,evaluation:verified}]).evaluated,1);
 });
+
+test('numeric and string provider match IDs settle identically in published statistics',()=>{
+ const p=createPredictionRecord(fixture,before);
+ const evaluation=settleFootballPrediction(p,{status:'FINISHED',home:2,away:1,
+   finishedAt:'2026-11-14T17:00:00Z',source:'football-data.org',sourceMatchId:123});
+ assert.equal(evaluation.status,'settled');
+ const numeric={...evaluation,verifiedResult:{...evaluation.verifiedResult,sourceMatchId:123}};
+ assert.equal(summarizePredictions([{prediction:p,evaluation:numeric}]).evaluated,1);
+ assert.equal(summarizePredictions([{prediction:p,evaluation:{...numeric,verifiedResult:{...numeric.verifiedResult,sourceMatchId:999}}}]).evaluated,0);
+});
