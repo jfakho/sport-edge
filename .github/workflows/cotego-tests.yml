@@ -33,6 +33,8 @@ jobs:
           ready=0
           missing_secret_count=0
           last_http='none'
+          # Distinguish an accessible Worker from a configured football provider.
+          # Never print the secret or raw status response in CI logs.
           for attempt in $(seq 1 10); do
             rm -f /tmp/cotego-health.json
             status=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-health.json --write-out '%{http_code}' "$BASE/api/status" || true)
@@ -46,6 +48,12 @@ jobs:
               echo "Preview Worker responds but API key binding is missing (attempt $attempt)"
               if [ "$missing_secret_count" -ge 3 ]; then
                 echo '::error title=Cloudflare Worker binding absent::Preview Worker returned footballDataConfigured=false three times. Verify FOOTBALL_DATA_API_KEY is bound to the deployed preview Worker (not just the GitHub Actions environment or a different Cloudflare environment).'
+                {
+                  echo '### Cloudflare Preview: runtime secret absent'
+                  echo 'The preview URL is reachable, but three successive /api/status responses reported footballDataConfigured=false.'
+                  echo 'In Cloudflare, select the **preview Worker**, not the production Worker. Under Settings > Variables and Secrets, verify FOOTBALL_DATA_API_KEY exists as a runtime secret, then redeploy **preview only** and rerun this workflow.'
+                  echo 'Do not paste the secret into GitHub logs, issues, or chat. No production deployment is required.'
+                } >> "$GITHUB_STEP_SUMMARY"
                 exit 1
               fi
             else
