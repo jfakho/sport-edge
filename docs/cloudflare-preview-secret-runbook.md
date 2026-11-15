@@ -48,3 +48,25 @@ The `secret put` command **creates a new Preview deployment**; it is not a read-
 **Previews Base is not a retroactive fix:** `npx wrangler preview base-config secret put FOOTBALL_DATA_API_KEY` seeds **newly created** Previews only. Cloudflare explicitly says later Base secret changes do not update existing Previews. Avoid deleting/recreating the existing Preview just to inherit Base settings; this risks unnecessary disruption. Set the existing Preview secret directly first. The `previews` object in `wrangler.jsonc` is for non-secret configuration and cannot hold the secret value.
 
 After setting the secret, verify `footballDataConfigured:true`, deploy a preview-only code change, verify again, and repeat once. If the binding vanishes, capture the exact Wrangler command/version and Preview deployment IDs, then escalate with reproducible evidence. Never claim persistence based on a single successful health check.
+
+## Confirmed configuration evidence — 2026-11-15
+
+The user's dashboard recording shows the existing `feature/cotego-premium-ux` Preview selected:
+- **Runtime variables and secrets:** empty.
+- **Builds > Variables and secrets:** encrypted football API secret present.
+- **Preview command:** `npx wrangler preview`.
+- Tracking branch: `feature/cotego-premium-ux`.
+
+This establishes a build/runtime configuration mismatch at the time of the recording. It does not establish that GitHub deleted a secret or explain every earlier incident.
+
+After the user added the existing key to **Runtime variables and secrets**, the public endpoint returned:
+- HTTP 200, `footballDataConfigured: true`.
+- Deployment ID: `34612306-00b8-468f-b22c-08ba12417f3c`.
+
+This is the baseline for two sequential Git-triggered Preview deployment checks. A successful baseline alone is not evidence of persistence.
+
+### Operating access
+
+The user authorizes management of COTEGO Preview, with no charges without permission. GitHub access is available, but the agent's Cloudflare dashboard login was rejected with HTTP 403. No authenticated Cloudflare CLI/API access has been established. Do not claim automatic secret repair until a supported authenticated management path has been verified. Public health checks and GitHub access cannot read or restore the secret.
+
+Do not ask the user to repeatedly re-enter a key before comparing deployment IDs and configuration scope. Keep the existing Build secret in place during diagnosis; use the Runtime section for the existing Preview.
