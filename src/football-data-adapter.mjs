@@ -19,7 +19,10 @@ function validGoal(value) {
 }
 
 function safeDateTime(utcDate) {
-  if (typeof utcDate !== 'string') return null;
+  // Provider timestamps must include an explicit timezone. Date.parse otherwise
+  // interprets local-time strings differently across runtimes, corrupting
+  // kick-off ordering and potentially pre-match audit boundaries.
+  if (typeof utcDate !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(utcDate)) return null;
   const milliseconds = Date.parse(utcDate);
   if (!Number.isFinite(milliseconds)) return null;
   const date = new Date(milliseconds);
