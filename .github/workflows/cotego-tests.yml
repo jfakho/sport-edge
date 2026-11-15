@@ -79,7 +79,7 @@ jobs:
             exit 1
           fi
           echo 'Verified delayed football data available'
-      - name: Verify five-league featured feed structure
+      - name: Verify five major leagues and three international competitions
         shell: bash
         run: |
           set -euo pipefail
@@ -87,8 +87,8 @@ jobs:
           code=$(curl --silent --show-error --max-time 55 --output /tmp/cotego-featured.json --write-out '%{http_code}' "$BASE/api/football-featured" || true)
           if [ "$code" != '200' ] || ! jq -e '
             .ok==true and .source=="football-data.org" and
-            (.competitions|type=="array" and length==5) and
-            ([.competitions[].league]|sort)==(["fr.1","en.1","es.1","de.1","it.1"]|sort) and
+            (.competitions|type=="array" and length==8) and
+            ([.competitions[].league]|sort)==(["fr.1","en.1","es.1","de.1","it.1","CL","WC","EC"]|sort) and
             any(.competitions[]; .ok==true and ((.matches|type)=="array") and ((.historicalMatches|type)=="array") and ((.matches|length)+(.historicalMatches|length)>0)) and
             all(.competitions[]; (.ok|type)=="boolean" and (if .ok then (.matches|type)=="array" else (.error|type)=="string" end))
           ' /tmp/cotego-featured.json >/dev/null 2>&1; then
@@ -97,7 +97,7 @@ jobs:
             exit 1
           fi
           jq -r '.competitions[] | "\(.league): \(if .ok then "available" else "unavailable" end)"' /tmp/cotego-featured.json
-          echo 'All five competitions explicitly represented; at least one has actual matches and upstream failures are not hidden.'
+          echo 'All eight competitions explicitly represented; at least one has actual matches and upstream failures are not hidden.'
       - name: Recheck preview secret binding after feed checks
         shell: bash
         run: |
