@@ -1,6 +1,7 @@
 /** COTEGO: deterministic audit of football predictions. No bookmaker odds or profit claims. */
 const MARKETS = new Set(['home','draw','away','over_2_5','under_2_5','btts_yes','btts_no']);
 const isNumber = n => typeof n === 'number' && Number.isFinite(n);
+const nonBlank = value => (typeof value === 'string' || typeof value === 'number') && String(value).trim().length > 0;
 const isoMs = value => {
   // Auditable timestamps must contain an explicit timezone, never local/ambiguous dates.
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return NaN;
@@ -25,7 +26,7 @@ export function createPredictionRecord(input, now = new Date()) {
   const {source,sourceMatchId,sport,competition,kickoffUtc,market,probability,modelVersion} = input || {};
   const createdAt = now instanceof Date && Number.isFinite(now.getTime()) ? now.toISOString() : '';
   const kickoff = isoMs(kickoffUtc);
-  if (!source || !sourceMatchId || !sport || !competition || !modelVersion ||
+  if (![source,sourceMatchId,sport,competition,modelVersion].every(nonBlank) ||
       !MARKETS.has(market) || !isNumber(probability) || probability < 0 || probability > 1 ||
       !Number.isFinite(kickoff) || !Number.isFinite(isoMs(createdAt)) || isoMs(createdAt) >= kickoff)
     throw new Error('Prévision invalide ou créée après le coup d’envoi');
@@ -47,7 +48,7 @@ export function settleFootballPrediction(prediction, result) {
       isoMs(prediction.createdAt) >= isoMs(prediction.kickoffUtc)) return {status:'unverifiable'};
   // A final score is not independently auditable without both provider identifiers.
   // Never include an anonymous result in the published prediction hit rate.
-  if (!result.source || result.sourceMatchId == null ||
+  if (!nonBlank(result.source) || !nonBlank(result.sourceMatchId) ||
       String(result.source) !== prediction.source ||
       String(result.sourceMatchId) !== prediction.sourceMatchId)
     return {status:'unverifiable'};
