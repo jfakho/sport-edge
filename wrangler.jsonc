@@ -24,6 +24,6 @@
     "binding": "CF_VERSION_METADATA"
   },
   "build": {
-    "command": "node src/ensure-preview-secret.mjs"
+    "command": "node src/build-preview.mjs"
   }
 }

@@ -5,6 +5,7 @@
  */
 import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness, selectUpcomingMatches} from './football-data-adapter.mjs';
 import {handleBillingTest} from './billing-test.mjs';
+import {journalFeed,readJournal,synchronizeJournal} from './prediction-journal.mjs';
 
 const CACHE_SECONDS = 600;
 const CODES = Object.keys(COMPETITIONS);
@@ -13,13 +14,46 @@ const errorJSON = (message, status, headers={}) => new Response(
   {status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff',...headers}}
 );
 
-export default {
+async function attachJournal(response,env) {
+  if(!env.COTEGO_AUDIT_DB)return response;
+  const payload=await response.json();
+  const isBulk=Array.isArray(payload.competitions);
+  const input=isBulk?payload:{competitions:[{ok:true,league:payload.league,
+    matches:payload.matches.filter(m=>!m.score),historicalMatches:payload.matches.filter(m=>!!m.score)}]};
+  const enriched=await journalFeed(input,env.COTEGO_AUDIT_DB);
+  const data=isBulk?enriched:{...payload,journal:enriched.journal,matches:[
+    ...enriched.competitions[0].historicalMatches,...enriched.competitions[0].matches]};
+  return new Response(JSON.stringify(data),{headers:{...Object.fromEntries(response.headers),'cache-control':'no-store'}});
+}
+
+const worker = {
   async fetch(request, env, context) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     if (url.pathname.startsWith('/api/account/') || url.pathname.startsWith('/api/billing/')) return handleBillingTest(request,env);
     if (request.method !== 'GET') return errorJSON('Méthode non autorisée',405,{allow:'GET'});
-    if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,deploymentId:env.CF_VERSION_METADATA?.id ?? null,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+    if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,journalConfigured:!!env.COTEGO_AUDIT_DB,oddsConfigured:!!env.ODDS_API_KEY,deploymentId:env.CF_VERSION_METADATA?.id ?? null,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+    if(url.pathname==='/api/predictions'){
+      const league=url.searchParams.get('league')||'fr.1';
+      if(!CODES.includes(league))return errorJSON('Compétition non prise en charge',400);
+      try {return Response.json(await readJournal(env.COTEGO_AUDIT_DB,league),{headers:{'cache-control':'no-store'}});}
+      catch {return errorJSON('Journal momentanément indisponible',503);}
+    }
+    const predictionRoute=/^\/api\/prediction\/([a-z0-9.]+)\/(\d{1,10})$/.exec(url.pathname);
+    if(predictionRoute){
+      const league=predictionRoute[1],id=Number(predictionRoute[2]);
+      if(!CODES.includes(league)||!Number.isSafeInteger(id)||id<=0)return errorJSON('Rencontre invalide',400);
+      if(!env.COTEGO_AUDIT_DB)return Response.json({ok:true,configured:false,record:null},{headers:{'cache-control':'no-store'}});
+      const source=await worker.fetch(new Request(url.origin+'/api/football/'+league),env,context);
+      if(!source.ok)return errorJSON('Source sportive momentanément indisponible',503);
+      const payload=await source.json();
+      try {
+        const data=await synchronizeJournal(env.COTEGO_AUDIT_DB,{ok:true,league,
+          matches:payload.matches.filter(m=>!m.score),historicalMatches:payload.matches.filter(m=>!!m.score)},{captureId:id});
+        const match=[...data.matches,...data.historicalMatches].find(m=>m._sourceId===id);
+        return Response.json({ok:true,configured:true,record:match?._prediction??null},{headers:{'cache-control':'no-store'}});
+      } catch {return errorJSON('Enregistrement momentanément indisponible',503);}
+    }
 
 
     // Cross-league fixtures: one client request, eight upstream requests max (five leagues and three international competitions).
@@ -29,7 +63,7 @@ export default {
       const leagues=['fr.1','en.1','es.1','de.1','it.1','intl.cl','intl.wc','intl.ec'];
       const cache = typeof caches !== 'undefined' ? caches.default : null;
       const cacheKey=new Request(url.origin+'/api/football-featured',{method:'GET'});
-      if (cache) {const cached=await cache.match(cacheKey);if(cached)return cached;}
+      if (cache) {const cached=await cache.match(cacheKey);if(cached)return attachJournal(cached,env);}
       const results=[];
       let quotaExhausted=false;
       let accessDenied=false;
@@ -88,7 +122,7 @@ export default {
         headers:{'content-type':'application/json; charset=utf-8','cache-control':cacheControl,'x-content-type-options':'nosniff',...(quotaExhausted ? {'retry-after':String(quotaRetrySeconds)} : {})},
       });
       if(cache&&context?.waitUntil&&cacheable)context.waitUntil(cache.put(cacheKey,response.clone()));
-      return response;
+      return attachJournal(response,env);
     }
 
     const match = /^\/api\/football\/([^/]+)$/.exec(url.pathname);
@@ -106,7 +140,7 @@ export default {
     const cache = typeof caches !== 'undefined' ? caches.default : null;
     if (cache) {
       const hit = await cache.match(publicCacheKey);
-      if (hit) return hit;
+      if (hit) return attachJournal(hit,env);
     }
     try {
       const response = await fetch('https://api.football-data.org/v4/competitions/'+source+'/matches', {
@@ -149,10 +183,11 @@ export default {
         },
       });
       if (cache && context?.waitUntil) context.waitUntil(cache.put(publicCacheKey,out.clone()));
-      return out;
+      return attachJournal(out,env);
     } catch {
       // Never echo token, private headers, upstream payload or internal stack.
       return errorJSON('Résultats momentanément indisponibles',503);
     }
   },
 };
+export default worker;
