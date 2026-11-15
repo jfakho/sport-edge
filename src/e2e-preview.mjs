@@ -1,5 +1,7 @@
 /** COTEGO — browser end-to-end smoke test, free GitHub Actions.
  * Checks one actual featured forecast plus isolated synthetic DEMO navigation.
+ * Both viewports reuse the same verified HTTP feed within this test run;
+ * provider availability is checked independently by the smoke-preview job.
  * Requires the public football feed, but never handles a provider or Stripe key.
  * Fails when mobile/desktop navigation, clickable match cards, or the modal regress.
  */
@@ -8,10 +10,26 @@ import assert from 'node:assert/strict';
 
 const base='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev/';
 const browser=await chromium.launch({headless:true});
+const verifiedFeeds=new Map();
 let failures=0;
 try {
   for(const viewport of [{width:390,height:844},{width:1280,height:800}]){
     const ctx=await browser.newContext({viewport,ignoreHTTPSErrors:false,serviceWorkers:'block'});
+    // Keep layout regression checks from consuming the free provider quota twice.
+    // Cache only actual successful COTEGO API responses, never invented fixtures,
+    // and only in memory for this single test execution.
+    await ctx.route('**/api/football*',async route=>{
+      const url=route.request().url();
+      if(new URL(url).origin!==new URL(base).origin)return route.continue();
+      const cached=verifiedFeeds.get(url);
+      if(cached)return route.fulfill({status:200,contentType:'application/json',body:cached});
+      const response=await route.fetch();
+      const body=await response.text();
+      try {
+        if(response.ok()&&JSON.parse(body)?.ok===true)verifiedFeeds.set(url,body);
+      } catch {}
+      return route.fulfill({response,body});
+    });
     const page=await ctx.newPage();
     try {
       let loaded=false;
@@ -54,6 +72,18 @@ try {
       // historical snapshot, even while the larger single-league feed is loaded.
       const actualCard=page.locator('#featured-grid .featured-card').first();
       await actualCard.waitFor({state:'visible',timeout:20000});
+      const featuredFeed=[...verifiedFeeds.values()].map(body=>JSON.parse(body)).find(feed=>Array.isArray(feed.competitions));
+      const french=featuredFeed?.competitions.find(c=>c.league==='fr.1'&&c.ok);
+      assert.ok(french,'Verified Ligue 1 feed is required for club identity checks');
+      const parisNames=new Map();
+      for(const match of [...french.matches,...french.historicalMatches]){
+        for(let side=0;side<2;side++)if([524,1045].includes(match._teamIds?.[side])){
+          const id=match._teamIds[side],name=match['team'+(side+1)];
+          assert.equal(name,id===524?'Paris Saint-Germain':'Paris FC');
+          parisNames.set(id,name);
+        }
+      }
+      assert.equal(parisNames.size,2,'Both Paris club identities must be represented independently');
       const marketNames=await actualCard.locator('.featured-scenario-market').allTextContents();
       const marketPercentages=(await actualCard.locator('.featured-scenario-prob').allTextContents())
         .map(text=>Number(text.match(/(\d+) %/)?.[1]));
