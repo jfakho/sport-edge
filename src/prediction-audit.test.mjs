@@ -183,3 +183,14 @@ test('audit rejects impossible calendar dates and UTC offsets',()=>{
   assert.equal(settleFootballPrediction(p,{...result,finishedAt:'2026-11-31T17:00:00Z'}).status,'unverifiable');
   assert.equal(settleFootballPrediction(p,{...result,finishedAt:'2026-11-14T17:00:00+15:00'}).status,'unverifiable');
 });
+
+test('audit refuses blank provenance and model identifiers',()=>{
+  for(const change of [
+    {source:' '},{sourceMatchId:'  '},{sport:' '},{competition:' '},{modelVersion:' '}
+  ]) assert.throws(()=>createPredictionRecord({...fixture,...change},before),/Prévision invalide/);
+  const p=createPredictionRecord(fixture,before);
+  const result={status:'FINISHED',home:2,away:1,finishedAt:'2026-11-14T17:00:00Z',
+    source:'football-data.org',sourceMatchId:'123'};
+  assert.equal(settleFootballPrediction(p,{...result,source:' '}).status,'unverifiable');
+  assert.equal(settleFootballPrediction(p,{...result,sourceMatchId:' '}).status,'unverifiable');
+});
