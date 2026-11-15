@@ -20,9 +20,14 @@ test('an in-play score is NEVER training data',()=>{
  const r=normalizeFootballDataMatch({...base,status:'IN_PLAY'},'fr.1',fixedNow);
  assert.equal(r.score,null);
 });
-test('a future match never has a final score',()=>{
+test('rejects a provider record marked FINISHED before its future kick-off',()=>{
  const r=normalizeFootballDataMatch({...base,utcDate:'2026-11-22T20:00:00Z'},'fr.1',fixedNow);
+ assert.equal(r,null);
+});
+test('a genuinely scheduled future fixture is retained without a final score',()=>{
+ const r=normalizeFootballDataMatch({...base,status:'SCHEDULED',utcDate:'2026-11-22T20:00:00Z'},'fr.1',fixedNow);
  assert.equal(r.score,null);
+ assert.equal(r._status,'SCHEDULED');
 });
 test('refuses invalid finished scores',()=>{
  assert.equal(normalizeFootballDataMatch({...base,score:{fullTime:{home:null,away:1}}},'fr.1',fixedNow),null);
