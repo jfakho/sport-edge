@@ -60,7 +60,11 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
   if (home.id === away.id) return null;
   const nowMs = now instanceof Date ? now.getTime() : NaN;
   if (!Number.isFinite(nowMs)) throw new TypeError('now must be a valid Date');
-  const finished = status === FINAL_STATUS && time.timestamp <= nowMs;
+  // A provider record marked FINISHED before its scheduled kick-off is
+  // contradictory. Reject it rather than exposing a fake upcoming fixture
+  // or silently treating the unverified final score as a scheduled match.
+  if (status === FINAL_STATUS && time.timestamp > nowMs) return null;
+  const finished = status === FINAL_STATUS;
   const ft = match.score?.fullTime;
   // A live/paused match is NEVER considered finished for COTEGO's model.
   const hasScore = finished && validGoal(ft?.home) && validGoal(ft?.away);
