@@ -46,3 +46,14 @@ CREATE TABLE IF NOT EXISTS odds_snapshots (
   received_at TEXT NOT NULL,
   quotes_json TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS football_feed_cache (
+  competition TEXT PRIMARY KEY,
+  payload_json TEXT,
+  fetched_at INTEGER NOT NULL DEFAULT 0,
+  lease_until INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS football_provider_requests (
+  request_id TEXT PRIMARY KEY,
+  requested_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS football_provider_requested_at ON football_provider_requests(requested_at);

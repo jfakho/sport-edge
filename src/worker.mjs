@@ -7,6 +7,7 @@ import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness, select
 import {handleBillingTest} from './billing-test.mjs';
 import {journalFeed,readJournal,synchronizeJournal} from './prediction-journal.mjs';
 import {getBookmakerOdds,readOddsBudget} from './bookmaker-odds.mjs';
+import {fetchFootballProvider} from './football-provider-cache.mjs';
 
 const CACHE_SECONDS = 600;
 const CODES = Object.keys(COMPETITIONS);
@@ -91,10 +92,7 @@ const worker = {
           continue;
         }
         try {
-          const upstream=await fetch('https://api.football-data.org/v4/competitions/'+COMPETITIONS[league]+'/matches',{
-            headers:{'X-Auth-Token':env.FOOTBALL_DATA_API_KEY,Accept:'application/json'},
-            redirect:'manual',signal:AbortSignal.timeout(9000),
-          });
+          const upstream=await fetchFootballProvider(env,league);
           if (!upstream.ok) {
             // A provider-wide 429 must stop this batch immediately: retrying
             // the remaining leagues only wastes quota and can prolong throttling.
@@ -158,14 +156,7 @@ const worker = {
       if (hit) return attachJournal(hit,env);
     }
     try {
-      const response = await fetch('https://api.football-data.org/v4/competitions/'+source+'/matches', {
-        method:'GET',
-        headers:{'X-Auth-Token':env.FOOTBALL_DATA_API_KEY,'Accept':'application/json'},
-        // Workers Fetch API does not support redirect: 'error'.
-        // 'manual' avoids sending the API token to an unexpected redirect destination.
-        redirect:'manual',
-        signal:AbortSignal.timeout(9000),
-      });
+      const response = await fetchFootballProvider(env,league);
       if (response.status === 429) {
         // Honor a provider Retry-After delay when it is a bounded number of seconds.
         // Never relay arbitrary upstream headers or reveal provider internals.

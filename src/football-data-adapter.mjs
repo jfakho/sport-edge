@@ -16,6 +16,11 @@ export const COMPETITIONS = Object.freeze({
 
 const INVALID_STATUS = new Set(['CANCELLED', 'POSTPONED', 'SUSPENDED']);
 const FINAL_STATUS = 'FINISHED';
+const PARIS_TIME_FORMAT = new Intl.DateTimeFormat('en-GB', {
+    timeZone:'Europe/Paris',
+    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',
+    hourCycle:'h23',
+});
 
 function validGoal(value) {
   return Number.isInteger(value) && value >= 0 && value <= 35;
@@ -47,11 +52,7 @@ function safeDateTime(utcDate) {
   if (!Number.isFinite(milliseconds)) return null;
   const date = new Date(milliseconds);
   // France-facing UI uses the local Paris kick-off date and time, including DST.
-  const pieces = new Intl.DateTimeFormat('en-GB', {
-    timeZone:'Europe/Paris',
-    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',
-    hourCycle:'h23',
-  }).formatToParts(date);
+  const pieces = PARIS_TIME_FORMAT.formatToParts(date);
   const p = Object.fromEntries(pieces.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
   return {
     date: p.year+'-'+p.month+'-'+p.day,

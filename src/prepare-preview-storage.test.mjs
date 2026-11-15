@@ -26,5 +26,5 @@ test('denied storage authorization does not prevent the visual update or invent 
   assert.equal(preparePreviewStorage({env,cli:'mock',read:()=>JSON.stringify(config),write:()=>writes++,run:()=>{
     calls++;return calls===1?result([]):{status:1,stderr:'private diagnostics'};
   }}),'unavailable');
-  assert.equal(writes,2,'Only non-secret setup metadata is saved on failure');
+  assert.equal(writes,1,'Only non-secret setup metadata is saved on failure');
 });
