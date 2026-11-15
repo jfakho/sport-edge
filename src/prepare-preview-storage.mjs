@@ -52,10 +52,14 @@ export function preparePreviewStorage({env=process.env,run=spawnSync,read=readFi
     config.previews.d1_databases=[...(config.previews.d1_databases||[]).filter(d=>d.binding!==BINDING),binding];
     config.previews.vars={...(config.previews.vars||{}),COTEGO_JOURNAL_SETUP:'ready'};
     write('wrangler.jsonc',JSON.stringify(config,null,2)+'\n');
+    // Resource UUIDs are deployment metadata, not credentials. This temporary
+    // Preview asset lets the next source revision retain the provisioned binding.
+    write('public/cotego-preview-setup.json',JSON.stringify({status:'ready',databaseName:DATABASE,databaseId:database.uuid}));
     return 'ready';
   } catch {
     config.previews??={};config.previews.vars={...(config.previews.vars||{}),COTEGO_JOURNAL_SETUP:stage+'-unavailable'};
     write('wrangler.jsonc',JSON.stringify(config,null,2)+'\n');
+    write('public/cotego-preview-setup.json',JSON.stringify({status:'unavailable',stage}));
     return 'unavailable';
   }
 }

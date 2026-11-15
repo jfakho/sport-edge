@@ -1,5 +1,5 @@
-const CACHE='cotego-shell-20261114-preview-03';
-const SHELL=['/','/manifest.webmanifest','/favicon.svg','/cotego-rework.css','/live-scores.js'];
+const CACHE='cotego-shell-20261115-sport-01';
+const SHELL=['/','/manifest.webmanifest','/favicon.svg','/cotego-rework.css','/cotego-sport.css?v=20261115-1','/cotego-platform.js?v=20261115-1','/live-scores.js'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil((async()=>{for(const name of await caches.keys()) if(name.startsWith('cotego-shell-') && name !== CACHE) await caches.delete(name);await self.clients.claim()})()));
 self.addEventListener('fetch', event => {

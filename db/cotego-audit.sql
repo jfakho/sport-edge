@@ -32,6 +32,15 @@ CREATE TABLE IF NOT EXISTS odds_requests (
   state TEXT NOT NULL DEFAULT 'reserved'
 );
 CREATE INDEX IF NOT EXISTS odds_requests_created ON odds_requests(created_at);
+CREATE TABLE IF NOT EXISTS odds_provider_budget (
+  id INTEGER PRIMARY KEY CHECK(id=1),
+  remaining INTEGER NOT NULL,
+  cycle_started_at TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS odds_reservation_decrements_budget
+AFTER INSERT ON odds_requests BEGIN
+  UPDATE odds_provider_budget SET remaining=remaining-NEW.reserved_credits WHERE id=1;
+END;
 CREATE TABLE IF NOT EXISTS odds_snapshots (
   match_id INTEGER PRIMARY KEY REFERENCES predictions(match_id),
   received_at TEXT NOT NULL,

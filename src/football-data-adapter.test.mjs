@@ -8,6 +8,14 @@ const base = {
  score:{fullTime:{home:2,away:1},halfTime:{home:1,away:1}},
 };
 test('supports Ligue 1 free-tier code',()=>assert.equal(COMPETITIONS['fr.1'],'FL1'));
+test('knockout forecasts and results always use the 90-minute score',()=>{
+ for(const duration of ['EXTRA_TIME','PENALTY_SHOOTOUT']) {
+  const result=normalizeFootballDataMatch({...base,score:{duration,fullTime:{home:7,away:6},regularTime:{home:1,away:1},halfTime:{home:1,away:0}}},'intl.cl',fixedNow);
+  assert.deepEqual(result.score.ft,[1,1]);
+  assert.equal(result._scoreScope,'REGULAR_TIME');
+  assert.equal(normalizeFootballDataMatch({...base,score:{duration,fullTime:{home:7,away:6}}},'intl.cl',fixedNow),null);
+ }
+});
 test('PSG and Paris FC use separate provider identities in every competition',()=>{
  for(const league of Object.keys(COMPETITIONS)) {
   const match={...base,homeTeam:{id:524,name:'Paris Saint-Germain FC'},awayTeam:{id:1045,name:'Paris FC'}};

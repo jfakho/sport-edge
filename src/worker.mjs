@@ -6,6 +6,7 @@
 import {COMPETITIONS, normalizeFootballDataSeason, footballDataFreshness, selectUpcomingMatches} from './football-data-adapter.mjs';
 import {handleBillingTest} from './billing-test.mjs';
 import {journalFeed,readJournal,synchronizeJournal} from './prediction-journal.mjs';
+import {getBookmakerOdds,readOddsBudget} from './bookmaker-odds.mjs';
 
 const CACHE_SECONDS = 600;
 const CODES = Object.keys(COMPETITIONS);
@@ -33,6 +34,20 @@ const worker = {
     if (url.pathname.startsWith('/api/account/') || url.pathname.startsWith('/api/billing/')) return handleBillingTest(request,env);
     if (request.method !== 'GET') return errorJSON('Méthode non autorisée',405,{allow:'GET'});
     if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,journalConfigured:!!env.COTEGO_AUDIT_DB,journalSetup:env.COTEGO_JOURNAL_SETUP??null,oddsConfigured:!!env.ODDS_API_KEY,deploymentId:env.CF_VERSION_METADATA?.id ?? null,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+    if(url.pathname==='/api/odds/status'){
+      try {return Response.json({ok:true,configured:!!env.ODDS_API_KEY,budget:await readOddsBudget(env.COTEGO_AUDIT_DB)},{headers:{'cache-control':'no-store'}});}
+      catch {return errorJSON('État des cotes momentanément indisponible',503);}
+    }
+    const oddsRoute=/^\/api\/odds\/([a-z0-9.]+)\/(\d{1,10})$/.exec(url.pathname);
+    if(oddsRoute){
+      const league=oddsRoute[1],matchId=Number(oddsRoute[2]);
+      if(!CODES.includes(league)||!Number.isSafeInteger(matchId)||matchId<=0)return errorJSON('Rencontre invalide',400);
+      try {
+        const data=await getBookmakerOdds({db:env.COTEGO_AUDIT_DB,apiKey:env.ODDS_API_KEY,league,matchId,
+          loadFeed:async()=>{const response=await worker.fetch(new Request(url.origin+'/api/football-featured'),env,context);if(!response.ok)throw Error('Source unavailable');return response.json();}});
+        return Response.json(data,{headers:{'cache-control':'no-store'}});
+      }catch {return errorJSON('Cotes momentanément indisponibles',503);}
+    }
     if(url.pathname==='/api/predictions'){
       const league=url.searchParams.get('league')||'fr.1';
       if(!CODES.includes(league))return errorJSON('Compétition non prise en charge',400);

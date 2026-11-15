@@ -163,19 +163,27 @@ body{font-size:14px;letter-spacing:0}
 .analysis-btn:disabled{background:#18212b;color:#7d8997;border-color:#344254;cursor:not-allowed;opacity:.85}
 .analysis-btn:disabled:hover{background:#18212b}
 </style>
-  <title>COTEGO | Analyses football, tennis et basket</title>
+  <title>COTEGO | Le football, vu par les chiffres</title>
   <link rel="stylesheet" href="/cotego-rework.css">
+  <link rel="stylesheet" href="/cotego-sport.css?v=20261115-1">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand"><div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></div><div><strong>COTE<span>GO</span></strong><small>SPORTS DATA / ANALYSES</small></div></div>
-      <div class="sidebar-label">ESPACE DE TRAVAIL</div>
+      <div class="sidebar-label">VOTRE TERRAIN DE JEU</div>
       <nav class="sidebar-nav" aria-label="Navigation principale">
         <button class="nav-item active" data-page="home"><span class="nav-icon">⌂</span> À la une</button>
         <button class="nav-item" data-page="dashboard"><span class="nav-icon">▦</span> Matchs & analyses</button>
         <button class="nav-item" data-link="dashboard" data-favs="1"><span class="nav-icon">☆</span> Mes favoris</button>
         <button class="nav-item" data-page="membership"><span class="nav-icon">◇</span> COTEGO Plus <span class="alpha-tag">BÊTA</span></button>
+        <div class="sidebar-label competition-label">COMPÉTITIONS</div>
+        <button class="competition-link" data-competition="fr.1"><span>FR</span> Ligue 1 <i>›</i></button>
+        <button class="competition-link" data-competition="en.1"><span>EN</span> Premier League <i>›</i></button>
+        <button class="competition-link" data-competition="es.1"><span>ES</span> La Liga <i>›</i></button>
+        <button class="competition-link" data-competition="de-live"><span>DE</span> Bundesliga <i>›</i></button>
+        <button class="competition-link" data-competition="it.1"><span>IT</span> Serie A <i>›</i></button>
+        <button class="competition-link" data-competition="intl.cl"><span>UE</span> Ligue des champions <i>›</i></button>
         <div class="sidebar-label" style="margin:18px 13px 6px">EXPLORER</div>
         <button class="nav-item" data-page="history"><span class="nav-icon">◷</span> Historique & tests</button>
         <button class="nav-item" data-page="lab"><span class="nav-icon">◈</span> Tennis & basket <span class="alpha-tag">TEST</span></button>
@@ -185,25 +193,22 @@ body{font-size:14px;letter-spacing:0}
         <button class="nav-item" data-page="about"><span class="nav-icon">ⓘ</span> À propos & sources</button>
       </nav>
       <div class="sidebar-grow"></div>
-      <div class="side-highlight"><span class="mini-light"></span><div><strong>Version 0.3 · Bêta</strong><p>Modèle ouvert · Sans promesse de gain</p></div></div>
-      <div class="side-bottom">COTEGO · nom candidat (non validé) © <span id="copyright-year"></span><br>Analyse statistique, pas conseil financier.</div>
+      <div class="side-highlight"><span class="mini-light"></span><div><strong>Bêta football gratuite</strong><p>Modèle ouvert · Sans promesse de gain</p></div></div>
+      <div class="side-bottom">COTEGO · Analyses sportives © <span id="copyright-year"></span><br>Analyse statistique, pas conseil financier.</div>
     </aside>
     <main class="main-area">
       <header class="topbar">
         <button class="mobile-menu" id="mobile-menu" aria-label="Ouvrir le menu">☰</button>
         <div class="breadcrumb">COTEGO <span>/</span> <span id="breadcrumb-page">À la une</span></div>
-        <div class="topbar-right"><span class="live-badge"><i></i> BÊTA</span><div class="avatar">CG</div></div>
+        <form class="global-search" id="global-search" role="search"><label class="sr-only" for="global-search-input">Rechercher une équipe</label><span aria-hidden="true">⌕</span><input id="global-search-input" placeholder="Rechercher une équipe…" autocomplete="off"><button type="submit" aria-label="Rechercher">↗</button></form>
+        <div class="topbar-right"><button class="header-plus" data-link="membership">COTEGO Plus</button><span class="live-badge"><i></i> BÊTA</span><div class="avatar">CG</div></div>
       </header>
 
       <section class="page visible" id="page-home">
-        <div class="home-intro">
-          <div>
-            <div class="home-kicker">COTEGO / LES RENCONTRES À SUIVRE</div>
-            <h1>Les matchs qui comptent.</h1>
-            <p class="home-desc">L'essentiel du football à venir, sélectionné pour son intérêt sportif et la qualité des données disponibles. Un aperçu rapide, des analyses à explorer à votre rythme.</p>
-          </div>
-          <span class="home-status" id="home-data-status" role="status"><i></i>Chargement des rencontres…</span>
-        </div>
+        <nav class="sports-nav" aria-label="Sports et résultats"><button class="selected" data-page="home"><span>⚽</span> Football</button><button data-page="lab"><span>◉</span> Tennis <small>LAB</small></button><button data-page="lab"><span>◈</span> Basket <small>LAB</small></button><button data-page="history" class="sports-results">Historique & résultats <span>↗</span></button></nav>
+        <section class="matchday-banner" aria-labelledby="matchday-title"><div class="banner-copy"><span class="banner-kicker">L'ANALYSE AVANT LE COUP D'ENVOI</span><h1 id="matchday-title">Le football.<br>Un autre regard.</h1><p>Les affiches à suivre. Trois scénarios.<br>Des probabilités expliquées et des résultats à vérifier.</p><button class="btn btn-primary" data-link="dashboard">Explorer les rencontres <span>↗</span></button></div><div class="banner-pitch" aria-hidden="true"><i></i><b></b><span></span></div><span class="banner-stamp">COTEGO / FOOTBALL DATA</span></section>
+        <div class="home-workspace"><div class="home-center">
+        <div class="home-intro"><div><span class="home-kicker">VOTRE SÉLECTION FOOTBALL</span><h2>Les affiches du moment</h2></div><span class="home-status" id="home-data-status" role="status">Chargement des rencontres…</span></div>
         <div class="home-tabs" role="group" aria-label="Choisir un championnat">
           <button type="button" class="home-tab" data-featured-league="fr.1" aria-pressed="true">Ligue 1</button>
           <button type="button" class="home-tab" data-featured-league="en.1" aria-pressed="false">Premier League</button>
@@ -216,10 +221,11 @@ body{font-size:14px;letter-spacing:0}
           <div class="featured-empty">Chargement de la sélection de matchs…</div>
         </div>
         <div class="home-all"><button type="button" class="btn btn-outline" data-link="dashboard">Explorer tous les matchs ↗</button></div>
-        <aside class="home-benefit">
-          <div><strong>COTEGO Plus · 9,90 € / mois envisagés</strong><p>Des outils d'exploration et des analyses enrichies en préparation. Aucun abonnement payant n'est ouvert pendant la bêta.</p></div>
-          <button type="button" class="btn btn-outline" data-link="membership">Découvrir Plus ↗</button>
-        </aside>
+        </div><aside class="insight-rail" aria-label="Suivi COTEGO">
+          <section class="rail-card"><div class="rail-heading"><span class="status-dot"></span><span>LE POINT COTEGO</span></div><h3>Les chiffres à l'épreuve du terrain.</h3><p>Suivez les scénarios enregistrés avant match et comparez-les aux résultats.</p><div class="rail-metric"><strong id="rail-recorded-count">—</strong><span>prévisions enregistrées<br>dans cette compétition</span></div><div id="rail-journal-status" class="rail-status" role="status">Vérification du journal…</div><button class="rail-link" data-page="history">Voir l'historique <span>↗</span></button></section>
+          <section class="rail-card odds-policy"><span class="rail-eyebrow">COTES BOOKMAKERS</span><h3>Priorité aux grandes affiches.</h3><p>Relevés ciblés chez Betclic, Unibet et Winamax, selon les marchés disponibles.</p><div class="quota-line"><strong>450</strong><span>crédits maximum sur 31 jours</span></div><div class="quota-track"><span></span></div><small>50 crédits de réserve sur l'offre de 500.</small><p id="rail-odds-status" class="rail-status">Vérification du raccordement…</p></section>
+          <section class="rail-card rail-plus"><span class="rail-eyebrow">COTEGO PLUS</span><h3>Allez au bout de l'analyse.</h3><p>À terme : cible 1,50 en gratuit ; les trois cibles et analyses détaillées avec Plus.</p><span class="beta-note">Toutes les cibles restent ouvertes pendant la bêta gratuite.</span><button class="btn btn-outline" data-link="membership">Découvrir Plus <span>↗</span></button></section>
+        </aside></div>
         <p class="home-disclaimer">Les probabilités, lorsqu'elles sont disponibles, proviennent d'un modèle statistique expérimental non validé pour prédire les résultats des paris. Elles ne sont ni des cotes de bookmaker ni des conseils de mise. Les matchs affichés sont une sélection éditoriale, pas une garantie de résultat.</p>
       </section>
 
@@ -258,9 +264,10 @@ body{font-size:14px;letter-spacing:0}
       </section>
 
       <section class="page" id="page-history">
-        <div class="page-intro"><div class="section-overline">TRANSPARENCE</div><h1>Analyses passées <em>& résultats</em></h1><p>Retrouvez les trois scénarios recalculés pour chaque match terminé, leurs probabilités et le résultat de chaque cible. Ces simulations utilisent uniquement les rencontres antérieures au match.</p><p><strong>Prévisions enregistrées avant match : pas encore activées.</strong> Les chiffres ci-dessous sont des tests rétrospectifs, pas le bilan de prévisions publiées à l'époque.</p></div>
+        <div class="page-intro"><div class="section-overline">LA TRANSPARENCE DU MODÈLE</div><h1>Nos analyses.<br><em>Les résultats du terrain.</em></h1><p>Les prévisions enregistrées avant le coup d'envoi sont suivies séparément des simulations recalculées sur les matchs passés. Les réussites et les échecs sont tous conservés.</p></div>
         <label class="filter-control">COMPÉTITION<select id="history-league-select"><option value="fr.1">Ligue 1</option><option value="en.1">Premier League</option><option value="es.1">La Liga</option><option value="de-live">Bundesliga</option><option value="it.1">Serie A</option><option value="intl.cl">Ligue des champions</option><option value="intl.wc">Coupe du monde</option><option value="intl.ec">Euro</option><option value="demo">Ligue démo</option><option value="custom">Mes données</option></select></label>
-        <div id="backtest-content"><div class="empty-panel">Chargez une compétition pour calculer les performances rétrospectives.</div></div>
+        <div id="journal-content" class="journal-content" aria-live="polite"><div class="empty-panel">Vérification des prévisions enregistrées…</div></div>
+        <details class="retrospective-section"><summary>Explorer les simulations rétrospectives <span>Recalculs après match · distincts des prévisions enregistrées</span></summary><div id="backtest-content"><div class="empty-panel">Chargez une compétition pour calculer les performances rétrospectives.</div></div></details>
       </section>
 
       <section class="page" id="page-method">
@@ -431,7 +438,7 @@ body{font-size:14px;letter-spacing:0}
     let ht=null;
     if(score && Array.isArray(htVal) && htVal.length>=2 && htVal.slice(0,2).every((v,i)=>v!=='' && v!==null && Number.isInteger(Number(v)) && Number(v)>=0 && Number(v)<=score[i])) ht=htVal.slice(0,2).map(Number);
     const sourceId=Number.isSafeInteger(raw._sourceId)&&raw._sourceId>0?raw._sourceId:null;
-    return {date, time: String(raw.time || ''), home:String(raw.team1).trim(), away:String(raw.team2).trim(), score, ht, league, sourceId, kickoffUtc:raw._kickoffUtc??null, sourceStatus:raw._status??null, teamIds:raw._teamIds??null, id:sourceId?[league,'football-data.org',sourceId].join('|'):[league,date,raw.team1,raw.team2].join('|')};
+    return {date, time: String(raw.time || ''), home:String(raw.team1).trim(), away:String(raw.team2).trim(), score, ht, league, sourceId, kickoffUtc:raw._kickoffUtc??null, sourceStatus:raw._status??null, teamIds:raw._teamIds??null, recordedPrediction:raw._prediction??null, editorialPriority:raw._editorialPriority??0, id:sourceId?[league,'football-data.org',sourceId].join('|'):[league,date,raw.team1,raw.team2].join('|')};
   }
   function decodeDataset(data, league) { const arr=Array.isArray(data) ? data : data?.matches; if(!Array.isArray(arr)) throw new Error('Format JSON non reconnu.'); return arr.map(m=>normalize(m,league)).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date) || a.home.localeCompare(b.home)); }
   function setNotice(message, type='info') { const el=$('#data-notice'); if(!message) {el.className='notice hidden';el.textContent='';return;} el.className=`notice ${type}`;el.textContent=message; }
@@ -624,6 +631,7 @@ body{font-size:14px;letter-spacing:0}
     return sum/weights;
   }
   function forecast(match, all) {
+    if(match.recordedPrediction?.analysis?.tiers?.length===3)return match.recordedPrediction.analysis;
     // Low-data fallback: estimates are always labeled by evidence quality.
     const previous=all.filter(m=>m.score && m.date<match.date && m.date<today() && daysBetween(m.date,match.date)<=550);
     const rows=previous.map(m=>({ ...m, weight:Math.exp(-Math.max(0,daysBetween(m.date,match.date))/240), hg:m.score[0], ag:m.score[1] }));
@@ -812,7 +820,7 @@ body{font-size:14px;letter-spacing:0}
       .map(match=>({match,league,matches})));
     const scored=upcoming.map(({match,league,matches})=>{
       const analysis=forecast(match,matches);
-      const popularity=prestige(match.home)+prestige(match.away);
+      const popularity=match.editorialPriority||prestige(match.home)+prestige(match.away);
       const days=daysBetween(today(),match.date);
       const score=(analysis?30:0)+(analysis?.historyCount||0)*.25+popularity*11-days*.45;
       return {match,analysis,score,league,matches,mode:matches===state.matches?state.mode:'football-data'};
@@ -832,6 +840,8 @@ body{font-size:14px;letter-spacing:0}
       add(fixture,'span','featured-team',m.home);
       add(fixture,'span','fixture-vs','VS');
       add(fixture,'span','featured-team',m.away);
+      const favorite=add(head,'button','featured-favorite',state.favorites.has(m.id)?'★':'☆');
+      favorite.type='button';favorite.dataset.favorite=m.id;favorite.setAttribute('aria-label','Suivre '+m.home+' – '+m.away);
       const bottom=add(card,'div','featured-bottom');
       const textEl=add(bottom,'div','featured-prob');
       if (f) {
@@ -854,7 +864,11 @@ body{font-size:14px;letter-spacing:0}
       action.type='button';
       if(f) {featuredAnalyses.set(m.id,item);action.dataset.analyze=m.id;action.dataset.analyzeLeague=item.league;}
       else action.disabled=true;
+      card.appendChild(bottom);
+      const provenance=add(card,'div','featured-recorded',m.recordedPrediction?'Prévision enregistrée avant match':'Simulation · prévision non encore enregistrée');
+      if(m.recordedPrediction)provenance.title='Enregistrée le '+new Date(m.recordedPrediction.createdAt).toLocaleString('fr-FR');
     }
+    window.dispatchEvent(new CustomEvent('cotego:competition',{detail:{league:state.league}}));
   }
 
   function getCards() {
@@ -906,6 +920,7 @@ body{font-size:14px;letter-spacing:0}
     const lastResult=all.filter(x=>x.score&&x.date<m.date).at(-1)?.date;
     state.selectedId=id;
     $('#modal-title').textContent=`${m.home} — ${m.away}`;
+    window.dispatchEvent(new CustomEvent('cotego:analysis',{detail:{match:m,league,recordedAt:snapshot?.recordedAt||m.recordedPrediction?.createdAt}}));
     const sourceInModal = mode==='demo' ? 'DONNÉES FICTIVES'
       : mode==='football-data' ? 'Résultats définitifs différés · heure de Paris'
       : mode==='openligadb' ? 'OpenLigaDB · données communautaires'
@@ -916,7 +931,8 @@ body{font-size:14px;letter-spacing:0}
       const p=tier.market?.p||0;
       const theoreticalOdd=p>0 ? (1/p).toFixed(2) : 'Indisponible';
       const outcome=m.score?evaluateTiers(f,m.score)[i]:null;
-      const quote=m.score?`<strong>${outcome?.hit===true?'✓ Réussi':outcome?.hit===false?'✕ Non réalisé':'Non évaluable'}</strong><p>Score final : ${m.score.join(' – ')}</p><small>Scénario recalculé après match ; pas de prévision archivée.</small>`:`<div class="theoretical">×${theoreticalOdd}</div><label>Cote réelle saisie par vous<input class="odd-input" data-odd="${i}" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="Ex. 1.85"></label><div class="value-output" id="odd-output-${i}">Aucune cote de bookmaker importée</div>`;
+      const archived=!!(snapshot?.recordedAt||m.recordedPrediction);
+      const quote=m.score?`<strong>${outcome?.hit===true?'✓ Réussi':outcome?.hit===false?'✕ Non réalisé':'Non évaluable'}</strong><p>Score final (90 min) : ${m.score.join(' – ')}</p><small>${archived?'Prévision enregistrée avant le coup d’envoi.':'Scénario recalculé après match ; pas de prévision archivée.'}</small>`:`<div class="theoretical">×${theoreticalOdd}</div><label>Cote réelle saisie par vous<input class="odd-input" data-odd="${i}" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="Ex. 1.85"></label><div class="value-output" id="odd-output-${i}">Aucune cote de bookmaker importée</div>`;
       return `<div class="modal-pick"><div><div class="modal-pick-head"><i class="tier-dot ${tier.color}"></i>${escapeHtml(tier.name.toUpperCase())} · CIBLE ${tier.target.toFixed(2)}</div><h4>${escapeHtml(tier.market?.name||'Indisponible')}</h4><p>Probabilité estimée : <b>${(p*100).toFixed(1)} %</b> · Cote théorique sans marge : <b>${theoreticalOdd}</b></p></div><div class="modal-pick-quote">${quote}</div></div>`;
     }).join('');
     $('#modal-content').innerHTML=`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>${tierHTML}${footballExtrasMarkup(f,m,all)}<div class="model-warning">⚠ ${escapeHtml(f.quality)}. Calcul basé sur ${f.historyCount} résultats précédant ce match, dont ${f.playedHome} matchs de l'équipe à domicile et ${f.playedAway} de l'équipe à l'extérieur (tous terrains). Dernier résultat disponible : ${escapeHtml(formatDateFull(lastResult))}. Modèle expérimental non calibré sur des données de validation indépendantes ; il n'intègre pas les absences ou compositions. Les cotes affichées sont théoriques, jamais des offres de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div>`;
@@ -956,7 +972,7 @@ body{font-size:14px;letter-spacing:0}
     const finished=state.played.slice().sort((a,b)=>a.date.localeCompare(b.date));
     const test=[];
     for(const m of finished.slice(-110)) {
-      const p=forecast(m,state.matches);
+      const p=forecast({...m,recordedPrediction:null},state.matches);
       if(!p)continue;
       const observed=[Number(m.score[0]>m.score[1]),Number(m.score[0]===m.score[1]),Number(m.score[0]<m.score[1])];
       const probabilities=[p.home,p.draw,p.away];
@@ -973,7 +989,7 @@ body{font-size:14px;letter-spacing:0}
       return `<div class="history-stat"><small>CIBLE ${tier.target.toFixed(2)} · SIMULATION</small><strong>${evaluated.length?(100*hits/evaluated.length).toFixed(1)+' %':'—'}</strong><p>${hits} réussites / ${evaluated.length} scénarios évalués</p><p>Probabilité moyenne calculée : ${mean===null?'—':(100*mean).toFixed(1)+' %'}</p></div>`;
     }).join('');
     const tierCell=t=>!t?.market?'<td>Non évaluable</td>':`<td><strong>${t.hit?'✓ Réussi':'✕ Non réalisé'}</strong><br>${escapeHtml(t.market.name)}<br>${(100*t.market.p).toFixed(1)} % estimés</td>`;
-    el.innerHTML=`<div class="history-log"><h3>${escapeHtml(LEAGUES[state.league].name)} · test rétrospectif</h3><p>${state.mode==='demo'?'Données fictives de démonstration. ':''}Les simulations sont recalculées aujourd'hui avec les seuls scores antérieurs à chaque rencontre. Elles peuvent évoluer si la source corrige ses données. ${test.length<30?'Échantillon très limité : résultats particulièrement instables.':''}</p></div><div class="history-summary">${tierSummary}</div><div class="history-summary"><div class="history-stat"><small>MATCHS ÉVALUÉS</small><strong>${test.length}</strong></div><div class="history-stat"><small>TAUX DE BON 1N2</small><strong>${(100*accuracy).toFixed(1)} %</strong></div><div class="history-stat"><small>SCORE DE BRIER 1N2</small><strong>${brier.toFixed(3)}</strong></div></div><div class="history-log"><h3>Analyses des matchs terminés</h3><p>Les ${test.length} derniers matchs évaluables sont affichés, sans retirer les scénarios non réalisés. Ouvrez une fiche pour comparer les trois scénarios au score final. Sur mobile, faites défiler le tableau horizontalement.</p><div style="overflow-x:auto"><table class="history-table"><thead><tr><th>DATE / MATCH</th><th>SCORE FINAL</th><th>CIBLE 1,50</th><th>CIBLE 2,00</th><th>CIBLE 3,00</th><th>DÉTAIL</th></tr></thead><tbody>${test.slice().reverse().map(m=>`<tr><td>${formatDate(m.date)}<br>${escapeHtml(m.home)} – ${escapeHtml(m.away)}</td><td>${m.score.join('–')}</td>${m.tiers.map(tierCell).join('')}<td><button class="btn btn-outline btn-small" type="button" data-analyze="${escapeHtml(m.id)}">Analyse passée ↗</button></td></tr>`).join('')}</tbody></table></div></div><div class="model-warning">Le taux de réussite ne mesure pas la rentabilité. Le Brier 1N2 est compris entre 0 et 2 (plus bas = mieux). Test exploratoire non indépendant de la conception du modèle ; aucune cote réellement disponible à l'époque n'est archivée. Le bilan de prévisions enregistrées avant match et le rendement restent indisponibles.</div>`;
+    el.innerHTML=`<div class="history-log"><h3>${escapeHtml(LEAGUES[state.league].name)} · test rétrospectif</h3><p>${state.mode==='demo'?'Données fictives de démonstration. ':''}Les simulations sont recalculées aujourd'hui avec les seuls scores antérieurs à chaque rencontre. Elles peuvent évoluer si la source corrige ses données. ${test.length<30?'Échantillon très limité : résultats particulièrement instables.':''}</p></div><div class="history-summary">${tierSummary}</div><div class="history-summary"><div class="history-stat"><small>MATCHS ÉVALUÉS</small><strong>${test.length}</strong></div><div class="history-stat"><small>TAUX DE BON 1N2</small><strong>${(100*accuracy).toFixed(1)} %</strong></div><div class="history-stat"><small>SCORE DE BRIER 1N2</small><strong>${brier.toFixed(3)}</strong></div></div><div class="history-log"><h3>Analyses des matchs terminés</h3><p>Les ${test.length} derniers matchs évaluables sont affichés, sans retirer les scénarios non réalisés. Ouvrez une fiche pour comparer les trois scénarios au score final. Sur mobile, faites défiler le tableau horizontalement.</p><div style="overflow-x:auto"><table class="history-table"><thead><tr><th>DATE / MATCH</th><th>SCORE À 90 MIN</th><th>CIBLE 1,50</th><th>CIBLE 2,00</th><th>CIBLE 3,00</th><th>DÉTAIL</th></tr></thead><tbody>${test.slice().reverse().map(m=>`<tr><td>${formatDate(m.date)}<br>${escapeHtml(m.home)} – ${escapeHtml(m.away)}</td><td>${m.score.join('–')}</td>${m.tiers.map(tierCell).join('')}<td><button class="btn btn-outline btn-small" type="button" data-analyze="${escapeHtml(m.id)}">Analyse passée ↗</button></td></tr>`).join('')}</tbody></table></div></div><div class="model-warning">Le taux de réussite ne mesure pas la rentabilité. Le Brier 1N2 est compris entre 0 et 2 (plus bas = mieux). Test exploratoire non indépendant de la conception du modèle ; aucune cote réellement disponible à l'époque n'est archivée. Le bilan de prévisions enregistrées avant match et le rendement restent indisponibles.</div>`;
   }
   function makeDemo() {
     const names=['Atalante Bordeaux','Olympique des Alpes','Union Atlantique','Étoile du Nord','Sporting Limousin','Académie du Rhône','FC Armorique','Stade du Littoral','AS du Centre','Racing du Midi','US des Landes','Athlétic Pyrénées'];
@@ -1089,6 +1105,7 @@ body{font-size:14px;letter-spacing:0}
   document.addEventListener('click',e=>{
     const retry=e.target.closest('[data-retry-league]');if(retry){loadLeague(state.league,true);return;}
     const chip=e.target.closest('[data-featured-league]');if(chip){const league=chip.dataset.featuredLeague;if(LEAGUES[league])loadLeague(league);return;}
+    const competition=e.target.closest('[data-competition]');if(competition){loadLeague(competition.dataset.competition);navigate('home');return;}
     const nav=e.target.closest('[data-page], [data-link]');if(nav){
       if(nav.dataset.favs==='1'){$('#favorites-toggle').setAttribute('aria-pressed','true');updateUI();}
       else if(nav.dataset.page==='dashboard'){$('#favorites-toggle').setAttribute('aria-pressed','false');updateUI();}
@@ -1097,6 +1114,9 @@ body{font-size:14px;letter-spacing:0}
     const analyze=e.target.closest('[data-analyze]');if(analyze){const snapshot=analyze.closest('.featured-card')&&featuredAnalyses.get(analyze.dataset.analyze);if(snapshot){openAnalysis(analyze.dataset.analyze,snapshot);return;}const league=analyze.dataset.analyzeLeague;if(league && league!==state.league){const target=analyze.dataset.analyze;loadLeague(league).then(()=>{if(state.league===league)openAnalysis(target);});}else openAnalysis(analyze.dataset.analyze);return;}
     const fav=e.target.closest('[data-favorite]');if(fav){const id=fav.dataset.favorite;state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);saveFavorites();updateUI();return;}
   });
+  $('#global-search').addEventListener('submit',e=>{e.preventDefault();$('#search-input').value=$('#global-search-input').value.trim();navigate('dashboard');updateUI();});
+  window.addEventListener('cotego:archived-analysis',e=>{const r=e.detail;if(!r?.analysis)return;const m={id:[r.league,'football-data.org',r.matchId].join('|'),date:new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(r.kickoffUtc)),time:new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit'}).format(new Date(r.kickoffUtc)),home:r.home,away:r.away,score:r.finalScore,league:r.league,sourceId:r.matchId,kickoffUtc:r.kickoffUtc};openAnalysis(m.id,{match:m,analysis:r.analysis,matches:[],mode:'football-data',league:r.league,recordedAt:r.createdAt});});
+  window.addEventListener('cotego:refresh-history',()=>loadLeague(state.league,true));
   $('#league-select').addEventListener('change',e=>loadLeague(e.target.value));
   $('#history-league-select').addEventListener('change',e=>loadLeague(e.target.value));
   ['tennis-form','basket-form'].forEach(id=>{const form=$('#'+id);form.addEventListener('input',renderLab);form.addEventListener('change',renderLab);form.addEventListener('submit',e=>e.preventDefault());});
@@ -1146,6 +1166,7 @@ body{font-size:14px;letter-spacing:0}
     }, {once:true});
   }
   </script>
+  <script src="/cotego-platform.js?v=20261115-1" defer></script>
   <script src="/cotego-account-test.js" defer></script>
 </body>
 </html>

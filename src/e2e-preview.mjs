@@ -173,6 +173,7 @@ try {
       await page.evaluate(()=>document.querySelector('.sidebar [data-page="history"]').click());
       await page.locator('#page-history').waitFor({state:'visible',timeout:5000});
       await page.locator('#history-league-select').selectOption('demo');
+      await page.locator('.retrospective-section').evaluate(el=>el.setAttribute('open',''));
       const past=page.locator('#backtest-content [data-analyze]').first();
       await past.waitFor({state:'visible',timeout:5000});
       const historyText=await page.locator('#backtest-content').innerText();
@@ -184,7 +185,7 @@ try {
       assert.equal(await page.locator('#modal-content .modal-pick').count(),3);
       assert.equal(await page.locator('#modal-content .odd-input').count(),0,'No current odds input for a finished fixture');
       const pastText=await page.locator('#modal-content').innerText();
-      assert.ok(pastText.includes('Score final :'));
+      assert.ok(pastText.includes('Score final (90 min) :'));
       assert.ok(pastText.includes('pas de prévision archivée'));
       await page.locator('#close-modal').click();
       console.log('PASS past scenario results and detail at '+viewport.width+'px');

@@ -6,6 +6,7 @@
  */
 
 import {teamDisplayName} from './team-names.mjs';
+import {editorialPriority} from './featured-priority.mjs';
 
 export const COMPETITIONS = Object.freeze({
   'fr.1': 'FL1', 'en.1': 'PL', 'es.1': 'PD',
@@ -64,7 +65,7 @@ function safeTeam(team) {
   const id = Number(team.id);
   const name = String(team.name || team.shortName || '').trim();
   if (!Number.isSafeInteger(id) || id <= 0 || !name) return null;
-  return {id, name:teamDisplayName(id,name)};
+  return {id, name:teamDisplayName(id,name),aliases:[...new Set([name,team.shortName,teamDisplayName(id,name)].filter(s=>typeof s==='string'&&s.trim()).map(s=>s.trim()))]};
 }
 
 /** Normalize a v4 match for COTEGO's existing decodeDataset() without
@@ -87,7 +88,10 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
   // or silently treating the unverified final score as a scheduled match.
   if (status === FINAL_STATUS && time.timestamp > nowMs) return null;
   const finished = status === FINAL_STATUS;
-  const ft = match.score?.fullTime;
+  // All modeled markets refer to 90 minutes plus stoppage time. In v4,
+  // fullTime can include extra time and even a shootout aggregate.
+  const extended=['EXTRA_TIME','PENALTY_SHOOTOUT'].includes(match.score?.duration);
+  const ft = extended ? match.score?.regularTime : match.score?.fullTime;
   // A live/paused match is NEVER considered finished for COTEGO's model.
   const hasScore = finished && validGoal(ft?.home) && validGoal(ft?.away);
   if (finished && !hasScore) return null;
@@ -104,7 +108,10 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
     _sourceId: id,
     _kickoffUtc: new Date(time.timestamp).toISOString(),
     _teamIds: [home.id,away.id],
+    _teamAliases:[home.aliases,away.aliases],
+    _editorialPriority:editorialPriority({_teamIds:[home.id,away.id]},league),
     _status: status,
+    _scoreScope:'REGULAR_TIME',
   };
 }
 

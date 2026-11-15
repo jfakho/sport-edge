@@ -16,14 +16,15 @@ test('reuses only the named Preview database and never rewrites an existing runt
   assert.equal(preparePreviewStorage({env,cli:'mock',run:(exe,args)=>{calls.push(args);return responses.shift();},
     read:()=>JSON.stringify(config),write:(path,body)=>writes.push(JSON.parse(body))}),'ready');
   assert.ok(!calls.some(args=>args.includes('create')||args.includes('bulk')));
-  assert.equal(writes.at(-1).previews.d1_databases[0].database_name,database.name);
-  assert.equal(writes.at(-1).d1_databases,undefined,'Production binding must remain absent');
-  assert.ok(writes.at(-1).secrets.required.includes('ODDS_API_KEY'));
+  const finalConfig=writes.findLast(value=>value.name==='cotego');
+  assert.equal(finalConfig.previews.d1_databases[0].database_name,database.name);
+  assert.equal(finalConfig.d1_databases,undefined,'Production binding must remain absent');
+  assert.ok(finalConfig.secrets.required.includes('ODDS_API_KEY'));
 });
 test('denied storage authorization does not prevent the visual update or invent a binding',()=>{
   let calls=0,writes=0;
   assert.equal(preparePreviewStorage({env,cli:'mock',read:()=>JSON.stringify(config),write:()=>writes++,run:()=>{
     calls++;return calls===1?result([]):{status:1,stderr:'private diagnostics'};
   }}),'unavailable');
-  assert.equal(writes,1,'Only a non-secret setup status is saved on failure');
+  assert.equal(writes,2,'Only non-secret setup metadata is saved on failure');
 });
