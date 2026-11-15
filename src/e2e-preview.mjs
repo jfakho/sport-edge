@@ -71,7 +71,21 @@ try {
       // Actual-data regression: a featured card and its detail must use the same
       // historical snapshot, even while the larger single-league feed is loaded.
       const actualCard=page.locator('#featured-grid .featured-card').first();
-      await actualCard.waitFor({state:'visible',timeout:20000});
+      // A successful page load can precede a slow, rate-limited featured feed.
+      // Retry the real preview request without substituting synthetic fixtures.
+      let featuredReady=false;
+      for(let attempt=0;attempt<3;attempt++){
+        try {
+          await actualCard.waitFor({state:'visible',timeout:15000});
+          featuredReady=true;
+          break;
+        } catch(error) {
+          if(attempt===2)throw error;
+          console.warn('Featured cards not ready; retrying real preview load '+(attempt+1));
+          await page.reload({waitUntil:'domcontentloaded',timeout:25000});
+        }
+      }
+      assert.ok(featuredReady,'Actual featured cards unavailable after retries');
       const featuredFeed=[...verifiedFeeds.values()].map(body=>JSON.parse(body)).find(feed=>Array.isArray(feed.competitions));
       const french=featuredFeed?.competitions.find(c=>c.league==='fr.1'&&c.ok);
       assert.ok(french,'Verified Ligue 1 feed is required for club identity checks');
