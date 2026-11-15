@@ -4,12 +4,12 @@
   "private": true,
   "description": "COTEGO Cloudflare Worker and web application",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "test": "node --test src/*.test.mjs"
   },
   "devDependencies": {
-    "wrangler": "4.135.0"
+    "wrangler": "4.149.0"
   }
 }

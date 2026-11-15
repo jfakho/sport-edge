@@ -70,3 +70,24 @@ This is the baseline for two sequential Git-triggered Preview deployment checks.
 The user authorizes management of COTEGO Preview, with no charges without permission. GitHub access is available, but the agent's Cloudflare dashboard login was rejected with HTTP 403. No authenticated Cloudflare CLI/API access has been established. Do not claim automatic secret repair until a supported authenticated management path has been verified. Public health checks and GitHub access cannot read or restore the secret.
 
 Do not ask the user to repeatedly re-enter a key before comparing deployment IDs and configuration scope. Keep the existing Build secret in place during diagnosis; use the Runtime section for the existing Preview.
+
+## Reproduction and durable fix — 2026-11-15
+
+The first Git-triggered redeploy after the runtime key was added reproduced the failure:
+- Before: deployment `34612306-00b8-468f-b22c-08ba12417f3c`, configured `true`; Ligue 1 returned HTTP 200 with 306 matches.
+- After: deployment `1cf32d5f-101c-42ee-b42b-31ec8e4fcab1`, configured `false`.
+- Trigger commit: `95521c0907fa931a411d54f76559e27c9f14fd06`.
+This disproves the earlier working assumption that re-entering the key in Runtime alone would solve persistence.
+
+Cloudflare issue https://github.com/cloudflare/workers-sdk/issues/15942 describes this same defect. The official fix https://github.com/cloudflare/workers-sdk/pull/16102 is released in Wrangler **4.149.0** (see its CHANGELOG). COTEGO previously pinned **4.135.0**.
+
+The project now pins 4.149.0 and runs `src/ensure-preview-secret.mjs` as a custom build:
+1. It only acts under Workers Builds (`WORKERS_CI=1`) for the exact `feature/cotego-premium-ux` branch.
+2. It lists secret names on that Preview. Existing runtime values remain unchanged.
+3. If the football runtime binding is absent, it restores it using the already-configured Cloudflare Build secret via private stdin to `wrangler preview secret bulk`. No value is printed, passed as a command argument, or written to disk.
+4. It verifies the binding before proceeding. Missing credentials, missing build value, and unconfirmed restoration stop the build.
+5. The fixed outer `wrangler preview` then inherits the restored binding.
+
+This uses the existing Cloudflare build authorization, without creating an API token or requesting another key entry. It is limited to the named Preview; production, local builds and other branches are skipped. The Cloudflare Preview command remains `npx wrangler preview`.
+
+End-to-end persistence must still be checked on two deployments using distinct deployment IDs after the upgrade.
