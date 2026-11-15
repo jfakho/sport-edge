@@ -120,3 +120,10 @@ test('rejects timezone-ambiguous or malformed provider kickoff timestamps',()=>{
  const offset=normalizeFootballDataMatch({...base,utcDate:'2026-11-10T22:00:00+01:00'},'fr.1',fixedNow);
  assert.equal(offset._kickoffUtc,'2026-11-10T21:00:00.000Z');
 });
+
+test('rejects impossible calendar dates instead of silently rolling them forward',()=>{
+ for (const utcDate of ['2026-02-30T20:00:00Z','2026-04-31T20:00:00Z','2026-13-01T20:00:00Z','2026-11-10T25:00:00Z']) {
+  assert.equal(normalizeFootballDataMatch({...base,utcDate},'fr.1',fixedNow),null,utcDate);
+ }
+ assert.notEqual(normalizeFootballDataMatch({...base,utcDate:'2024-02-29T20:00:00Z'},'fr.1',fixedNow),null);
+});
