@@ -167,3 +167,27 @@ body{background:var(--bg);color:var(--white)}
 .featured-scenario-market{font-size:12px;line-height:1.35}
 .featured-scenario-prob{font-size:11px;color:#6d695f;line-height:1.4}
 @media(max-width:680px){.featured-scenarios{grid-template-columns:1fr}.featured-scenario{padding:9px}}
+
+
+/* Journal: readable match cards instead of a six-column mobile table. */
+.journal-log-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.journal-log-heading>span{font-size:12px;color:var(--muted,#8e9bab)}
+.journal-records{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:12px;margin-top:18px}
+.journal-record{min-width:0;border:1px solid var(--line,#dbe0e6);border-radius:12px;padding:17px;background:var(--panel,#fff)}
+.journal-record-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding-bottom:14px}
+.journal-record-head>div{min-width:0}.journal-teams{display:block;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.journal-teams span{opacity:.5}.journal-kickoff{display:block;font-size:12px;margin-top:5px;color:var(--muted,#7b8795)}
+.journal-match-status{white-space:nowrap;font-size:11px;font-weight:700;padding:5px 8px;border-radius:6px;background:#edf2f7;color:#41536b}
+.journal-match-finished{background:#e7f4ed;color:#276349}
+.journal-picks{border-top:1px solid var(--line,#dbe0e6);border-bottom:1px solid var(--line,#dbe0e6)}
+.journal-pick-row{display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;align-items:center;padding:11px 0}
+.journal-pick-row+.journal-pick-row{border-top:1px solid var(--line,#dbe0e6)}
+.journal-pick-target{font-size:11px;font-weight:750;white-space:nowrap;color:var(--muted,#7b8795)}
+.journal-pick{display:flex;align-items:center;gap:9px;min-width:0;font-size:12px}
+.journal-pick-name{min-width:0;flex:1;line-height:1.4}.journal-pick-prob{font-weight:750;white-space:nowrap}
+.journal-pick .journal-result{white-space:nowrap;font-size:14px;font-weight:800}
+.journal-pick-locked{color:var(--muted,#7b8795)}
+.journal-record-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:12px}
+.journal-record-footer>span{font-size:11px;color:var(--muted,#7b8795)}
+.journal-detail-link{border:0;background:none;color:inherit;text-decoration:underline;text-underline-offset:3px;font-size:12px;font-weight:700;cursor:pointer}
+@media(max-width:600px){.journal-records{grid-template-columns:minmax(0,1fr)}.journal-record{padding:14px}.journal-record-head{gap:8px}.journal-match-status{font-size:10px}.journal-log{padding:14px}}
