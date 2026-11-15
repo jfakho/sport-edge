@@ -22,11 +22,11 @@ export default {
     if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 
 
-    // Cross-league fixtures: one client request, five upstream requests max.
+    // Cross-league fixtures: one client request, eight upstream requests max (five leagues and three international competitions).
     // No stale or fabricated fixtures; each competition reports its own availability.
     if (url.pathname === '/api/football-featured') {
       if (!env.FOOTBALL_DATA_API_KEY) return errorJSON('Source de résultats non configurée',503);
-      const leagues=['fr.1','en.1','es.1','de.1','it.1'];
+      const leagues=['fr.1','en.1','es.1','de.1','it.1','intl.cl','intl.wc','intl.ec'];
       const cache = typeof caches !== 'undefined' ? caches.default : null;
       const cacheKey=new Request(url.origin+'/api/football-featured',{method:'GET'});
       if (cache) {const cached=await cache.match(cacheKey);if(cached)return cached;}
@@ -34,7 +34,8 @@ export default {
       let quotaExhausted=false;
       let accessDenied=false;
       let quotaRetrySeconds=60;
-      // Sequential requests stay below the free provider's 10 calls/minute limit.
+      // Eight sequential requests fit the provider's nominal 10 calls/minute free limit;
+      // upstream 429 handling stops the batch and never fabricates unavailable competitions.
       for (const league of leagues) {
         if (quotaExhausted || accessDenied) {
           results.push({league,ok:false,error:quotaExhausted ? 'Quota de données atteint' : 'Accès à la source non autorisé'});
