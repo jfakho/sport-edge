@@ -168,3 +168,18 @@ test('audit rejects ambiguous timestamps without explicit timezone',()=>{
   assert.equal(settleFootballPrediction(p,{...final,finishedAt:'2026-11-14T17:00:00'}).status,'unverifiable');
   assert.equal(settleFootballPrediction(p,{...final,finishedAt:'2026-11-14T17:00:00Z'}).status,'settled');
 });
+
+test('audit rejects impossible calendar dates and UTC offsets',()=>{
+  for (const kickoffUtc of [
+    '2026-02-30T15:00:00Z',
+    '2026-04-31T15:00:00Z',
+    '2026-11-14T15:00:00+15:00',
+    '2026-11-14T15:00:00+14:30',
+    '2026-11-14T25:00:00Z',
+  ]) assert.throws(()=>createPredictionRecord({...fixture,kickoffUtc},before),/Prévision invalide/);
+  assert.doesNotThrow(()=>createPredictionRecord({...fixture,kickoffUtc:'2028-02-29T15:00:00Z'},before));
+  const p=createPredictionRecord(fixture,before);
+  const result={status:'FINISHED',home:2,away:1,source:'football-data.org',sourceMatchId:'123'};
+  assert.equal(settleFootballPrediction(p,{...result,finishedAt:'2026-11-31T17:00:00Z'}).status,'unverifiable');
+  assert.equal(settleFootballPrediction(p,{...result,finishedAt:'2026-11-14T17:00:00+15:00'}).status,'unverifiable');
+});
