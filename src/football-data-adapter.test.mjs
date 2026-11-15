@@ -112,3 +112,11 @@ test('featured fixtures do not promote matches more than 30 days away',()=>{
  const distant={_sourceId:2,_status:'SCHEDULED',score:null,_kickoffUtc:'2027-02-20T20:00:00Z'};
  assert.deepEqual(selectUpcomingMatches([distant,near],fixedNow),[near]);
 });
+
+test('rejects timezone-ambiguous or malformed provider kickoff timestamps',()=>{
+ for (const utcDate of ['2026-11-10T21:00:00','2026-11-10','2026-11-10 21:00:00','not-a-date']) {
+  assert.equal(normalizeFootballDataMatch({...base,utcDate},'fr.1',fixedNow),null,utcDate);
+ }
+ const offset=normalizeFootballDataMatch({...base,utcDate:'2026-11-10T22:00:00+01:00'},'fr.1',fixedNow);
+ assert.equal(offset._kickoffUtc,'2026-11-10T21:00:00.000Z');
+});
