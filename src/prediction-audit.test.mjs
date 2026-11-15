@@ -159,3 +159,12 @@ test('rejected settled predictions are counted as unverifiable, not silently omi
  assert.equal(report.hits,1);
  assert.equal(report.hitRate,1);
 });
+
+test('audit rejects ambiguous timestamps without explicit timezone',()=>{
+  assert.throws(()=>createPredictionRecord({...fixture,kickoffUtc:'2026-11-14T15:00:00'},before),/Prévision invalide/);
+  assert.throws(()=>createPredictionRecord({...fixture,kickoffUtc:'2026-11-14'},before),/Prévision invalide/);
+  const p=createPredictionRecord(fixture,before);
+  const final={status:'FINISHED',home:2,away:1,source:'football-data.org',sourceMatchId:'123'};
+  assert.equal(settleFootballPrediction(p,{...final,finishedAt:'2026-11-14T17:00:00'}).status,'unverifiable');
+  assert.equal(settleFootballPrediction(p,{...final,finishedAt:'2026-11-14T17:00:00Z'}).status,'settled');
+});
