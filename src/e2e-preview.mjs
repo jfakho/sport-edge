@@ -86,20 +86,23 @@ try {
         }
       }
       assert.ok(featuredReady,'Actual featured cards unavailable after retries');
-      // Media must be real image responses; changing layout must preserve forecasts.
-      const picture=actualCard.locator('.fixture-photo');
-      await picture.waitFor({state:'visible'});
-      await page.waitForFunction(()=>{const p=document.querySelector('#featured-grid .fixture-photo');return p?.complete&&p.naturalWidth>0;});
-      const photoUrl=new URL(await picture.getAttribute('src'),base);
-      assert.equal(photoUrl.origin,new URL(base).origin,'Editorial photos must be hosted locally');
+      // Old or undated football photos must not replace the club identities.
+      const badges=actualCard.locator('.club-crest');
+      assert.equal(await badges.count(),2,'Both clubs need their verified crest');
+      await page.waitForFunction(()=>[...document.querySelectorAll('#featured-grid .featured-card:first-child .club-crest')].length===2&&[...document.querySelectorAll('#featured-grid .featured-card:first-child .club-crest')].every(i=>i.complete&&i.naturalWidth>0));
+      const datedPhotos=await page.locator('#featured-grid .fixture-photo').evaluateAll(images=>images.map(i=>i.dataset.capturedAt));
+      for(const capturedAt of datedPhotos)assert.equal(await page.evaluate(d=>window.CotegoMedia.isPhotoAllowed({capturedAt:d},'football'),capturedAt),true,'Every football photo must satisfy the date rule');
       const beforeView=await actualCard.locator('.featured-scenario-market').allTextContents();
       await page.locator('[data-fixture-view="list"]').click();
-      assert.ok(await picture.isHidden(),'List view must hide the photo');
+      assert.ok(await badges.first().isHidden(),'List view must hide the large crests');
       assert.deepEqual(await actualCard.locator('.featured-scenario-market').allTextContents(),beforeView,'Layout must preserve analyses');
       await page.locator('[data-fixture-view="photos"]').click();
-      assert.ok(await picture.isVisible(),'Photos view must restore the photo');
+      assert.ok(await badges.first().isVisible(),'Affiches view must restore club crests');
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Layout must fit viewport');
-      console.log('PASS photo loading and list/photo navigation at '+viewport.width+'px');
+      const rows=actualCard.locator('.featured-scenario');
+      const rowPositions=await rows.evaluateAll(items=>items.map(el=>el.getBoundingClientRect().y));
+      assert.ok(rowPositions[0]<rowPositions[1]&&rowPositions[1]<rowPositions[2],'Scenarios must read as three rows');
+      console.log('PASS club crests, recent-photo policy and scenario rows at '+viewport.width+'px');
       const featuredFeed=[...verifiedFeeds.values()].map(body=>JSON.parse(body)).find(feed=>Array.isArray(feed.competitions));
       const french=featuredFeed?.competitions.find(c=>c.league==='fr.1'&&c.ok);
       assert.ok(french,'Verified Ligue 1 feed is required for club identity checks');

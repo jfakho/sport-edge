@@ -157,3 +157,11 @@ test('rejects a provider response that identifies a different competition',()=>{
   // Older provider fixtures without a competition envelope remain compatible.
   assert.equal(normalizeFootballDataSeason({matches:[base]},'fr.1',fixedNow).length,1);
 });
+
+test('only trusted provider crest URLs survive the match adapter',()=>{
+ const result=normalizeFootballDataMatch({...base,homeTeam:{id:524,name:'PSG',crest:'https://crests.football-data.org/524.png'},awayTeam:{id:65,name:'City',crest:'https://external.example/logo.png'}},'fr.1',fixedNow);
+ assert.deepEqual(result._teamCrests,['https://crests.football-data.org/524.png',null]);
+ for(const crest of ['javascript:alert(1)','https://a:b@crests.football-data.org/65.svg','https://crests.football-data.org/65.png?token=x']){
+  assert.equal(normalizeFootballDataMatch({...base,homeTeam:{...base.homeTeam,crest}},'fr.1',fixedNow)._teamCrests[0],null);
+ }
+});

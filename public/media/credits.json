@@ -1,61 +1,5 @@
 [
   {
-    "id": "psg-dembele",
-    "kind": "photo",
-    "path": "/media/psg-dembele.jpg",
-    "title": "File:Paris Saint-Germain - Manchester City FC, 22 January 2025 (1069) (cropped).jpg",
-    "source": "https://commons.wikimedia.org/wiki/File:Paris_Saint-Germain_-_Manchester_City_FC,_22_January_2025_(1069)_(cropped).jpg",
-    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Paris_Saint-Germain_-_Manchester_City_FC%2C_22_January_2025_%281069%29_%28cropped%29.jpg/960px-Paris_Saint-Germain_-_Manchester_City_FC%2C_22_January_2025_%281069%29_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "author": "Like tears in rain",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "credit": "Own work",
-    "date": "2025-01-22 22:40:47",
-    "bytes": 231524
-  },
-  {
-    "id": "lille-stadium",
-    "kind": "photo",
-    "path": "/media/lille-stadium.jpg",
-    "title": "File:Lille vs PSG 2019 - Stade Pierre Mauroy.jpg",
-    "source": "https://commons.wikimedia.org/wiki/File:Lille_vs_PSG_2019_-_Stade_Pierre_Mauroy.jpg",
-    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Lille_vs_PSG_2019_-_Stade_Pierre_Mauroy.jpg/960px-Lille_vs_PSG_2019_-_Stade_Pierre_Mauroy.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "author": "Liondartois",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "credit": "Own work",
-    "date": "2019-04-14 20:57:52",
-    "bytes": 203792
-  },
-  {
-    "id": "marseille-stadium",
-    "kind": "photo",
-    "path": "/media/marseille-stadium.jpg",
-    "title": "File:Stade Vélodrome closeup.jpg",
-    "source": "https://commons.wikimedia.org/wiki/File:Stade_V%C3%A9lodrome_closeup.jpg",
-    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Stade_V%C3%A9lodrome_closeup.jpg/960px-Stade_V%C3%A9lodrome_closeup.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "author": "Bernard Ddd",
-    "license": "CC BY-SA 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
-    "credit": "https://www.flickr.com/photos/bds13/51288485545/",
-    "date": "2021-07-03 11:36:25",
-    "bytes": 151894
-  },
-  {
-    "id": "football-pitch",
-    "kind": "photo",
-    "path": "/media/football-pitch.jpg",
-    "title": "File:Adidas soccer ball on a grass pitch (Unsplash).jpg",
-    "source": "https://commons.wikimedia.org/wiki/File:Adidas_soccer_ball_on_a_grass_pitch_(Unsplash).jpg",
-    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Adidas_soccer_ball_on_a_grass_pitch_%28Unsplash%29.jpg/960px-Adidas_soccer_ball_on_a_grass_pitch_%28Unsplash%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "author": "Peter Glaser baraida",
-    "license": "CC0",
-    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-    "credit": "https://unsplash.com/photos/qWs_Wa1JrKM\nImage at the Wayback Machine\n\nGallery at the Wayback Machine",
-    "date": "Taken on 4 February 2017",
-    "bytes": 86030
-  },
-  {
     "id": "ligue-1",
     "kind": "logo",
     "path": "/media/ligue-1.png",
@@ -126,17 +70,52 @@
     "bytes": 37706
   },
   {
-    "id": "liverpool-salah",
-    "kind": "photo",
-    "path": "/media/liverpool-salah.png",
-    "title": "File:Mohamed Salah after goal v Aston Villa 2022.png",
-    "source": "https://commons.wikimedia.org/wiki/File:Mohamed_Salah_after_goal_v_Aston_Villa_2022.png",
-    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Mohamed_Salah_after_goal_v_Aston_Villa_2022.png/960px-Mohamed_Salah_after_goal_v_Aston_Villa_2022.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "author": "القناة الأولى المصرية (Egyptian Channel One)",
-    "license": "CC BY 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-    "credit": "https://www.youtube.com/watch?v=1mjM1B4Wa6g",
-    "date": "December 26 2022",
-    "bytes": 806710
+    "id": "64",
+    "kind": "club-crest",
+    "path": "/media/clubs/64.png",
+    "source": "https://crests.football-data.org/64.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "516",
+    "kind": "club-crest",
+    "path": "/media/clubs/516.png",
+    "source": "https://crests.football-data.org/516.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "521",
+    "kind": "club-crest",
+    "path": "/media/clubs/521.png",
+    "source": "https://crests.football-data.org/521.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "522",
+    "kind": "club-crest",
+    "path": "/media/clubs/522.png",
+    "source": "https://crests.football-data.org/522.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "523",
+    "kind": "club-crest",
+    "path": "/media/clubs/523.png",
+    "source": "https://crests.football-data.org/523.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "524",
+    "kind": "club-crest",
+    "path": "/media/clubs/524.png",
+    "source": "https://crests.football-data.org/524.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "535",
+    "kind": "club-crest",
+    "path": "/media/clubs/535.png",
+    "source": "https://crests.football-data.org/535.png",
+    "rights": "Club trademark, identification only"
   }
 ]

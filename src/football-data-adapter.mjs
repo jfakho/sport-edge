@@ -61,12 +61,21 @@ function safeDateTime(utcDate) {
   };
 }
 
+function safeCrest(value) {
+  if(typeof value!=='string')return null;
+  try {
+    const u=new URL(value);
+    return u.origin==='https://crests.football-data.org'&&!u.username&&!u.password&&!u.search&&!u.hash
+      &&/^\/[a-zA-Z0-9_-]+\.(png|svg|webp)$/.test(u.pathname)?u.href:null;
+  }catch{return null;}
+}
+
 function safeTeam(team) {
   if (!team || typeof team !== 'object') return null;
   const id = Number(team.id);
   const name = String(team.name || team.shortName || '').trim();
   if (!Number.isSafeInteger(id) || id <= 0 || !name) return null;
-  return {id, name:teamDisplayName(id,name),aliases:[...new Set([name,team.shortName,teamDisplayName(id,name)].filter(s=>typeof s==='string'&&s.trim()).map(s=>s.trim()))]};
+  return {id, crest:safeCrest(team.crest), name:teamDisplayName(id,name),aliases:[...new Set([name,team.shortName,teamDisplayName(id,name)].filter(s=>typeof s==='string'&&s.trim()).map(s=>s.trim()))]};
 }
 
 /** Normalize a v4 match for COTEGO's existing decodeDataset() without
@@ -109,6 +118,7 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
     _sourceId: id,
     _kickoffUtc: new Date(time.timestamp).toISOString(),
     _teamIds: [home.id,away.id],
+    _teamCrests: [home.crest,away.crest],
     _teamAliases:[home.aliases,away.aliases],
     _editorialPriority:editorialPriority({_teamIds:[home.id,away.id]},league),
     _status: status,
