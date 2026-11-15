@@ -34,7 +34,7 @@ const worker = {
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     if (url.pathname.startsWith('/api/account/') || url.pathname.startsWith('/api/billing/')) return handleBillingTest(request,env);
     if (request.method !== 'GET') return errorJSON('Méthode non autorisée',405,{allow:'GET'});
-    if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,journalConfigured:!!env.COTEGO_AUDIT_DB,journalSetup:env.COTEGO_JOURNAL_SETUP??null,oddsConfigured:!!env.ODDS_API_KEY,deploymentId:env.CF_VERSION_METADATA?.id ?? null,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+    if (url.pathname === '/api/status') return new Response(JSON.stringify({ok:true,service:'cotego',api:'available',footballDataConfigured:!!env.FOOTBALL_DATA_API_KEY,journalConfigured:!!env.COTEGO_AUDIT_DB,journalSetup:env.COTEGO_JOURNAL_SETUP??null,oddsConfigured:!!env.ODDS_API_KEY,accountsConfigured:!!env.COTEGO_DB&&!!env.COTEGO_AUTH_PEPPER,stripeTestConfigured:/^(sk|rk)_test_/.test(env.STRIPE_TEST_SECRET_KEY||'')&&!!env.STRIPE_TEST_PRICE_ID&&!!env.STRIPE_TEST_WEBHOOK_SECRET,deploymentId:env.CF_VERSION_METADATA?.id ?? null,liveScores:false}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
     if(url.pathname==='/api/odds/status'){
       try {return Response.json({ok:true,configured:!!env.ODDS_API_KEY,budget:await readOddsBudget(env.COTEGO_AUDIT_DB)},{headers:{'cache-control':'no-store'}});}
       catch {return errorJSON('État des cotes momentanément indisponible',503);}

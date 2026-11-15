@@ -31,3 +31,9 @@ CREATE TABLE IF NOT EXISTS login_limits (
  attempts INTEGER NOT NULL,
  window_start INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS auth_rate_limits (
+ scope TEXT PRIMARY KEY,
+ attempts INTEGER NOT NULL,
+ window_start INTEGER NOT NULL
+);

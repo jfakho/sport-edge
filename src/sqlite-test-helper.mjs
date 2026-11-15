@@ -16,3 +16,5 @@ export function auditDatabase() {
     catch(error){sqlite.exec('ROLLBACK');throw error;}
   }};
 }
+
+export function accountDatabase(){const db=auditDatabase();db.sqlite.exec(readFileSync(new URL('../db/cotego-test.sql',import.meta.url),'utf8'));return db;}

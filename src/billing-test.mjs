@@ -11,13 +11,33 @@ const digest=async v=>hex(await crypto.subtle.digest("SHA-256",enc.encode(v)));
 const cookieName="__Host-cotego_session";
 const cookie=(token,maxAge)=>cookieName+"="+token+"; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age="+maxAge;
 const getCookie=r=>(r.headers.get("cookie")||"").split(";").map(x=>x.trim()).find(x=>x.startsWith(cookieName+"="))?.slice(cookieName.length+1)||"";
-const isPreview=r=>{const u=new URL(r.url);return u.protocol==="https:"&&u.hostname.endsWith("-cotego.salama-jimmy.workers.dev");};
+const isPreview=r=>{const u=new URL(r.url);return u.protocol==="https:"&&u.hostname==="feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev";};
 const validEmail=x=>typeof x==="string"&&x.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x);
 const readJSON=async r=>{const s=await r.text();if(s.length>16384)throw Error("too large");return JSON.parse(s);};
-async function passwordHash(password,salt,rounds=190000){
- const key=await crypto.subtle.importKey("raw",enc.encode(password),"PBKDF2",false,["deriveBits"]);
- return hex(await crypto.subtle.deriveBits({name:"PBKDF2",salt:enc.encode(salt),iterations:rounds,hash:"SHA-256"},key,256));
+const HASH_ROUNDS=100000;
+function constantEqual(a,b){if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;let delta=0;for(let i=0;i<a.length;i++)delta|=a.charCodeAt(i)^b.charCodeAt(i);return delta===0;}
+async function passwordHash(password,salt,pepper,rounds=HASH_ROUNDS){
+ if(!/^[a-f0-9]{64}$/i.test(pepper||'')||!Number.isInteger(rounds)||rounds<100000||rounds>100000)throw Error('Authentication configuration unavailable');
+ const hmac=await crypto.subtle.importKey('raw',enc.encode(pepper),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+ const protectedPassword=await crypto.subtle.sign('HMAC',hmac,enc.encode(password));
+ const key=await crypto.subtle.importKey('raw',protectedPassword,'PBKDF2',false,['deriveBits']);
+ return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations:rounds,hash:'SHA-256'},key,256));
 }
+async function consumeRate(db,scope,limit,windowMs){
+ const now=Date.now();
+ const r=await db.prepare('INSERT INTO auth_rate_limits(scope,attempts,window_start) VALUES (?,1,?) ON CONFLICT(scope) DO UPDATE SET attempts=CASE WHEN window_start<=? THEN 1 ELSE attempts+1 END,window_start=CASE WHEN window_start<=? THEN excluded.window_start ELSE window_start END WHERE window_start<=? OR attempts<?').bind(scope,now,now-windowMs,now-windowMs,now-windowMs,limit).run();
+ return r.meta?.changes===1;
+}
+export async function accountEntitlements(r,env){
+ const user=await currentUser(r,env.COTEGO_DB);
+ const sub=user?await env.COTEGO_DB.prepare('SELECT status,period_end FROM subscriptions WHERE user_id=?').bind(user.id).first():null;
+ const plus=sub?.status==='active'&&Number(sub.period_end)*1000>Date.now();
+ return {ok:true,email:user?.email??null,plan:plus?'plus':user?'free':'guest',subscriptionStatus:sub?.status??null,
+  premiumTargets:plus?[1.5,2,3]:[1.5],betaTargets:[1.5,2,3],accessMode:'beta-open',premiumEnforced:false,canManageBilling:!!user?.stripe_customer_id};
+}
+function accountConfig(env){return {ok:true,mode:'test',accountsConfigured:!!env.COTEGO_DB&&/^[a-f0-9]{64}$/i.test(env.COTEGO_AUTH_PEPPER||''),
+ stripeConfigured:/^(sk|rk)_test_/.test(env.STRIPE_TEST_SECRET_KEY||'')&&/^price_/.test(env.STRIPE_TEST_PRICE_ID||'')&&/^whsec_/.test(env.STRIPE_TEST_WEBHOOK_SECRET||''),
+ accessMode:'beta-open',payments:'test-only'};}
 async function issueSession(db,userId){
  const token=random();await db.prepare("INSERT INTO sessions (token_hash,user_id,expires_at) VALUES (?,?,?)").bind(await digest(token),userId,Date.now()+1209600000).run();return token;
 }
@@ -28,7 +48,7 @@ async function currentUser(r,db){
 async function stripeRequest(path,fields,secret){
  const body=new URLSearchParams();
  for(const [name,value] of Object.entries(fields))if(value!==undefined&&value!==null)body.append(name,String(value));
- const response=await fetch("https://api.stripe.com/v1/"+path,{method:"POST",headers:{"Authorization":"Bearer "+secret,"Content-Type":"application/x-www-form-urlencoded"},body});
+ const response=await fetch("https://api.stripe.com/v1/"+path,{method:"POST",headers:{"Authorization":"Bearer "+secret,"Content-Type":"application/x-www-form-urlencoded","Stripe-Version":"2026-09-30.endive"},body});
  if(!response.ok)throw Error("Stripe test request failed");
  const obj=await response.json();if(typeof obj.url!=="string"||!/^https:\/\/(checkout|billing)\.stripe\.com\//.test(obj.url))throw Error("Unexpected Stripe URL");
  return obj.url;
@@ -66,7 +86,7 @@ async function webhook(r,env){
    const user=String(obj.metadata?.user_id||""),customer=String(obj.customer||""),sid=String(obj.id||"");
    if(user&&customer.startsWith("cus_")&&sid.startsWith("sub_")){
      const owner=await env.COTEGO_DB.prepare("SELECT id,stripe_customer_id FROM users WHERE id=?").bind(user).first();
-     if(owner&&(!owner.stripe_customer_id||owner.stripe_customer_id===customer)){
+     if(owner&&obj.items?.data?.[0]?.price?.id===env.STRIPE_TEST_PRICE_ID&&(!owner.stripe_customer_id||owner.stripe_customer_id===customer)){
        await env.COTEGO_DB.prepare("UPDATE users SET stripe_customer_id=? WHERE id=? AND stripe_customer_id IS NULL").bind(customer,user).run();
        const status=event.type==="customer.subscription.deleted"?"canceled":String(obj.status||"incomplete");
        const period=Number(obj.current_period_end||obj.items?.data?.[0]?.current_period_end||0);
@@ -85,25 +105,32 @@ export async function handleBillingTest(r,env){
    if(!env.COTEGO_DB||!env.STRIPE_TEST_WEBHOOK_SECRET)return error("Test webhook not configured",503);
    return webhook(r,env);
  }
+ if(path==="/api/account/config"&&r.method==="GET")return json(accountConfig(env));
  if(r.method!=="GET"&&r.headers.get("origin")!==url.origin)return error("Origin forbidden",403);
  if(!env.COTEGO_DB)return error("Test database not configured",503);
+ if(!accountConfig(env).accountsConfigured)return error("Authentication not configured",503);
+ if(path==="/api/account/entitlements"&&r.method==="GET")return json(await accountEntitlements(r,env));
+ const remoteScope=await digest(r.headers.get("cf-connecting-ip")||"unknown-preview-client");
  if(path==="/api/account/signup"&&r.method==="POST"){
+   if(!await consumeRate(env.COTEGO_DB,"signup:"+remoteScope,8,3600000))return error("Too many attempts",429);
    let v;try{v=await readJSON(r);}catch{return error("Invalid request",400);}
    const email=String(v.email||"").trim().toLowerCase(),password=v.password;
    if(!validEmail(email)||typeof password!=="string"||password.length<12||password.length>128)return error("Invalid email or password",400);
-   const salt=random(),id=crypto.randomUUID(),hashed=await passwordHash(password,salt);
-   try{await env.COTEGO_DB.prepare("INSERT INTO users (id,email,password_salt,password_hash,iterations,created_at) VALUES (?,?,?,?,?,?)").bind(id,email,salt,hashed,190000,Date.now()).run();}
+   const salt=random(),id=crypto.randomUUID(),hashed=await passwordHash(password,salt,env.COTEGO_AUTH_PEPPER);
+   try{await env.COTEGO_DB.prepare("INSERT INTO users (id,email,password_salt,password_hash,iterations,created_at) VALUES (?,?,?,?,?,?)").bind(id,email,salt,hashed,HASH_ROUNDS,Date.now()).run();}
    catch{return error("Unable to create account",409);}
    return json({ok:true,email},201,{"set-cookie":cookie(await issueSession(env.COTEGO_DB,id),1209600)});
  }
  if(path==="/api/account/login"&&r.method==="POST"){
+   if(!await consumeRate(env.COTEGO_DB,"login:"+remoteScope,25,900000))return error("Too many attempts",429);
    let v;try{v=await readJSON(r);}catch{return error("Invalid request",400);}
    const email=String(v.email||"").trim().toLowerCase(),password=String(v.password||"");
    if(!validEmail(email)||password.length>128)return error("Invalid credentials",401);
    const limit=await env.COTEGO_DB.prepare("SELECT attempts,window_start FROM login_limits WHERE email=?").bind(email).first();
    if(limit&&Date.now()-limit.window_start<900000&&limit.attempts>=6)return error("Too many attempts",429);
    const user=await env.COTEGO_DB.prepare("SELECT id,email,password_salt,password_hash,iterations FROM users WHERE email=?").bind(email).first();
-   if(!user||!password||await passwordHash(password,user.password_salt,user.iterations)!==user.password_hash){
+   const candidate=await passwordHash(password,user?.password_salt||'0'.repeat(64),env.COTEGO_AUTH_PEPPER,user?.iterations||HASH_ROUNDS);
+   if(!user||!password||!constantEqual(candidate,user.password_hash)){
      await env.COTEGO_DB.prepare("INSERT INTO login_limits(email,attempts,window_start) VALUES (?,1,?) ON CONFLICT(email) DO UPDATE SET attempts=CASE WHEN excluded.window_start-login_limits.window_start>900000 THEN 1 ELSE login_limits.attempts+1 END,window_start=CASE WHEN excluded.window_start-login_limits.window_start>900000 THEN excluded.window_start ELSE login_limits.window_start END").bind(email,Date.now()).run();
      return error("Invalid credentials",401);
    }
@@ -117,21 +144,19 @@ export async function handleBillingTest(r,env){
  const user=await currentUser(r,env.COTEGO_DB);
  if(!user)return error("Sign in required",401);
  if(path==="/api/account/me"&&r.method==="GET"){
-   const sub=await env.COTEGO_DB.prepare("SELECT status,period_end FROM subscriptions WHERE user_id=?").bind(user.id).first();
-   const isPlus=sub?.status==="active"&&Number(sub.period_end)>0&&Number(sub.period_end)*1000>Date.now();
-   return json({ok:true,email:user.email,plan:isPlus?"plus":"free",subscriptionStatus:sub?.status||null});
+   return json(await accountEntitlements(r,env));
  }
  if(path==="/api/billing/checkout"&&r.method==="POST"){
-   if(!env.STRIPE_TEST_SECRET_KEY?.startsWith("sk_test_")||!env.STRIPE_TEST_PRICE_ID?.startsWith("price_"))return error("Stripe test not configured",503);
+   if(!accountConfig(env).stripeConfigured)return error("Stripe test not configured",503);
    try{
      const base=url.origin;
-     const params={mode:"subscription","line_items[0][price]":env.STRIPE_TEST_PRICE_ID,"line_items[0][quantity]":1,client_reference_id:user.id,"metadata[user_id]":user.id,"subscription_data[metadata][user_id]":user.id,success_url:base+"/?billing=success",cancel_url:base+"/?billing=cancel"};
+     const params={integration_identifier:"cotego_preview_"+Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>String.fromCharCode(97+n%26)).join(""),mode:"subscription","line_items[0][price]":env.STRIPE_TEST_PRICE_ID,"line_items[0][quantity]":1,client_reference_id:user.id,"metadata[user_id]":user.id,"subscription_data[metadata][user_id]":user.id,success_url:base+"/?billing=success",cancel_url:base+"/?billing=cancel"};
      if(user.stripe_customer_id)params.customer=user.stripe_customer_id;else params.customer_email=user.email;
      return json({ok:true,url:await stripeRequest("checkout/sessions",params,env.STRIPE_TEST_SECRET_KEY)});
    }catch{return error("Stripe test checkout failed",502);}
  }
  if(path==="/api/billing/portal"&&r.method==="POST"){
-   if(!env.STRIPE_TEST_SECRET_KEY?.startsWith("sk_test_")||!user.stripe_customer_id)return error("Test portal not configured",503);
+   if(!accountConfig(env).stripeConfigured||!user.stripe_customer_id)return error("Test portal not configured",503);
    try{return json({ok:true,url:await stripeRequest("billing_portal/sessions",{customer:user.stripe_customer_id,return_url:url.origin+"/"},env.STRIPE_TEST_SECRET_KEY)});}
    catch{return error("Stripe test portal failed",502);}
  }

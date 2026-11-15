@@ -12,7 +12,8 @@
   "main": "./src/worker.mjs",
   "secrets": {
     "required": [
-      "FOOTBALL_DATA_API_KEY"
+      "FOOTBALL_DATA_API_KEY",
+      "COTEGO_AUTH_PEPPER"
     ]
   },
   "previews": {
@@ -24,10 +25,17 @@
         "binding": "COTEGO_AUDIT_DB",
         "database_name": "cotego-preview-audit",
         "database_id": "842ecb55-38b6-4fbc-8be5-830c51fc4104"
+      },
+      {
+        "binding": "COTEGO_DB",
+        "database_name": "cotego-preview-audit",
+        "database_id": "842ecb55-38b6-4fbc-8be5-830c51fc4104"
       }
     ],
     "vars": {
-      "COTEGO_JOURNAL_SETUP": "ready"
+      "COTEGO_JOURNAL_SETUP": "ready",
+      "COTEGO_ACCOUNT_MODE": "test",
+      "STRIPE_TEST_PRICE_ID": "price_1UaGHdJtgq2yqZvCoyoSszrS"
     }
   },
   "version_metadata": {

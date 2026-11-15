@@ -34,8 +34,8 @@ test('mobile navigation and about sources page exist',()=>{
 test('VIP remains a transparent sandbox, never a real checkout by accident',()=>{
   assert.match(source,/9,90 € <span>\/ mois envisagés/);
   assert.match(source,/Aucun achat réel n'est possible actuellement/);
-  assert.match(source,/buy\.stripe\.com\/test_/);
-  assert.match(source,/id="checkout-test-link"/);
+  assert.doesNotMatch(source,/buy\.stripe\.com\//);
+  assert.match(source,/src="\/cotego-account-test\.js" defer/);
 });
 
 test('PWA is linked and has a stable identity and service worker registration',()=>{

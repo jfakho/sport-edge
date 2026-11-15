@@ -1,4 +1,4 @@
--- Dedicated Preview database, no production/user/billing data.
+-- Dedicated Preview database, no production data. Test-account tables use cotego-test.sql.
 CREATE TABLE IF NOT EXISTS predictions (
   match_id INTEGER PRIMARY KEY,
   competition TEXT NOT NULL,

@@ -68,6 +68,26 @@ try {
       assert.match(swResponse.headers()['content-type']||'',/(javascript|ecmascript)/i,'Service worker must return JavaScript, not an HTML fallback');
       assert.match(await swResponse.text(),/\b(?:self|addEventListener)\b/,'Service worker script appears empty or invalid');
       console.log('PASS PWA assets and manifest at '+viewport.width+'px');
+      if(viewport.width===390){
+        let config=null;
+        for(let attempt=0;attempt<8;attempt++){
+          const response=await ctx.request.get(new URL('/api/account/config',base).href);
+          if(response.ok())config=await response.json();
+          if(config?.accountsConfigured)break;
+          await new Promise(resolve=>setTimeout(resolve,10000));
+        }
+        assert.equal(config?.accountsConfigured,true,'Preview accounts must be configured');
+        const email='ci+'+crypto.randomUUID()+'@example.invalid',password=crypto.randomUUID()+'!aA';
+        const account=async(path,data)=>ctx.request.post(new URL(path,base).href,{headers:{origin:new URL(base).origin},data});
+        const signup=await account('/api/account/signup',{email,password});assert.equal(signup.status(),201,'Synthetic account signup must work in the deployed runtime');
+        const me=await (await ctx.request.get(new URL('/api/account/me',base).href)).json();assert.equal(me.email,email);assert.equal(me.plan,'free');assert.deepEqual(me.premiumTargets,[1.5]);assert.deepEqual(me.betaTargets,[1.5,2,3]);assert.equal(me.premiumEnforced,false);
+        assert.equal((await account('/api/account/logout',{})).status(),200);
+        assert.equal((await ctx.request.get(new URL('/api/account/me',base).href)).status(),401);
+        assert.equal((await account('/api/account/login',{email,password})).status(),200);
+        assert.equal((await account('/api/account/logout',{})).status(),200);
+        console.log('PASS deployed signup, login, session revocation and server entitlements (synthetic data only)');
+      }
+
       // Actual-data regression: a featured card and its detail must use the same
       // historical snapshot, even while the larger single-league feed is loaded.
       const actualCard=page.locator('#featured-grid .featured-card').first();

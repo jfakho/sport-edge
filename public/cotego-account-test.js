@@ -1,60 +1,37 @@
-/* COTEGO — Preview-only Stripe Test UI. No real payments. */
+/* Preview accounts and Stripe test controls. No live checkout, no keys in the browser. */
 (() => {
 'use strict';
-if(!location.hostname.endsWith('-cotego.salama-jimmy.workers.dev'))return;
+if(location.hostname!=='feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev')return;
 const host=document.querySelector('#page-membership');if(!host)return;
-const panel=document.createElement('section');
-panel.className='cotego-test-account';
-panel.innerHTML=[
-'<h3>Comptes et abonnements — mode test</h3>',
-'<p class="caption">Essais techniques uniquement. Aucun paiement réel. Les fonctions Plus ne sont pas encore commercialisées.</p>',
-'<p id="cotego-test-status" role="status" aria-live="polite">Vérification de la configuration…</p>',
-'<div class="cotego-test-forms">',
-'<form id="cotego-test-signup"><strong>Créer un compte de test</strong>',
-'<label>E-mail <input name="email" type="email" autocomplete="email" required></label>',
-'<label>Mot de passe (minimum 12 caractères) <input name="password" type="password" autocomplete="new-password" minlength="12" required></label>',
-'<button type="submit">Créer</button></form>',
-'<form id="cotego-test-login"><strong>Connexion</strong>',
-'<label>E-mail <input name="email" type="email" autocomplete="email" required></label>',
-'<label>Mot de passe <input name="password" type="password" autocomplete="current-password" required></label>',
-'<button type="submit">Se connecter</button></form></div>',
-'<div class="cotego-test-actions">',
-'<button type="button" id="cotego-test-checkout">Essayer Plus — 9,90 €/mois (TEST)</button>',
-'<button type="button" id="cotego-test-portal">Gérer le test</button>',
-'<button type="button" id="cotego-test-logout">Déconnexion</button>',
-'</div>'
-].join('');
-const css=document.createElement('style');
-css.textContent='.cotego-test-account{background:#151c25;color:#f0f0f0;border:1px solid #59606c;border-radius:12px;margin:20px 0;padding:20px}.cotego-test-account h3{font-size:19px;margin:0 0 8px}.cotego-test-account .caption{font-size:13px;color:#bdc5d0}.cotego-test-forms{display:flex;flex-wrap:wrap;gap:18px;margin-top:15px}.cotego-test-forms form{flex:1 1 220px;display:grid;gap:10px}.cotego-test-account label{display:grid;gap:5px;font-size:13px}.cotego-test-account input{min-width:0;width:100%;background:#0c141e;color:#fff;border:1px solid #697480;border-radius:7px;padding:11px}.cotego-test-account button{border:1px solid #74808b;background:#253241;color:#fff;border-radius:7px;padding:11px;cursor:pointer}.cotego-test-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}#cotego-test-status{padding:10px 0;font-size:13px}';
-panel.prepend(css);host.appendChild(panel);
-const status=panel.querySelector('#cotego-test-status');
-const say=text=>status.textContent=text;
-async function api(path,method='GET',data){
- const response=await fetch(path,{method,credentials:'same-origin',cache:'no-store',headers:data?{'content-type':'application/json'}:{},body:data?JSON.stringify(data):undefined});
- let body;try{body=await response.json();}catch{body={error:'Réponse invalide'};}
- if(!response.ok)throw Error(body.error||'Erreur '+response.status);
- return body;
-}
+const panel=document.createElement('section');panel.className='cotego-test-account';
+panel.innerHTML=`<div class="account-heading"><h2>Mon compte de test</h2><span>PREVIEW</span></div>
+<p class="account-caption">Tests uniquement. Utilisez un mot de passe réservé à cette Preview.</p>
+<p id="cotego-test-status" role="status" aria-live="polite">Vérification…</p>
+<div id="cotego-account-guest"><div class="account-tabs" role="group" aria-label="Connexion ou création de compte"><button type="button" data-account-mode="login" aria-pressed="true">Connexion</button><button type="button" data-account-mode="signup" aria-pressed="false">Créer un compte</button></div>
+<form id="cotego-account-form"><label>E-mail<input name="email" type="email" autocomplete="email" required maxlength="254"></label><label>Mot de passe <small>12 caractères minimum à la création</small><input name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></label><button type="submit" class="btn btn-primary">Se connecter</button></form></div>
+<div id="cotego-account-member" hidden><p id="cotego-account-plan"></p><div class="cotego-test-actions"><button type="button" id="cotego-test-checkout" class="btn btn-primary">Essayer Plus — TEST</button><button type="button" id="cotego-test-portal" class="btn btn-outline">Gérer le test</button><button type="button" id="cotego-test-logout" class="btn btn-outline">Déconnexion</button></div><p id="cotego-stripe-status" class="account-caption"></p></div>`;
+host.appendChild(panel);
+const $=s=>panel.querySelector(s),say=t=>$('#cotego-test-status').textContent=t;
+let mode='login',configuration=null;
+const translations={'Invalid email or password':'Vérifiez l’e-mail et le mot de passe (12 caractères minimum).','Invalid credentials':'E-mail ou mot de passe incorrect.','Too many attempts':'Trop de tentatives. Réessayez plus tard.','Unable to create account':'Ce compte ne peut pas être créé. Essayez de vous connecter.','Authentication not configured':'Les comptes sont momentanément indisponibles.'};
+async function api(path,method='GET',data){const response=await fetch(path,{method,credentials:'same-origin',cache:'no-store',headers:data?{'content-type':'application/json'}:{},body:data?JSON.stringify(data):undefined});let body;try{body=await response.json();}catch{throw Error('Réponse momentanément indisponible.');}if(!response.ok){const e=Error(translations[body.error]||'Service momentanément indisponible.');e.status=response.status;throw e;}return body;}
 async function refresh(){
- try{const me=await api('/api/account/me');say('Connecté : '+me.email+' | Formule : '+me.plan+' | Abonnement : '+(me.subscriptionStatus||'aucun'));}
- catch(e){say('Compte test non connecté ou configuration D1 absente : '+e.message);}
+ configuration=await api('/api/account/config');
+ const configured=configuration.accountsConfigured;
+ $('#cotego-account-form').querySelector('button').disabled=!configured;
+ if(!configured){say('Les comptes de test sont en préparation.');return;}
+ let me;try{me=await api('/api/account/me');}catch(e){if(e.status!==401)throw e;}
+ $('#cotego-account-guest').hidden=!!me;$('#cotego-account-member').hidden=!me;
+ if(!me){say('La bêta reste gratuite, avec les trois cibles accessibles.');return;}
+ say('Connecté : '+me.email);
+ $('#cotego-account-plan').textContent=me.plan==='plus'?'Formule Plus de test':'Compte gratuit · Trois cibles ouvertes pendant la bêta';
+ $('#cotego-test-checkout').disabled=!configuration.stripeConfigured;
+ $('#cotego-test-portal').disabled=!configuration.stripeConfigured||!me.canManageBilling;
+ $('#cotego-stripe-status').textContent=configuration.stripeConfigured?'Paiement fictif uniquement. Aucun débit réel.':'Le paiement de test n’est pas encore raccordé.';
 }
-for(const [id,endpoint] of [['#cotego-test-signup','/api/account/signup'],['#cotego-test-login','/api/account/login']]){
- panel.querySelector(id).addEventListener('submit',async e=>{
-  e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button');btn.disabled=true;
-  try{const fields=new FormData(form);await api(endpoint,'POST',{email:fields.get('email'),password:fields.get('password')});form.reset();await refresh();}
-  catch(err){say('Test indisponible : '+err.message);}
-  finally{btn.disabled=false;}
- });
-}
-for(const [id,endpoint] of [['#cotego-test-checkout','/api/billing/checkout'],['#cotego-test-portal','/api/billing/portal']]){
- panel.querySelector(id).addEventListener('click',async()=>{
-  try{const result=await api(endpoint,'POST');if(!/^https:\/\/(checkout|billing)\.stripe\.com\//.test(result.url))throw Error('Lien non vérifié');location.assign(result.url);}
-  catch(e){say('Test indisponible : '+e.message);}
- });
-}
-panel.querySelector('#cotego-test-logout').addEventListener('click',async()=>{
- try{await api('/api/account/logout','POST');await refresh();}catch(e){say('Erreur : '+e.message);}
-});
-refresh();
+for(const button of panel.querySelectorAll('[data-account-mode]'))button.addEventListener('click',()=>{mode=button.dataset.accountMode;for(const b of panel.querySelectorAll('[data-account-mode]'))b.setAttribute('aria-pressed',String(b===button));const form=$('#cotego-account-form');form.querySelector('button').textContent=mode==='signup'?'Créer mon compte de test':'Se connecter';form.elements.password.autocomplete=mode==='signup'?'new-password':'current-password';});
+$('#cotego-account-form').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector('button');button.disabled=true;try{await api('/api/account/'+mode,'POST',{email:form.elements.email.value,password:form.elements.password.value});form.reset();await refresh();}catch(error){say(error.message);}finally{button.disabled=!configuration?.accountsConfigured;}});
+for(const [id,endpoint] of [['#cotego-test-checkout','/api/billing/checkout'],['#cotego-test-portal','/api/billing/portal']])$(id).addEventListener('click',async()=>{try{const result=await api(endpoint,'POST');if(!/^https:\/\/(checkout|billing)\.stripe\.com\//.test(result.url))throw Error('Lien de paiement non vérifié.');location.assign(result.url);}catch(e){say(e.message);}});
+$('#cotego-test-logout').addEventListener('click',async()=>{try{await api('/api/account/logout','POST');await refresh();}catch(e){say(e.message);}});
+refresh().catch(e=>say(e.message));
 })();
