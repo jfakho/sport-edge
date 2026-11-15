@@ -141,3 +141,11 @@ test('rejects impossible calendar dates instead of silently rolling them forward
  }
  assert.notEqual(normalizeFootballDataMatch({...base,utcDate:'2024-02-29T20:00:00Z'},'fr.1',fixedNow),null);
 });
+
+
+test('rejects a provider response that identifies a different competition',()=>{
+  assert.throws(()=>normalizeFootballDataSeason({competition:{code:'PL'},matches:[base]},'fr.1',fixedNow),/Mismatched competition/);
+  assert.equal(normalizeFootballDataSeason({competition:{code:'FL1'},matches:[base]},'fr.1',fixedNow).length,1);
+  // Older provider fixtures without a competition envelope remain compatible.
+  assert.equal(normalizeFootballDataSeason({matches:[base]},'fr.1',fixedNow).length,1);
+});
