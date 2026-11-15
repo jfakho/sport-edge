@@ -165,18 +165,18 @@ body{font-size:14px;letter-spacing:0}
 </style>
   <title>COTEGO | Le football, vu par les chiffres</title>
   <link rel="stylesheet" href="/cotego-rework.css">
-  <link rel="stylesheet" href="/cotego-sport.css?v=20261115-fixtures-4">
+  <link rel="stylesheet" href="/cotego-sport.css?v=20261115-matchday-5">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand"><div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></div><div><strong>COTE<span>GO</span></strong><small>SPORTS DATA / ANALYSES</small></div></div>
-      <div class="sidebar-label">VOTRE TERRAIN DE JEU</div>
+      <div class="brand"><div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></div><div><strong>COTE<span>GO</span></strong><small>Analyses football</small></div></div>
+      <div class="sidebar-label">NAVIGATION</div>
       <nav class="sidebar-nav" aria-label="Navigation principale">
-        <button class="nav-item active" data-page="home"><span class="nav-icon">⌂</span> À la une</button>
-        <button class="nav-item" data-page="dashboard"><span class="nav-icon">▦</span> Matchs & analyses</button>
-        <button class="nav-item" data-link="dashboard" data-favs="1"><span class="nav-icon">☆</span> Mes favoris</button>
-        <button class="nav-item" data-page="membership"><span class="nav-icon">◇</span> COTEGO Plus <span class="alpha-tag">BÊTA</span></button>
+        <button class="nav-item active" data-page="home"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10h-6v-6H9v6H3Z"/></svg></span> À la une</button>
+        <button class="nav-item" data-page="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></span> Les matchs</button>
+        <button class="nav-item" data-link="dashboard" data-favs="1"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></svg></span> Mes favoris</button>
+        <button class="nav-item" data-page="membership"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 9-9 9-9-9Z"/><path d="M8 12h8m-4-4v8"/></svg></span> COTEGO Plus <span class="alpha-tag">BÊTA</span></button>
         <div class="sidebar-label competition-label">COMPÉTITIONS</div>
         <button class="competition-link" data-competition="fr.1"><img class="league-logo" src="/media/ligue-1.png" alt="" width="48" height="28"> Ligue 1 <i>›</i></button>
         <button class="competition-link" data-competition="en.1"><img class="league-logo" src="/media/premier-league.png" alt="" width="48" height="28"> Premier League <i>›</i></button>
@@ -185,12 +185,12 @@ body{font-size:14px;letter-spacing:0}
         <button class="competition-link" data-competition="it.1"><img class="league-logo" src="/media/serie-a.png" alt="" width="48" height="28"> Serie A <i>›</i></button>
         <button class="competition-link" data-competition="intl.cl"><span>UE</span> Ligue des champions <i>›</i></button>
         <div class="sidebar-label" style="margin:18px 13px 6px">EXPLORER</div>
-        <button class="nav-item" data-page="history"><span class="nav-icon">◷</span> Historique & tests</button>
-        <button class="nav-item" data-page="lab"><span class="nav-icon">◈</span> Tennis & basket <span class="alpha-tag">TEST</span></button>
-        <button class="nav-item" data-page="method"><span class="nav-icon">◎</span> Comprendre les calculs</button>
-        <button class="nav-item" data-page="import"><span class="nav-icon">↥</span> Importer des données</button>
-        <button class="nav-item" data-page="install"><span class="nav-icon">▣</span> Installer l'application</button>
-        <button class="nav-item" data-page="about"><span class="nav-icon">ⓘ</span> À propos & sources</button>
+        <button class="nav-item" data-page="history"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg></span> Historique & tests</button>
+        <button class="nav-item" data-page="lab"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18 5-5 5-13 0-18"/></svg></span> Tennis & basket <span class="alpha-tag">TEST</span></button>
+        <button class="nav-item" data-page="method"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 15v-3m4 3V7m4 8v-5"/></svg></span> La méthode</button>
+        <button class="nav-item" data-page="import"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6"/></svg></span> Importer</button>
+        <button class="nav-item" data-page="install"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4"/></svg></span> Installer COTEGO</button>
+        <button class="nav-item" data-page="about"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.01"/></svg></span> À propos & sources</button>
       </nav>
       <div class="sidebar-grow"></div>
       <div class="side-highlight"><span class="mini-light"></span><div><strong>Bêta football gratuite</strong><p>Modèle ouvert · Sans promesse de gain</p></div></div>
@@ -206,9 +206,9 @@ body{font-size:14px;letter-spacing:0}
 
       <section class="page visible" id="page-home">
         <nav class="sports-nav" aria-label="Sports et résultats"><button class="selected" data-page="home"><span>⚽</span> Football</button><button data-page="lab"><span>◉</span> Tennis <small>LAB</small></button><button data-page="lab"><span>◈</span> Basket <small>LAB</small></button><button data-page="history" class="sports-results">Historique & résultats <span>›</span></button></nav>
-        <section class="matchday-banner" aria-labelledby="matchday-title"><div><h1 id="matchday-title">Football</h1><p>Les matchs à suivre. Les stats pour comprendre.</p></div><button class="btn btn-outline" data-link="dashboard">Tous les matchs</button></section>
+        <section class="matchday-banner" aria-labelledby="matchday-title"><div><h1 id="matchday-title">Football</h1><p>Calendrier, analyses et résultats.</p></div><button class="btn btn-outline" data-link="dashboard">Tous les matchs</button></section>
         <div class="home-workspace"><div class="home-center">
-        <div class="home-intro"><div><h2>Les affiches du moment</h2></div><span class="home-status" id="home-data-status" role="status">Chargement des rencontres…</span></div>
+        <div class="home-intro"><div><h2>À l’affiche</h2></div><span class="home-status" id="home-data-status" role="status">Chargement des rencontres…</span></div>
         <div class="home-tabs" role="group" aria-label="Choisir un championnat">
           <button type="button" class="home-tab" data-featured-league="fr.1" aria-pressed="true"><img class="league-logo" src="/media/ligue-1.png" alt="" width="48" height="28">Ligue 1</button>
           <button type="button" class="home-tab" data-featured-league="en.1" aria-pressed="false"><img class="league-logo" src="/media/premier-league.png" alt="" width="48" height="28">Premier League</button>
@@ -216,17 +216,17 @@ body{font-size:14px;letter-spacing:0}
           <button type="button" class="home-tab" data-featured-league="it.1" aria-pressed="false"><img class="league-logo" src="/media/serie-a.png" alt="" width="48" height="28">Serie A</button>
           <button type="button" class="home-tab" data-featured-league="de-live" aria-pressed="false"><img class="league-logo" src="/media/bundesliga.png" alt="" width="48" height="28">Bundesliga</button>
         </div>
-        <div class="home-section-head"><div><h2>À l'affiche</h2><span class="home-count" id="home-selection-count">3 rencontres</span></div><div class="fixture-view" role="group" aria-label="Présentation des rencontres"><button type="button" data-fixture-view="photos" aria-pressed="true">Affiches</button><button type="button" data-fixture-view="list" aria-pressed="false">Liste</button></div></div>
+        <div class="home-section-head"><div><h2 class="sr-only">Sélection de rencontres</h2><span class="home-count" id="home-selection-count">3 rencontres</span></div><div class="fixture-view" role="group" aria-label="Présentation des rencontres"><button type="button" data-fixture-view="photos" aria-pressed="true">Affiches</button><button type="button" data-fixture-view="list" aria-pressed="false">Liste</button></div></div>
         <div class="featured-grid" id="featured-grid" aria-live="polite">
           <div class="featured-empty">Chargement de la sélection de matchs…</div>
         </div>
         <div class="home-all"><button type="button" class="btn btn-outline" data-link="dashboard">Explorer tous les matchs</button></div>
         </div><aside class="insight-rail" aria-label="Suivi COTEGO">
-          <section class="rail-card"><div class="rail-heading"><span class="status-dot"></span><span>Vos prévisions</span></div><h3>Le suivi des résultats</h3><p>Suivez les scénarios enregistrés avant match et comparez-les aux résultats.</p><div class="rail-metric"><strong id="rail-recorded-count">—</strong><span>prévisions enregistrées<br>dans cette compétition</span></div><div id="rail-journal-status" class="rail-status" role="status">Vérification du journal…</div><button class="rail-link" data-page="history">Voir l'historique <span>›</span></button></section>
-          <section class="rail-card odds-policy"><span class="rail-eyebrow">COTES BOOKMAKERS</span><h3>Priorité aux grandes affiches.</h3><p>Relevés ciblés chez Betclic, Unibet et Winamax, selon les marchés disponibles.</p><div class="quota-line"><strong>450</strong><span>crédits maximum sur 31 jours</span></div><div class="quota-track"><span></span></div><small>50 crédits de réserve sur l'offre de 500.</small><p id="rail-odds-status" class="rail-status">Vérification du raccordement…</p></section>
-          <section class="rail-card rail-plus"><span class="rail-eyebrow">COTEGO PLUS</span><h3>Allez au bout de l'analyse.</h3><p>À terme : cible 1,50 en gratuit ; les trois cibles et analyses détaillées avec Plus.</p><span class="beta-note">Toutes les cibles restent ouvertes pendant la bêta gratuite.</span><button class="btn btn-outline" data-link="membership">Découvrir Plus <span>›</span></button></section>
+          <section class="rail-card"><div class="rail-heading"><span class="status-dot"></span><span>Vos prévisions</span></div><h3>Les résultats</h3><p>Prévisions avant match, résultats après match.</p><div class="rail-metric"><strong id="rail-recorded-count">—</strong><span>prévisions archivées</span></div><div id="rail-journal-status" class="rail-status" role="status">Vérification du journal…</div><button class="rail-link" data-page="history">Voir l'historique <span>›</span></button></section>
+          <section class="rail-card odds-policy"><span class="rail-eyebrow">LES COTES RÉELLES</span><h3>Raccordement en cours.</h3><p id="rail-odds-status" class="rail-status">Vérification du raccordement…</p></section>
+          <section class="rail-card rail-plus"><span class="rail-eyebrow">BÊTA GRATUITE</span><h3>Trois cibles ouvertes.</h3><p>Après la bêta : cible 1,50 gratuite, analyses complètes avec Plus.</p><button class="btn btn-outline" data-link="membership">COTEGO Plus <span>›</span></button></section>
         </aside></div>
-        <p class="home-disclaimer">Les probabilités, lorsqu'elles sont disponibles, proviennent d'un modèle statistique expérimental non validé pour prédire les résultats des paris. Elles ne sont ni des cotes de bookmaker ni des conseils de mise. Les matchs affichés sont une sélection éditoriale, pas une garantie de résultat.</p>
+        <p class="home-disclaimer">Probabilités estimées, pas des cotes de bookmaker. Modèle expérimental ; aucun gain garanti. <button type="button" data-link="method">Comprendre les estimations</button></p>
       </section>
 
       <section class="page" id="page-dashboard">
@@ -368,6 +368,7 @@ body{font-size:14px;letter-spacing:0}
 
   <div class="modal-overlay hidden" id="analysis-modal" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-header"><div><div class="section-overline">FICHE MATCH / PROBABILITÉS</div><h2 id="modal-title">Analyse de la rencontre</h2><p id="modal-subtitle"></p></div><button class="close-modal" id="close-modal" aria-label="Fermer">×</button></div><div id="modal-content"></div></div></div>
   <script src="/cotego-media.js?v=20261115-1"></script>
+  <script src="/cotego-presentation.js?v=20261115-1"></script>
   <script>
 /* COTEGO 0.2 — no build tools, no keys, zero paid dependencies.
    Public-domain fixtures: https://github.com/openfootball/football.json
@@ -841,7 +842,7 @@ body{font-size:14px;letter-spacing:0}
       const league=add(head,'span','featured-league');
       if(LEAGUE_MEDIA[item.league]){const logo=add(league,'img','league-logo');logo.src='/media/'+LEAGUE_MEDIA[item.league]+'.png';logo.alt='';logo.width=48;logo.height=28;}
       add(league,'span','',LEAGUES[item.league]?.name||'Football');
-      add(head,'span','featured-time',formatDate(m.date)+' · '+(m.time||'Heure à confirmer'));
+      add(head,'span','featured-time',formatDate(m.date));
       const media=fixtureMedia(m);
       const visual=add(card,'div','featured-visual'+(media?'':' crest-only'));
       if(media){
@@ -861,41 +862,44 @@ body{font-size:14px;letter-spacing:0}
         }
         add(block,'span','featured-team-name',name);
       };
-      team(m.home,0);add(fixture,'span','fixture-vs','VS');team(m.away,1);
+      team(m.home,0);
+      const kickoff=add(fixture,'div','fixture-kickoff');
+      const time=add(kickoff,'time','',m.time||'À confirmer');if(m.kickoffUtc)time.dateTime=m.kickoffUtc;
+      add(kickoff,'span','',formatDate(m.date));add(kickoff,'small','','Heure de Paris');
+      team(m.away,1);
       const favorite=add(head,'button','featured-favorite',state.favorites.has(m.id)?'★':'☆');
       favorite.type='button';favorite.dataset.favorite=m.id;favorite.setAttribute('aria-label','Suivre '+m.home+' – '+m.away);
       const bottom=add(card,'div','featured-bottom');
       const textEl=add(bottom,'div','featured-prob');
       if (f) {
-        const outcome=[['1',f.home],['N',f.draw],['2',f.away]].sort((x,y)=>y[1]-x[1])[0];
-        add(textEl,'span','', 'Résultat le plus probable : ');
-        add(textEl,'strong','',outcome[0]+' · '+Math.round(outcome[1]*100)+' %');
-        add(textEl,'span','featured-confidence',' · '+f.quality+' · '+f.historyCount+' résultats historiques');
+        add(textEl,'span','featured-confidence',f.historyCount+' résultats historiques'+' · '+f.quality);
         const scenarioHeading=add(card,'div','scenarios-heading');
-        add(scenarioHeading,'h3','','Nos scénarios');
+        add(scenarioHeading,'h3','','Les scénarios du match');
         add(scenarioHeading,'span','','Probabilités estimées');
-        const columns=add(card,'div','scenarios-columns');columns.setAttribute('aria-hidden','true');
-        add(columns,'span','','Cible');add(columns,'span','','Scénario');add(columns,'span','','Probabilité');
         const scenarios=add(card,'div','featured-scenarios');scenarios.setAttribute('role','list');scenarios.setAttribute('aria-label','Trois scénarios statistiques');
         for(const tier of f.tiers){
           const scenario=add(scenarios,'div','featured-scenario');scenario.setAttribute('role','listitem');
-          add(scenario,'span','featured-scenario-target','×'+tier.target.toFixed(2).replace('.',','));
+          const target=add(scenario,'span','featured-scenario-target');
+          add(target,'small','','Cible');add(target,'b','',tier.target.toFixed(2).replace('.',','));
           const probability=tier.market?.p;
-          add(scenario,'strong','featured-scenario-market',tier.market?.name||'Données insuffisantes');
+          const label=add(scenario,'div','scenario-copy');
+          add(label,'span','scenario-group',window.CotegoPresentation.marketGroup(tier.market));
+          add(label,'strong','featured-scenario-market',window.CotegoPresentation.marketLabel(tier.market,m));
           const estimate=add(scenario,'span','featured-scenario-prob');
           if(Number.isFinite(probability) && probability>0){
             add(estimate,'b','scenario-probability',Math.round(probability*100)+' %');
+            const track=add(estimate,'span','scenario-track');track.setAttribute('aria-hidden','true');track.style.setProperty('--probability',clamp(Math.round(probability*100),0,100)+'%');
             add(estimate,'span','scenario-odds sr-only',' estimés · cote théorique ×'+(1/probability).toFixed(2).replace('.',','));
           }else estimate.textContent='Probabilité indisponible';
         }
-        add(card,'p','scenarios-note','Les cotes théoriques et le détail des calculs sont dans l’analyse.');
+        add(card,'p','scenarios-note','Cibles indicatives · Cotes théoriques et méthode dans l’analyse.');
       } else add(textEl,'span','', 'Analyse statistique indisponible');
-      const action=add(bottom,'button','featured-action',f?'Voir l’analyse':'Données insuffisantes');
+      const action=add(bottom,'button','featured-action',f?'L’analyse complète':'Données insuffisantes');
       action.type='button';
       if(f) {featuredAnalyses.set(m.id,item);action.dataset.analyze=m.id;action.dataset.analyzeLeague=item.league;}
       else action.disabled=true;
       card.appendChild(bottom);
-      const provenance=add(card,'div','featured-recorded',m.recordedPrediction?'Prévision enregistrée avant match':'Simulation · prévision non encore enregistrée');
+      const provenance=add(card,'div','featured-recorded',m.recordedPrediction?'Enregistré avant le coup d’envoi':'Simulation non enregistrée');
       if(m.recordedPrediction)provenance.title='Enregistrée le '+new Date(m.recordedPrediction.createdAt).toLocaleString('fr-FR');
     }
     window.dispatchEvent(new CustomEvent('cotego:competition',{detail:{league:state.league}}));
@@ -963,9 +967,9 @@ body{font-size:14px;letter-spacing:0}
       const outcome=m.score?evaluateTiers(f,m.score)[i]:null;
       const archived=!!(snapshot?.recordedAt||m.recordedPrediction);
       const quote=m.score?`<strong>${outcome?.hit===true?'✓ Réussi':outcome?.hit===false?'✕ Non réalisé':'Non évaluable'}</strong><p>Score final (90 min) : ${m.score.join(' – ')}</p><small>${archived?'Prévision enregistrée avant le coup d’envoi.':'Scénario recalculé après match ; pas de prévision archivée.'}</small>`:`<div class="theoretical">×${theoreticalOdd}</div><label>Cote réelle saisie par vous<input class="odd-input" data-odd="${i}" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="Ex. 1.85"></label><div class="value-output" id="odd-output-${i}">Aucune cote de bookmaker importée</div>`;
-      return `<div class="modal-pick"><div><div class="modal-pick-head"><i class="tier-dot ${tier.color}"></i>${escapeHtml(tier.name.toUpperCase())} · CIBLE ${tier.target.toFixed(2)}</div><h4>${escapeHtml(tier.market?.name||'Indisponible')}</h4><p>Probabilité estimée : <b>${(p*100).toFixed(1)} %</b> · Cote théorique sans marge : <b>${theoreticalOdd}</b></p></div><div class="modal-pick-quote">${quote}</div></div>`;
+      return `<div class="modal-pick"><div><div class="modal-pick-head"><i class="tier-dot ${tier.color}"></i>${escapeHtml(tier.name.toUpperCase())} · CIBLE ${tier.target.toFixed(2)}</div><h4>${escapeHtml(window.CotegoPresentation.marketLabel(tier.market,m))}</h4><p>Probabilité estimée : <b>${(p*100).toFixed(1)} %</b> · Cote théorique sans marge : <b>${theoreticalOdd}</b></p></div><div class="modal-pick-quote">${quote}</div></div>`;
     }).join('');
-    $('#modal-content').innerHTML=`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>${tierHTML}${footballExtrasMarkup(f,m,all)}<div class="model-warning">⚠ ${escapeHtml(f.quality)}. Calcul basé sur ${f.historyCount} résultats précédant ce match, dont ${f.playedHome} matchs de l'équipe à domicile et ${f.playedAway} de l'équipe à l'extérieur (tous terrains). Dernier résultat disponible : ${escapeHtml(formatDateFull(lastResult))}. Modèle expérimental non calibré sur des données de validation indépendantes ; il n'intègre pas les absences ou compositions. Les cotes affichées sont théoriques, jamais des offres de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div>`;
+    $('#modal-content').innerHTML=`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>${tierHTML}<p class="analysis-brief">Estimations expérimentales · Les scénarios peuvent être corrélés.</p><details class="analysis-more"><summary>Buts, mi-temps et simulateur buteur</summary><div>${footballExtrasMarkup(f,m,all)}</div></details><details class="analysis-method"><summary>Méthode et limites des estimations</summary><div><div class="model-warning">⚠ ${escapeHtml(f.quality)}. Calcul basé sur ${f.historyCount} résultats précédant ce match, dont ${f.playedHome} matchs de l'équipe à domicile et ${f.playedAway} de l'équipe à l'extérieur (tous terrains). Dernier résultat disponible : ${escapeHtml(formatDateFull(lastResult))}. Modèle expérimental non calibré sur des données de validation indépendantes ; il n'intègre pas les absences ou compositions. Les cotes affichées sont théoriques, jamais des offres de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div></div></details>`;
     ['scorer-team','scorer-name','scorer-share','scorer-minutes'].forEach(id=>$('#'+id)?.addEventListener('input',()=>updateScorer(f)));
     $('#scorer-team')?.addEventListener('change',()=>updateScorer(f));
     $$('.odd-input').forEach(input=>input.addEventListener('input',e=>{

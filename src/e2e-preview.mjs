@@ -132,6 +132,8 @@ try {
         .map(text=>Math.round(Number.parseFloat(text)));
       assert.deepEqual(detailPercentages,marketPercentages,
         'Opening details must preserve the card probabilities, allowing display rounding');
+      await page.locator('#modal-content .analysis-method > summary').click();
+      assert.ok(await page.locator('#modal-content .model-warning').isVisible(),'Method must remain accessible');
       assert.ok((await page.locator('#modal-content .model-warning').innerText()).includes('Calcul basé sur '+sample+' résultats'),
         'Card and detail must share their historical sample');
       await page.locator('#close-modal').click();
