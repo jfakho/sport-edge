@@ -33,18 +33,29 @@ export function preparePreviewStorage({env=process.env,run=spawnSync,read=readFi
     config.secrets??={};config.secrets.required=[...new Set([...(config.secrets.required||[]),'ODDS_API_KEY'])];
     write('wrangler.jsonc',JSON.stringify(config,null,2)+'\n');
   }
+  let stage='listing-database';
   try {
     const databases=()=>JSON.parse(invoke(['d1','list','--json']));
     let database=databases().find(d=>d.name===DATABASE);
     if(!database){
+      stage='creating-database';
       invoke(['d1','create',DATABASE,'--location','weur','--update-config=false']);
       database=databases().find(d=>d.name===DATABASE);
     }
     if(!/^[a-f0-9-]{36}$/i.test(database?.uuid||''))throw new Error('Preview database unavailable');
-    invoke(['d1','execute',DATABASE,'--remote','--file','db/cotego-audit.sql','--yes']);
-    config.d1_databases=[...(config.d1_databases||[]).filter(d=>d.binding!==BINDING),
-      {binding:BINDING,database_name:DATABASE,database_id:database.uuid}];
+    const binding={binding:BINDING,database_name:DATABASE,database_id:database.uuid};
+    const migrationConfig='wrangler.preview-migrations.generated.json';
+    write(migrationConfig,JSON.stringify({...(config.account_id?{account_id:config.account_id}:{}),d1_databases:[binding]}));
+    stage='initializing-schema';
+    invoke(['d1','execute',BINDING,'--remote','--config',migrationConfig,'--file','db/cotego-audit.sql','--yes']);
+    config.previews??={};
+    config.previews.d1_databases=[...(config.previews.d1_databases||[]).filter(d=>d.binding!==BINDING),binding];
+    config.previews.vars={...(config.previews.vars||{}),COTEGO_JOURNAL_SETUP:'ready'};
     write('wrangler.jsonc',JSON.stringify(config,null,2)+'\n');
     return 'ready';
-  } catch {return 'unavailable';}
+  } catch {
+    config.previews??={};config.previews.vars={...(config.previews.vars||{}),COTEGO_JOURNAL_SETUP:stage+'-unavailable'};
+    write('wrangler.jsonc',JSON.stringify(config,null,2)+'\n');
+    return 'unavailable';
+  }
 }
