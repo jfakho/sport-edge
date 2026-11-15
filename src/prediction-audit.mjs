@@ -1,7 +1,12 @@
 /** COTEGO: deterministic audit of football predictions. No bookmaker odds or profit claims. */
 const MARKETS = new Set(['home','draw','away','over_2_5','under_2_5','btts_yes','btts_no']);
 const isNumber = n => typeof n === 'number' && Number.isFinite(n);
-const isoMs = value => typeof value === 'string' ? Date.parse(value) : NaN;
+const isoMs = value => {
+  // Auditable timestamps must contain an explicit timezone, never local/ambiguous dates.
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return NaN;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : NaN;
+};
 
 /** Persist the returned record BEFORE kickoff in durable server storage.
  * Do not modify records after creation: use append-only storage and an audit timestamp. */
