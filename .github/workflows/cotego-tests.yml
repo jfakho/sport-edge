@@ -5,6 +5,9 @@ on:
     branches: [main, feature/fresh-football-data-adapter, feature/cotego-premium-ux]
   pull_request:
     branches: [main]
+concurrency:
+  group: cotego-tests-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -16,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install pinned deployment tooling for executable regression check
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: Test des résultats et du proxy (sans clé réelle)
         run: node --test src/*.test.mjs
 
@@ -92,7 +97,7 @@ jobs:
                 {
                   echo '### Cloudflare Preview: runtime secret absent'
                   echo "The preview URL is reachable, but three successive /api/status responses reported footballDataConfigured=false (Worker version: $last_version)."
-                  echo 'In Cloudflare, select the **preview Worker**, not the production Worker. Under Settings > Variables and Secrets, verify FOOTBALL_DATA_API_KEY exists as a runtime secret, then redeploy **preview only** and rerun this workflow.'
+                  echo 'Inspect the latest Cloudflare Preview build and its ensure-preview-secret result before requesting any key entry. The pinned Wrangler and build hook preserve or restore the existing Preview secret.'
                   echo 'Do not paste the secret into GitHub logs, issues, or chat. No production deployment is required.'
                 } >> "$GITHUB_STEP_SUMMARY"
                 exit 1
@@ -140,6 +145,7 @@ jobs:
           jq -r '.competitions[] | "\(.league): \(if .ok then "available" else "unavailable" end)"' /tmp/cotego-featured.json
           echo 'All eight competitions explicitly represented; at least one has actual matches and upstream failures are not hidden.'
       - name: Recheck preview secret binding after feed checks
+        if: always()
         shell: bash
         run: |
           set -euo pipefail

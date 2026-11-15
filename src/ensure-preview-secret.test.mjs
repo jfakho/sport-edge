@@ -1,10 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ensurePreviewSecret} from './ensure-preview-secret.mjs';
+import {spawnSync} from 'node:child_process';
+import {ensurePreviewSecret, resolveWranglerCli} from './ensure-preview-secret.mjs';
 
 const env = {WORKERS_CI:'1', WORKERS_CI_BRANCH:'feature/cotego-premium-ux'};
 const listed = [{name:'FOOTBALL_DATA_API_KEY', type:'secret_text'}];
 const result = data => ({status:0, stdout:JSON.stringify(data)});
+
+test('resolves and launches the executable shipped by the installed Wrangler package', () => {
+  const child = spawnSync(process.execPath,[resolveWranglerCli(),'--version'],{encoding:'utf8',timeout:15000});
+  assert.equal(child.status,0);
+  assert.match(child.stdout.trim(),/^4\.\d+\.\d+$/);
+});
 
 test('never manages production, another branch, or a local build', () => {
   for (const e of [{}, {...env,WORKERS_CI_BRANCH:'main'}, {...env,WORKERS_CI_BRANCH:'feature/other'}, {...env,WORKERS_CI:'0'}]) {

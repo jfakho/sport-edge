@@ -91,3 +91,16 @@ The project now pins 4.149.0 and runs `src/ensure-preview-secret.mjs` as a custo
 This uses the existing Cloudflare build authorization, without creating an API token or requesting another key entry. It is limited to the named Preview; production, local builds and other branches are skipped. The Cloudflare Preview command remains `npx wrangler preview`.
 
 End-to-end persistence must still be checked on two deployments using distinct deployment IDs after the upgrade.
+
+## First successful corrected deployment — 2026-11-15
+
+The uploaded Cloudflare build log identified an executable-resolution error in the initial recovery hook: Wrangler 4.149.0 exports its package manifest but not `wrangler/bin/wrangler.js`. The helper now resolves the exported `wrangler/package.json` and follows its published `bin.wrangler` entry.
+
+The corrected helper was checked against the actual installed Wrangler 4.149.0 executable, not only a mocked process. Cloudflare then confirmed:
+- Commit: `65a27fe905ad11fd344f00a81b149a4f7f9506f8`.
+- Build and Preview deployment: success.
+- Deployment ID: `6c60dd17-0198-420b-bf13-7c67139379a8`.
+- Public `/api/status`: `footballDataConfigured:true`.
+- No further manual key entry was requested.
+
+The next commit adds the real executable regression test to CI, installs the pinned tooling in the unit job, serializes duplicate push/PR runs per branch to reduce provider contention, and runs the final binding check even if a feed check fails. Its new Preview deployment is the second persistence check; record the actual outcome before declaring the incident resolved.
