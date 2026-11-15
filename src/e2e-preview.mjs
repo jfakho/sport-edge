@@ -1,5 +1,6 @@
 /** COTEGO — browser end-to-end smoke test, free GitHub Actions.
- * Uses synthetic DEMO matches only; it does not require football-data.org or Stripe keys.
+ * Checks one actual featured forecast plus isolated synthetic DEMO navigation.
+ * Requires the public football feed, but never handles a provider or Stripe key.
  * Fails when mobile/desktop navigation, clickable match cards, or the modal regress.
  */
 import {chromium} from 'playwright';
@@ -49,6 +50,28 @@ try {
       assert.match(swResponse.headers()['content-type']||'',/(javascript|ecmascript)/i,'Service worker must return JavaScript, not an HTML fallback');
       assert.match(await swResponse.text(),/\b(?:self|addEventListener)\b/,'Service worker script appears empty or invalid');
       console.log('PASS PWA assets and manifest at '+viewport.width+'px');
+      // Actual-data regression: a featured card and its detail must use the same
+      // historical snapshot, even while the larger single-league feed is loaded.
+      const actualCard=page.locator('#featured-grid .featured-card').first();
+      await actualCard.waitFor({state:'visible',timeout:20000});
+      const marketNames=await actualCard.locator('.featured-scenario-market').allTextContents();
+      const marketPercentages=(await actualCard.locator('.featured-scenario-prob').allTextContents())
+        .map(text=>Number(text.match(/(\d+) %/)?.[1]));
+      const sample=(await actualCard.locator('.featured-confidence').innerText()).match(/(\d+) résultats historiques/)?.[1];
+      assert.equal(marketNames.length,3,'Actual featured card needs three scenarios');
+      assert.ok(sample,'Actual featured sample size must be shown');
+      await actualCard.locator('button.featured-action').click();
+      await page.locator('#analysis-modal:not(.hidden)').waitFor({state:'visible',timeout:5000});
+      assert.deepEqual(await page.locator('#modal-content .modal-pick h4').allTextContents(),marketNames,
+        'Opening details must preserve the card scenario selections');
+      const detailPercentages=(await page.locator('#modal-content .modal-pick p b:first-child').allTextContents())
+        .map(text=>Math.round(Number.parseFloat(text)));
+      assert.deepEqual(detailPercentages,marketPercentages,
+        'Opening details must preserve the card probabilities, allowing display rounding');
+      assert.ok((await page.locator('#modal-content .model-warning').innerText()).includes('Calcul basé sur '+sample+' résultats'),
+        'Card and detail must share their historical sample');
+      await page.locator('#close-modal').click();
+      console.log('PASS actual featured forecast consistency at '+viewport.width+'px');
       // Regression: every featured league tab must be interactive on mobile and desktop.
       // This checks the selected state without claiming upstream match availability.
       for(const league of ['fr.1','en.1','es.1','it.1','de-live']){

@@ -382,6 +382,7 @@ body{font-size:14px;letter-spacing:0}
     { name: 'Niveau C · fréquence plus faible', target: 3.0, color: 'tier-risk', brief: 'Cible ~3,00' }
   ];
   const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason(), dataError:'', featuredData:null, featuredLoading:false };
+  const featuredAnalyses = new Map();
   const MARKET_TYPES = [
     ['home', 'Victoire domicile', 'result', (a,b)=>a>b],
     ['draw', 'Match nul', 'result', (a,b)=>a===b],
@@ -683,11 +684,11 @@ body{font-size:14px;letter-spacing:0}
   }
   function fairOdds(p){return p>0?(1/p).toFixed(2):'—';}
   function pct(p){return (100*p).toFixed(1)+' %';}
-  function footballExtrasMarkup(f,m) {
-    const t=goalTotals(f),half=halfTimeDistribution(f,m,state.matches),hs=half.prob;
+  function footballExtrasMarkup(f,m,all=state.matches) {
+    const t=goalTotals(f),half=halfTimeDistribution(f,m,all),hs=half.prob;
     return `<section class="extra-analysis"><h3>Nombre de buts total</h3><p class="small-line">Projection dérivée de la distribution de scores du modèle, non de xG tirs.</p><div class="total-goals-row">${t.exact.map((p,i)=>`<div><small>${i===5?'5+':i} but${i>1?'s':''}</small><b>${pct(p)}</b><span class="total-bar" style="--fill:${(100*p).toFixed(1)}%"></span></div>`).join('')}</div><div class="mini-metrics"><span>+ 1,5 : <b>${pct(t.over15)}</b></span><span>+ 2,5 : <b>${pct(t.over25)}</b></span><span>+ 3,5 : <b>${pct(t.over35)}</b></span><span>Total estimé : <b>${t.expected.toFixed(2)}</b></span></div>
     <h3>Quelle mi-temps compte le plus de buts ?</h3><p class="small-line">${half.type==='observed'?`Fréquence brute sur ${half.count} matchs historiques avec score à la mi-temps, sans ajustement à l'affiche.`:`Simulation <b>hypothétique</b> avec répartition 45 % / 55 % de l'intensité de buts. Seulement ${half.count} matchs avec score mi-temps disponibles ; <b>ce n'est pas une statistique observée</b>.`}</p><div class="half-row"><div><small>1re mi-temps</small><strong>${pct(hs[0])}</strong></div><div><small>Égalité des mi-temps</small><strong>${pct(hs[1])}</strong></div><div><small>2e mi-temps</small><strong>${pct(hs[2])}</strong></div></div>
-    <h3>Buteur — simulateur personnalisé</h3><p class="small-line">Aucune donnée de joueurs/buteurs n'est fournie par OpenFootball. Renseignez un joueur, votre hypothèse de <b>part des buts attendus de l'équipe</b> et son temps de jeu estimé. Le résultat n'est pas une prévision alimentée par ses statistiques officielles.</p>
+    <h3>Buteur — simulateur personnalisé</h3><p class="small-line">Aucune donnée de joueurs/buteurs n'est intégrée à cette analyse. Renseignez un joueur, votre hypothèse de <b>part des buts attendus de l'équipe</b> et son temps de jeu estimé. Le résultat n'est pas une prévision alimentée par ses statistiques officielles.</p>
     <div class="scorer-controls"><label>Équipe<select id="scorer-team"><option value="home">${escapeHtml(m.home)}</option><option value="away">${escapeHtml(m.away)}</option></select></label><label>Nom du joueur<input id="scorer-name" maxlength="70" placeholder="Nom du joueur"></label><label>Part des buts de l'équipe (%)<input id="scorer-share" type="number" min="0" max="100" step="1" value="20"></label><label>Minutes estimées<input id="scorer-minutes" type="number" min="0" max="130" step="1" value="80"></label></div><div class="scorer-result" id="scorer-result" role="status">Saisissez le nom d'un joueur pour obtenir la simulation conditionnelle.</div><p class="small-line">Hypothèse Poisson : P(marque au moins une fois) = 1 − exp(−buts équipe × part × minutes / 90). Les 20 % et 80 min préremplis sont des exemples, pas des données du joueur.</p></section>`;
   }
   function updateScorer(f) {
@@ -749,6 +750,7 @@ body{font-size:14px;letter-spacing:0}
     if (!root || !status) return;
     $$('.home-tab').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.featuredLeague===state.league)));
     root.replaceChildren();
+    featuredAnalyses.clear();
     const add = (parent,tag,className,value) => {
       const el=document.createElement(tag);
       if(className)el.className=className;
@@ -801,7 +803,7 @@ body{font-size:14px;letter-spacing:0}
       const popularity=prestige(match.home)+prestige(match.away);
       const days=daysBetween(today(),match.date);
       const score=(analysis?30:0)+(analysis?.historyCount||0)*.25+popularity*11-days*.45;
-      return {match,analysis,score,league};
+      return {match,analysis,score,league,matches,mode:selectedMatches?'football-data':state.mode};
     }).sort((a,b)=>b.score-a.score || a.match.date.localeCompare(b.match.date)).slice(0,3);
     $('#home-selection-count').textContent=scored.length+' match'+(scored.length>1?'s':'')+' sélectionné'+(scored.length>1?'s':'');
     if (!scored.length) {
@@ -838,7 +840,7 @@ body{font-size:14px;letter-spacing:0}
       } else add(textEl,'span','', 'Analyse statistique indisponible');
       const action=add(bottom,'button','featured-action',f?'Voir l’analyse ↗':'Données insuffisantes');
       action.type='button';
-      if(f) {action.dataset.analyze=m.id;action.dataset.analyzeLeague=item.league;}
+      if(f) {featuredAnalyses.set(m.id,item);action.dataset.analyze=m.id;action.dataset.analyzeLeague=item.league;}
       else action.disabled=true;
     }
   }
@@ -882,23 +884,28 @@ body{font-size:14px;letter-spacing:0}
       return `<article class="match-card"><div class="match-top"><span class="league-pill">${escapeHtml(friendly.short)}</span><span class="match-date">${formatDate(m.date)} · ${escapeHtml(m.time||'Heure inconnue')}</span></div><div class="match-teams"><div class="team-block"><div class="team-initial">${escapeHtml(initial(m.home))}</div><div class="team-name">${escapeHtml(m.home)}</div></div><div class="versus">VS</div><div class="team-block away"><div class="team-initial">${escapeHtml(initial(m.away))}</div><div class="team-name">${escapeHtml(m.away)}</div></div></div><div class="three-way">${p}</div><div class="scenario-list">${levels}</div><div class="match-bottom"><button class="analysis-btn" data-analyze="${safeId}" ${a?'':'disabled aria-disabled="true" title="'+escapeHtml(missingMessage)+'"'}>${a?'Analyse détaillée ↗':'Analyse indisponible'}</button><span class="quality ${a&&a.quality==='Échantillon limité'?'low':''}">${a?escapeHtml(a.quality):'Données insuffisantes'}</span><button aria-label="${saved?'Retirer des':'Ajouter aux'} favoris" class="favorite-button ${saved?'saved':''}" data-favorite="${safeId}">${saved?'★':'☆'}</button></div></article>`;
     }).join('');
   }
-  function openAnalysis(id) {
-    const m=state.upcoming.find(x=>x.id===id);if(!m)return;
-    const f=forecast(m,state.matches);if(!f)return;
+  function openAnalysis(id,snapshot=null) {
+    // Preserve the data and calculation shown on the clicked featured card.
+    const all=snapshot?.matches??state.matches;
+    const m=snapshot?.match??state.upcoming.find(x=>x.id===id);if(!m)return;
+    const f=snapshot?.analysis??forecast(m,all);if(!f)return;
+    const mode=snapshot?.mode??state.mode;
+    const league=snapshot?.league??state.league;
+    const lastResult=all.filter(x=>x.score).at(-1)?.date;
     state.selectedId=id;
     $('#modal-title').textContent=`${m.home} — ${m.away}`;
-    const sourceInModal = state.mode==='demo' ? 'DONNÉES FICTIVES'
-      : state.mode==='football-data' ? 'Résultats définitifs différés · heure de Paris'
-      : state.mode==='openligadb' ? 'OpenLigaDB · données communautaires'
-      : state.mode==='custom' ? 'Données importées par vous'
+    const sourceInModal = mode==='demo' ? 'DONNÉES FICTIVES'
+      : mode==='football-data' ? 'Résultats définitifs différés · heure de Paris'
+      : mode==='openligadb' ? 'OpenLigaDB · données communautaires'
+      : mode==='custom' ? 'Données importées par vous'
       : 'OpenFootball · archives communautaires non temps réel';
-    $('#modal-subtitle').textContent=`${LEAGUES[state.league].name} · ${formatDateFull(m.date)} · ${m.time || 'Horaire non publié'} · ${sourceInModal}`;
+    $('#modal-subtitle').textContent=`${LEAGUES[league].name} · ${formatDateFull(m.date)} · ${m.time || 'Horaire non publié'} · ${sourceInModal}`;
     const tierHTML=f.tiers.map((tier,i)=>{
       const p=tier.market?.p||0;
       const theoreticalOdd=p>0 ? (1/p).toFixed(2) : 'Indisponible';
       return `<div class="modal-pick"><div><div class="modal-pick-head"><i class="tier-dot ${tier.color}"></i>${escapeHtml(tier.name.toUpperCase())} · CIBLE ${tier.target.toFixed(2)}</div><h4>${escapeHtml(tier.market?.name||'Indisponible')}</h4><p>Probabilité estimée : <b>${(p*100).toFixed(1)} %</b> · Cote théorique sans marge : <b>${theoreticalOdd}</b></p></div><div class="modal-pick-quote"><div class="theoretical">×${theoreticalOdd}</div><label>Cote réelle saisie par vous<input class="odd-input" data-odd="${i}" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="Ex. 1.85"></label><div class="value-output" id="odd-output-${i}">Aucune cote de bookmaker importée</div></div></div>`;
     }).join('');
-    $('#modal-content').innerHTML=`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>${tierHTML}${footballExtrasMarkup(f,m)}<div class="model-warning">⚠ ${escapeHtml(f.quality)}. Calcul basé sur ${f.historyCount} résultats précédant ce match, dont ${f.playedHome} matchs de l'équipe à domicile et ${f.playedAway} de l'équipe à l'extérieur (tous terrains). Dernier résultat disponible : ${escapeHtml(formatDateFull(state.played.at(-1)?.date))}. Modèle expérimental non calibré sur des données de validation indépendantes ; il n'intègre pas les absences ou compositions. Les cotes affichées sont théoriques, jamais des offres de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div>`;
+    $('#modal-content').innerHTML=`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>${tierHTML}${footballExtrasMarkup(f,m,all)}<div class="model-warning">⚠ ${escapeHtml(f.quality)}. Calcul basé sur ${f.historyCount} résultats précédant ce match, dont ${f.playedHome} matchs de l'équipe à domicile et ${f.playedAway} de l'équipe à l'extérieur (tous terrains). Dernier résultat disponible : ${escapeHtml(formatDateFull(lastResult))}. Modèle expérimental non calibré sur des données de validation indépendantes ; il n'intègre pas les absences ou compositions. Les cotes affichées sont théoriques, jamais des offres de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div>`;
     ['scorer-team','scorer-name','scorer-share','scorer-minutes'].forEach(id=>$('#'+id)?.addEventListener('input',()=>updateScorer(f)));
     $('#scorer-team')?.addEventListener('change',()=>updateScorer(f));
     $$('.odd-input').forEach(input=>input.addEventListener('input',e=>{
@@ -1058,7 +1065,7 @@ body{font-size:14px;letter-spacing:0}
       else if(nav.dataset.page==='dashboard'){$('#favorites-toggle').setAttribute('aria-pressed','false');updateUI();}
       navigate(nav.dataset.page||nav.dataset.link);return;
     }
-    const analyze=e.target.closest('[data-analyze]');if(analyze){const league=analyze.dataset.analyzeLeague;if(league && league!==state.league){const target=analyze.dataset.analyze;loadLeague(league).then(()=>{if(state.league===league)openAnalysis(target);});}else openAnalysis(analyze.dataset.analyze);return;}
+    const analyze=e.target.closest('[data-analyze]');if(analyze){const snapshot=analyze.closest('.featured-card')&&featuredAnalyses.get(analyze.dataset.analyze);if(snapshot){openAnalysis(analyze.dataset.analyze,snapshot);return;}const league=analyze.dataset.analyzeLeague;if(league && league!==state.league){const target=analyze.dataset.analyze;loadLeague(league).then(()=>{if(state.league===league)openAnalysis(target);});}else openAnalysis(analyze.dataset.analyze);return;}
     const fav=e.target.closest('[data-favorite]');if(fav){const id=fav.dataset.favorite;state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);saveFavorites();updateUI();return;}
   });
   $('#league-select').addEventListener('change',e=>loadLeague(e.target.value));

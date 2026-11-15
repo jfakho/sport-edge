@@ -68,7 +68,7 @@ test('match detail action opens the modal and navigation uses valid multi-select
   }
   assert.ok(source.includes("const analyze=e.target.closest('[data-analyze]');if(analyze){"));
   assert.ok(source.includes('loadLeague(league).then'));
-  assert.match(source, /function openAnalysis\(id\)\s*\{/);
+  assert.match(source, /function openAnalysis\(id,snapshot=null\)\s*\{/);
   assert.match(source, /\$\('#analysis-modal'\)\.classList\.remove\('hidden'\)/);
 });
 
