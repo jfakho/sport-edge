@@ -76,12 +76,18 @@ export default {
       const ok=results.some(x=>x.ok);
       if (!ok)return errorJSON('Aucune compétition disponible',503,
         quotaExhausted ? {'retry-after':String(quotaRetrySeconds)} : {});
+      // Some international competitions can be unavailable on a free plan.
+      // Avoid eight upstream calls on every visitor request: briefly cache partial
+      // non-auth, non-quota responses, while retrying unavailable leagues soon.
+      const complete=results.every(x=>x.ok);
+      const cacheable=!quotaExhausted&&!accessDenied;
+      const cacheControl=cacheable
+        ? (complete ? 'public, max-age=120, s-maxage=600' : 'public, max-age=30, s-maxage=60')
+        : 'no-store';
       const response=new Response(JSON.stringify({ok:true,source:'football-data.org',receivedAt:new Date().toISOString(),competitions:results}),{
-        headers:{'content-type':'application/json; charset=utf-8','cache-control':results.every(x=>x.ok) ? 'public, max-age=120, s-maxage=600' : 'no-store','x-content-type-options':'nosniff',...(quotaExhausted ? {'retry-after':String(quotaRetrySeconds)} : {})},
+        headers:{'content-type':'application/json; charset=utf-8','cache-control':cacheControl,'x-content-type-options':'nosniff',...(quotaExhausted ? {'retry-after':String(quotaRetrySeconds)} : {})},
       });
-      // Do not cache partial upstream failures: a temporarily unavailable league
-      // must be retried on the next request rather than hidden for ten minutes.
-      if(cache&&context?.waitUntil&&results.every(x=>x.ok))context.waitUntil(cache.put(cacheKey,response.clone()));
+      if(cache&&context?.waitUntil&&cacheable)context.waitUntil(cache.put(cacheKey,response.clone()));
       return response;
     }
 
