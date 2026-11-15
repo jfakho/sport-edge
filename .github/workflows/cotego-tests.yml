@@ -19,6 +19,41 @@ jobs:
       - name: Test des résultats et du proxy (sans clé réelle)
         run: node --test src/*.test.mjs
 
+  preview-public-reachability:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check public preview independently of provider credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          status=$(curl --silent --show-error --max-time 20 --output /tmp/cotego-preview-home.html --write-out '%{http_code}' "$BASE/" || true)
+          if [ "$status" != '200' ]; then
+            echo "::error title=Preview website unreachable::Preview home returned HTTP $status"
+            exit 1
+          fi
+          if ! grep -qi 'COTEGO' /tmp/cotego-preview-home.html; then
+            echo '::error title=Unexpected preview content::The public preview home does not contain COTEGO branding.'
+            exit 1
+          fi
+          status=$(curl --silent --show-error --max-time 20 --output /tmp/cotego-preview-status.json --write-out '%{http_code}' "$BASE/api/status" || true)
+          if [ "$status" != '200' ] || ! jq -e '.ok==true and (.footballDataConfigured|type=="boolean")' /tmp/cotego-preview-status.json >/dev/null 2>&1; then
+            echo "::error title=Preview status unavailable::Preview API status returned HTTP $status or unexpected JSON."
+            exit 1
+          fi
+          configured=$(jq -r '.footballDataConfigured' /tmp/cotego-preview-status.json)
+          echo "Public preview is reachable; provider binding configured: $configured"
+          {
+            echo '### Public preview availability (independent of API key)'
+            echo "- Homepage: HTTP 200, COTEGO branding present"
+            echo "- /api/status: HTTP 200, valid response"
+            echo "- Football API binding configured: $configured"
+            echo 'This check does not establish data freshness or successful football-provider access.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   smoke-preview:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
     needs: unit-tests
