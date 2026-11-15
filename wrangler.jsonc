@@ -15,7 +15,11 @@
       "FOOTBALL_DATA_API_KEY"
     ]
   },
-  "previews": {},
+  "previews": {
+    "version_metadata": {
+      "binding": "CF_VERSION_METADATA"
+    }
+  },
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
   }
