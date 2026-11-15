@@ -33,11 +33,11 @@ export async function accountEntitlements(r,env){
  const sub=user?await env.COTEGO_DB.prepare('SELECT status,period_end FROM subscriptions WHERE user_id=?').bind(user.id).first():null;
  const plus=sub?.status==='active'&&Number(sub.period_end)*1000>Date.now();
  return {ok:true,email:user?.email??null,plan:plus?'plus':user?'free':'guest',subscriptionStatus:sub?.status??null,
-  premiumTargets:plus?[1.5,2,3]:[1.5],betaTargets:[1.5,2,3],accessMode:'beta-open',premiumEnforced:false,canManageBilling:!!user?.stripe_customer_id};
+  premiumTargets:plus?[1.5,2,3]:[1.5],betaTargets:env.COTEGO_ACCESS_MODE==='freemium'?null:[1.5,2,3],accessMode:env.COTEGO_ACCESS_MODE||'beta-open',premiumEnforced:env.COTEGO_ACCESS_MODE==='freemium',canManageBilling:!!user?.stripe_customer_id};
 }
 function accountConfig(env){return {ok:true,mode:'test',accountsConfigured:!!env.COTEGO_DB&&/^[a-f0-9]{64}$/i.test(env.COTEGO_AUTH_PEPPER||''),
  stripeConfigured:/^(sk|rk)_test_/.test(env.STRIPE_TEST_SECRET_KEY||'')&&/^price_/.test(env.STRIPE_TEST_PRICE_ID||'')&&/^whsec_/.test(env.STRIPE_TEST_WEBHOOK_SECRET||''),
- accessMode:'beta-open',payments:'test-only'};}
+ accessMode:env.COTEGO_ACCESS_MODE||'beta-open',payments:'test-only'};}
 async function issueSession(db,userId){
  const token=random();await db.prepare("INSERT INTO sessions (token_hash,user_id,expires_at) VALUES (?,?,?)").bind(await digest(token),userId,Date.now()+1209600000).run();return token;
 }

@@ -35,7 +35,8 @@
     "vars": {
       "COTEGO_JOURNAL_SETUP": "ready",
       "COTEGO_ACCOUNT_MODE": "test",
-      "STRIPE_TEST_PRICE_ID": "price_1UaGHdJtgq2yqZvCoyoSszrS"
+      "STRIPE_TEST_PRICE_ID": "price_1UaGHdJtgq2yqZvCoyoSszrS",
+      "COTEGO_ACCESS_MODE": "beta-open"
     }
   },
   "version_metadata": {

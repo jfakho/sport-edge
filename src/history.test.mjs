@@ -55,3 +55,10 @@ test('provider identity survives a display name correction and keeps the Paris c
   assert.deepEqual(plain(corrected.teamIds),[524,1045]);
   assert.notEqual(corrected.id,engine.normalize({...match,_sourceId:559624},'fr.1').id);
 });
+
+test('restricted server forecasts are never expanded by the client model',()=>{
+ const restricted={restricted:true,tiers:[{target:1.5,market:{name:'Free choice',p:.6}}],historyCount:20};
+ const match={date:'2026-11-21',home:'A',away:'B',analysisAccess:{mode:'freemium'},recordedPrediction:{analysis:restricted}};
+ assert.equal(engine.forecast(match,[]),restricted);
+ assert.equal(engine.forecast({...match,recordedPrediction:null},[]),null);
+});

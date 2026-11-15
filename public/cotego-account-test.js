@@ -22,16 +22,16 @@ async function refresh(){
  if(!configured){say('Les comptes de test sont en préparation.');return;}
  let me;try{me=await api('/api/account/me');}catch(e){if(e.status!==401)throw e;}
  $('#cotego-account-guest').hidden=!!me;$('#cotego-account-member').hidden=!me;
- if(!me){say('La bêta reste gratuite, avec les trois cibles accessibles.');return;}
+ if(!me){say(configuration.accessMode==='freemium'?'Accès gratuit : cible 1,50. Connectez-vous pour retrouver votre formule.':'La bêta reste gratuite, avec les trois cibles accessibles.');return;}
  say('Connecté : '+me.email);
- $('#cotego-account-plan').textContent=me.plan==='plus'?'Formule Plus de test':'Compte gratuit · Trois cibles ouvertes pendant la bêta';
+ $('#cotego-account-plan').textContent=me.plan==='plus'?'Formule Plus de test':configuration.accessMode==='freemium'?'Compte gratuit · Cible 1,50':'Compte gratuit · Trois cibles ouvertes pendant la bêta';
  $('#cotego-test-checkout').disabled=!configuration.stripeConfigured;
  $('#cotego-test-portal').disabled=!configuration.stripeConfigured||!me.canManageBilling;
  $('#cotego-stripe-status').textContent=configuration.stripeConfigured?'Paiement fictif uniquement. Aucun débit réel.':'Le paiement de test n’est pas encore raccordé.';
 }
 for(const button of panel.querySelectorAll('[data-account-mode]'))button.addEventListener('click',()=>{mode=button.dataset.accountMode;for(const b of panel.querySelectorAll('[data-account-mode]'))b.setAttribute('aria-pressed',String(b===button));const form=$('#cotego-account-form');form.querySelector('button').textContent=mode==='signup'?'Créer mon compte de test':'Se connecter';form.elements.password.autocomplete=mode==='signup'?'new-password':'current-password';});
-$('#cotego-account-form').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector('button');button.disabled=true;try{await api('/api/account/'+mode,'POST',{email:form.elements.email.value,password:form.elements.password.value});form.reset();await refresh();}catch(error){say(error.message);}finally{button.disabled=!configuration?.accountsConfigured;}});
+$('#cotego-account-form').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector('button');button.disabled=true;try{await api('/api/account/'+mode,'POST',{email:form.elements.email.value,password:form.elements.password.value});form.reset();await refresh();if(configuration.accessMode==='freemium')window.dispatchEvent(new Event('cotego:account-changed'));}catch(error){say(error.message);}finally{button.disabled=!configuration?.accountsConfigured;}});
 for(const [id,endpoint] of [['#cotego-test-checkout','/api/billing/checkout'],['#cotego-test-portal','/api/billing/portal']])$(id).addEventListener('click',async()=>{try{const result=await api(endpoint,'POST');if(!/^https:\/\/(checkout|billing)\.stripe\.com\//.test(result.url))throw Error('Lien de paiement non vérifié.');location.assign(result.url);}catch(e){say(e.message);}});
-$('#cotego-test-logout').addEventListener('click',async()=>{try{await api('/api/account/logout','POST');await refresh();}catch(e){say(e.message);}});
+$('#cotego-test-logout').addEventListener('click',async()=>{try{await api('/api/account/logout','POST');await refresh();if(configuration.accessMode==='freemium')window.dispatchEvent(new Event('cotego:account-changed'));}catch(e){say(e.message);}});
 refresh().catch(e=>say(e.message));
 })();

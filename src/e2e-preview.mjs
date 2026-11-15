@@ -7,6 +7,7 @@
  */
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {filterPremiumPayload} from './premium-access.mjs';
 
 const base='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev/';
 const browser=await chromium.launch({headless:true});
@@ -162,6 +163,26 @@ try {
         'Card and detail must share their historical sample');
       await page.locator('#close-modal').click();
       console.log('PASS actual featured forecast consistency at '+viewport.width+'px');
+      // Exercise the free UI using the genuine HTTP snapshots above, filtered
+      // with the server policy. This does not activate freemium on the Preview.
+      const restrictedContext=await browser.newContext({viewport,serviceWorkers:'block'});
+      try{
+        await restrictedContext.route('**/api/football*',async route=>{
+          const body=verifiedFeeds.get(route.request().url());
+          if(!body)return route.abort();
+          return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(filterPremiumPayload(JSON.parse(body),{mode:'freemium',plan:'guest',allowedTargets:[1.5]}))});
+        });
+        const restrictedPage=await restrictedContext.newPage();await restrictedPage.goto(base,{waitUntil:'domcontentloaded'});
+        const restrictedCard=restrictedPage.locator('#featured-grid .featured-card').first();await restrictedCard.waitFor({state:'visible',timeout:15000});
+        assert.equal(await restrictedCard.locator('.featured-scenario-market').count(),1,'Free UI must display only the server-provided tier');
+        assert.ok(await restrictedCard.locator('.premium-lock').isVisible(),'Paid targets must be identified');
+        await restrictedCard.locator('.featured-action').click();await restrictedPage.locator('#analysis-modal:not(.hidden)').waitFor({state:'visible'});
+        assert.equal(await restrictedPage.locator('#modal-content .modal-pick h4').count(),1,'Free detail must not recalculate paid tiers');
+        assert.equal(await restrictedPage.locator('#modal-content .score-card').count(),0,'Advanced model outputs must not appear in free detail');
+        assert.doesNotMatch(await restrictedPage.locator('#analysis-modal').innerText(),/NaN|undefined/);
+        console.log('PASS free presentation from filtered real snapshots at '+viewport.width+'px (Preview stays beta-open)');
+      }finally{await restrictedContext.close();}
+
       // Regression: every featured league tab must be interactive on mobile and desktop.
       // This checks the selected state without claiming upstream match availability.
       for(const league of ['fr.1','en.1','es.1','it.1','de-live']){

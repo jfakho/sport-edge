@@ -332,3 +332,5 @@ button{cursor:pointer}
 #cotego-account-form{display:grid;grid-template-columns:1fr 1fr;gap:16px}#cotego-account-form label{display:flex;flex-direction:column;gap:7px;font-size:13px;color:#566b80}#cotego-account-form label small{font-size:10px;color:#84909d}#cotego-account-form input{width:100%;min-width:0;border:1px solid #cdd6e1;border-radius:5px;padding:12px;background:#fff;color:#243449;font-size:15px}#cotego-account-form>.btn{grid-column:1/-1;justify-self:start;min-width:160px}
 .cotego-test-actions{display:flex;flex-wrap:wrap;gap:10px}.cotego-test-account button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:700px){.cotego-test-account{padding:20px 16px}#cotego-account-form{grid-template-columns:1fr}.account-heading h2{font-size:20px}}
+
+.premium-lock{font-size:12px;color:#61758a;line-height:1.6;padding:12px 16px;margin:0 14px 14px;background:#f3f6f9;border-radius:5px}

@@ -37,6 +37,7 @@ function weightedMean(rows,field,priorMean,prior=5) {
     return sum/weights;
   }
   function forecast(match, all) {
+    if(match.analysisAccess?.mode==='freemium')return match.recordedPrediction?.analysis??null;
     if(match.recordedPrediction?.analysis?.tiers?.length===3)return match.recordedPrediction.analysis;
     // Low-data fallback: estimates are always labeled by evidence quality.
     const previous=all.filter(m=>m.score && m.date<match.date && m.date<today() && daysBetween(m.date,match.date)<=550);

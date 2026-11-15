@@ -1,3 +1,4 @@
+import {protectPremiumResponse} from './premium-access.mjs';
 /**
  * COTEGO — Cloudflare Worker API for delayed, verified match results.
  * Confidential: FOOTBALL_DATA_API_KEY exists only as a Worker secret.
@@ -28,7 +29,7 @@ async function attachJournal(response,env) {
   return new Response(JSON.stringify(data),{headers:{...Object.fromEntries(response.headers),'cache-control':'no-store'}});
 }
 
-const worker = {
+const internalWorker = {
   async fetch(request, env, context) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
@@ -45,7 +46,7 @@ const worker = {
       if(!CODES.includes(league)||!Number.isSafeInteger(matchId)||matchId<=0)return errorJSON('Rencontre invalide',400);
       try {
         const data=await getBookmakerOdds({db:env.COTEGO_AUDIT_DB,apiKey:env.ODDS_API_KEY,league,matchId,
-          loadFeed:async()=>{const response=await worker.fetch(new Request(url.origin+'/api/football-featured'),env,context);if(!response.ok)throw Error('Source unavailable');return response.json();}});
+          loadFeed:async()=>{const response=await internalWorker.fetch(new Request(url.origin+'/api/football-featured'),env,context);if(!response.ok)throw Error('Source unavailable');return response.json();}});
         return Response.json(data,{headers:{'cache-control':'no-store'}});
       }catch {return errorJSON('Cotes momentanément indisponibles',503);}
     }
@@ -60,7 +61,7 @@ const worker = {
       const league=predictionRoute[1],id=Number(predictionRoute[2]);
       if(!CODES.includes(league)||!Number.isSafeInteger(id)||id<=0)return errorJSON('Rencontre invalide',400);
       if(!env.COTEGO_AUDIT_DB)return Response.json({ok:true,configured:false,record:null},{headers:{'cache-control':'no-store'}});
-      const source=await worker.fetch(new Request(url.origin+'/api/football/'+league),env,context);
+      const source=await internalWorker.fetch(new Request(url.origin+'/api/football/'+league),env,context);
       if(!source.ok)return errorJSON('Source sportive momentanément indisponible',503);
       const payload=await source.json();
       try {
@@ -196,4 +197,5 @@ const worker = {
     }
   },
 };
+const worker={async fetch(request,env,context){return protectPremiumResponse(request,env,await internalWorker.fetch(request,env,context));}};
 export default worker;
