@@ -93,7 +93,7 @@ test('cross-league endpoint exposes eight independent competitions and never lea
   } finally {mock.restoreAll();}
 });
 
-test('partial eight-competition failures are not cached and are retried',async()=>{
+test('partial eight-competition failures are cached briefly to protect free provider quota',async()=>{
   const cached=[];
   let calls=0;
   mock.method(globalThis,'fetch',async ()=>{
@@ -104,25 +104,20 @@ test('partial eight-competition failures are not cached and are retried',async()
   const previousCaches=globalThis.caches;
   globalThis.caches={default:{
     match:async()=>undefined,
-    put:async (_key,response)=>{cached.push(await response.json());},
+    put:async (_key,response)=>{cached.push({headers:response.headers,body:await response.json()});},
   }};
   try {
     const pending=[];
     const context={waitUntil:p=>pending.push(p)};
     const env={...envWithoutSecret,FOOTBALL_DATA_API_KEY:'test-only'};
-    const firstResponse=await worker.fetch(api('/api/football-featured'),env,context);
-    const first=await firstResponse.json();
-    assert.equal(firstResponse.headers.get('cache-control'),'no-store');
-    assert.equal(first.competitions.filter(x=>!x.ok).length,1);
-    assert.equal(cached.length,0);
-    assert.equal(pending.length,0);
-    const secondResponse=await worker.fetch(api('/api/football-featured'),env,context);
-    const second=await secondResponse.json();
-    assert.match(secondResponse.headers.get('cache-control'),/max-age=120/);
-    assert.equal(second.competitions.filter(x=>!x.ok).length,0);
+    const response=await worker.fetch(api('/api/football-featured'),env,context);
+    const body=await response.json();
+    assert.equal(body.competitions.filter(x=>!x.ok).length,1);
+    assert.match(response.headers.get('cache-control'),/s-maxage=60/);
     await Promise.all(pending);
     assert.equal(cached.length,1);
-    assert.equal(calls,16);
+    assert.equal(cached[0].body.competitions.length,8);
+    assert.equal(calls,8);
   } finally {
     if(previousCaches===undefined) delete globalThis.caches;
     else globalThis.caches=previousCaches;
