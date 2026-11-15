@@ -132,6 +132,10 @@ try {
         .map(text=>Math.round(Number.parseFloat(text)));
       assert.deepEqual(detailPercentages,marketPercentages,
         'Opening details must preserve the card probabilities, allowing display rounding');
+      const comparison=page.locator('#modal-content .manual-odd').first();
+      assert.equal(await comparison.getAttribute('open'),null,'Manual odds entry must be optional');
+      await comparison.locator('summary').click();
+      assert.ok(await comparison.locator('.odd-input').isVisible(),'Optional odds comparison must stay accessible');
       await page.locator('#modal-content .analysis-method > summary').click();
       assert.ok(await page.locator('#modal-content .model-warning').isVisible(),'Method must remain accessible');
       assert.ok((await page.locator('#modal-content .model-warning').innerText()).includes('Calcul basé sur '+sample+' résultats'),
