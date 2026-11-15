@@ -86,6 +86,20 @@ try {
         }
       }
       assert.ok(featuredReady,'Actual featured cards unavailable after retries');
+      // Media must be real image responses; changing layout must preserve forecasts.
+      const picture=actualCard.locator('.fixture-photo');
+      await picture.waitFor({state:'visible'});
+      await page.waitForFunction(()=>{const p=document.querySelector('#featured-grid .fixture-photo');return p?.complete&&p.naturalWidth>0;});
+      const photoUrl=new URL(await picture.getAttribute('src'),base);
+      assert.equal(photoUrl.origin,new URL(base).origin,'Editorial photos must be hosted locally');
+      const beforeView=await actualCard.locator('.featured-scenario-market').allTextContents();
+      await page.locator('[data-fixture-view="list"]').click();
+      assert.ok(await picture.isHidden(),'List view must hide the photo');
+      assert.deepEqual(await actualCard.locator('.featured-scenario-market').allTextContents(),beforeView,'Layout must preserve analyses');
+      await page.locator('[data-fixture-view="photos"]').click();
+      assert.ok(await picture.isVisible(),'Photos view must restore the photo');
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Layout must fit viewport');
+      console.log('PASS photo loading and list/photo navigation at '+viewport.width+'px');
       const featuredFeed=[...verifiedFeeds.values()].map(body=>JSON.parse(body)).find(feed=>Array.isArray(feed.competitions));
       const french=featuredFeed?.competitions.find(c=>c.league==='fr.1'&&c.ok);
       assert.ok(french,'Verified Ligue 1 feed is required for club identity checks');

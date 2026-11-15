@@ -165,7 +165,7 @@ body{font-size:14px;letter-spacing:0}
 </style>
   <title>COTEGO | Le football, vu par les chiffres</title>
   <link rel="stylesheet" href="/cotego-rework.css">
-  <link rel="stylesheet" href="/cotego-sport.css?v=20261115-1">
+  <link rel="stylesheet" href="/cotego-sport.css?v=20261115-photos-2">
 </head>
 <body>
   <div class="app-shell">
@@ -178,11 +178,11 @@ body{font-size:14px;letter-spacing:0}
         <button class="nav-item" data-link="dashboard" data-favs="1"><span class="nav-icon">☆</span> Mes favoris</button>
         <button class="nav-item" data-page="membership"><span class="nav-icon">◇</span> COTEGO Plus <span class="alpha-tag">BÊTA</span></button>
         <div class="sidebar-label competition-label">COMPÉTITIONS</div>
-        <button class="competition-link" data-competition="fr.1"><span>FR</span> Ligue 1 <i>›</i></button>
-        <button class="competition-link" data-competition="en.1"><span>EN</span> Premier League <i>›</i></button>
-        <button class="competition-link" data-competition="es.1"><span>ES</span> La Liga <i>›</i></button>
-        <button class="competition-link" data-competition="de-live"><span>DE</span> Bundesliga <i>›</i></button>
-        <button class="competition-link" data-competition="it.1"><span>IT</span> Serie A <i>›</i></button>
+        <button class="competition-link" data-competition="fr.1"><img class="league-logo" src="/media/ligue-1.png" alt="" width="48" height="28"> Ligue 1 <i>›</i></button>
+        <button class="competition-link" data-competition="en.1"><img class="league-logo" src="/media/premier-league.png" alt="" width="48" height="28"> Premier League <i>›</i></button>
+        <button class="competition-link" data-competition="es.1"><img class="league-logo" src="/media/laliga.png" alt="" width="48" height="28"> La Liga <i>›</i></button>
+        <button class="competition-link" data-competition="de-live"><img class="league-logo" src="/media/bundesliga.png" alt="" width="48" height="28"> Bundesliga <i>›</i></button>
+        <button class="competition-link" data-competition="it.1"><img class="league-logo" src="/media/serie-a.png" alt="" width="48" height="28"> Serie A <i>›</i></button>
         <button class="competition-link" data-competition="intl.cl"><span>UE</span> Ligue des champions <i>›</i></button>
         <div class="sidebar-label" style="margin:18px 13px 6px">EXPLORER</div>
         <button class="nav-item" data-page="history"><span class="nav-icon">◷</span> Historique & tests</button>
@@ -200,29 +200,29 @@ body{font-size:14px;letter-spacing:0}
       <header class="topbar">
         <button class="mobile-menu" id="mobile-menu" aria-label="Ouvrir le menu">☰</button>
         <div class="breadcrumb">COTEGO <span>/</span> <span id="breadcrumb-page">À la une</span></div>
-        <form class="global-search" id="global-search" role="search"><label class="sr-only" for="global-search-input">Rechercher une équipe</label><span aria-hidden="true">⌕</span><input id="global-search-input" placeholder="Rechercher une équipe…" autocomplete="off"><button type="submit" aria-label="Rechercher">↗</button></form>
+        <form class="global-search" id="global-search" role="search"><label class="sr-only" for="global-search-input">Rechercher une équipe</label><span aria-hidden="true">⌕</span><input id="global-search-input" placeholder="Rechercher une équipe…" autocomplete="off"><button type="submit" aria-label="Rechercher">OK</button></form>
         <div class="topbar-right"><button class="header-plus" data-link="membership">COTEGO Plus</button><span class="live-badge"><i></i> BÊTA</span><div class="avatar">CG</div></div>
       </header>
 
       <section class="page visible" id="page-home">
         <nav class="sports-nav" aria-label="Sports et résultats"><button class="selected" data-page="home"><span>⚽</span> Football</button><button data-page="lab"><span>◉</span> Tennis <small>LAB</small></button><button data-page="lab"><span>◈</span> Basket <small>LAB</small></button><button data-page="history" class="sports-results">Historique & résultats <span>↗</span></button></nav>
-        <section class="matchday-banner" aria-labelledby="matchday-title"><div class="banner-copy"><span class="banner-kicker">L'ANALYSE AVANT LE COUP D'ENVOI</span><h1 id="matchday-title">Le football.<br>Un autre regard.</h1><p>Les affiches à suivre. Trois scénarios.<br>Des probabilités expliquées et des résultats à vérifier.</p><button class="btn btn-primary" data-link="dashboard">Explorer les rencontres <span>↗</span></button></div><div class="banner-pitch" aria-hidden="true"><i></i><b></b><span></span></div><span class="banner-stamp">COTEGO / FOOTBALL DATA</span></section>
+        <section class="matchday-banner" aria-labelledby="matchday-title"><div><h1 id="matchday-title">Football</h1><p>Les matchs à suivre. Les stats pour comprendre.</p></div><button class="btn btn-outline" data-link="dashboard">Tous les matchs</button></section>
         <div class="home-workspace"><div class="home-center">
-        <div class="home-intro"><div><span class="home-kicker">VOTRE SÉLECTION FOOTBALL</span><h2>Les affiches du moment</h2></div><span class="home-status" id="home-data-status" role="status">Chargement des rencontres…</span></div>
+        <div class="home-intro"><div><h2>Les affiches du moment</h2></div><span class="home-status" id="home-data-status" role="status">Chargement des rencontres…</span></div>
         <div class="home-tabs" role="group" aria-label="Choisir un championnat">
-          <button type="button" class="home-tab" data-featured-league="fr.1" aria-pressed="true">Ligue 1</button>
-          <button type="button" class="home-tab" data-featured-league="en.1" aria-pressed="false">Premier League</button>
-          <button type="button" class="home-tab" data-featured-league="es.1" aria-pressed="false">Liga</button>
-          <button type="button" class="home-tab" data-featured-league="it.1" aria-pressed="false">Serie A</button>
-          <button type="button" class="home-tab" data-featured-league="de-live" aria-pressed="false">Bundesliga</button>
+          <button type="button" class="home-tab" data-featured-league="fr.1" aria-pressed="true"><img class="league-logo" src="/media/ligue-1.png" alt="" width="48" height="28">Ligue 1</button>
+          <button type="button" class="home-tab" data-featured-league="en.1" aria-pressed="false"><img class="league-logo" src="/media/premier-league.png" alt="" width="48" height="28">Premier League</button>
+          <button type="button" class="home-tab" data-featured-league="es.1" aria-pressed="false"><img class="league-logo" src="/media/laliga.png" alt="" width="48" height="28">Liga</button>
+          <button type="button" class="home-tab" data-featured-league="it.1" aria-pressed="false"><img class="league-logo" src="/media/serie-a.png" alt="" width="48" height="28">Serie A</button>
+          <button type="button" class="home-tab" data-featured-league="de-live" aria-pressed="false"><img class="league-logo" src="/media/bundesliga.png" alt="" width="48" height="28">Bundesliga</button>
         </div>
-        <div class="home-section-head"><h2>À l'affiche</h2><span class="home-count" id="home-selection-count">3 rencontres</span></div>
+        <div class="home-section-head"><div><h2>À l'affiche</h2><span class="home-count" id="home-selection-count">3 rencontres</span></div><div class="fixture-view" role="group" aria-label="Présentation des rencontres"><button type="button" data-fixture-view="photos" aria-pressed="true">Affiches</button><button type="button" data-fixture-view="list" aria-pressed="false">Liste</button></div></div>
         <div class="featured-grid" id="featured-grid" aria-live="polite">
           <div class="featured-empty">Chargement de la sélection de matchs…</div>
         </div>
-        <div class="home-all"><button type="button" class="btn btn-outline" data-link="dashboard">Explorer tous les matchs ↗</button></div>
+        <div class="home-all"><button type="button" class="btn btn-outline" data-link="dashboard">Explorer tous les matchs</button></div>
         </div><aside class="insight-rail" aria-label="Suivi COTEGO">
-          <section class="rail-card"><div class="rail-heading"><span class="status-dot"></span><span>LE POINT COTEGO</span></div><h3>Les chiffres à l'épreuve du terrain.</h3><p>Suivez les scénarios enregistrés avant match et comparez-les aux résultats.</p><div class="rail-metric"><strong id="rail-recorded-count">—</strong><span>prévisions enregistrées<br>dans cette compétition</span></div><div id="rail-journal-status" class="rail-status" role="status">Vérification du journal…</div><button class="rail-link" data-page="history">Voir l'historique <span>↗</span></button></section>
+          <section class="rail-card"><div class="rail-heading"><span class="status-dot"></span><span>Vos prévisions</span></div><h3>Le suivi des résultats</h3><p>Suivez les scénarios enregistrés avant match et comparez-les aux résultats.</p><div class="rail-metric"><strong id="rail-recorded-count">—</strong><span>prévisions enregistrées<br>dans cette compétition</span></div><div id="rail-journal-status" class="rail-status" role="status">Vérification du journal…</div><button class="rail-link" data-page="history">Voir l'historique <span>↗</span></button></section>
           <section class="rail-card odds-policy"><span class="rail-eyebrow">COTES BOOKMAKERS</span><h3>Priorité aux grandes affiches.</h3><p>Relevés ciblés chez Betclic, Unibet et Winamax, selon les marchés disponibles.</p><div class="quota-line"><strong>450</strong><span>crédits maximum sur 31 jours</span></div><div class="quota-track"><span></span></div><small>50 crédits de réserve sur l'offre de 500.</small><p id="rail-odds-status" class="rail-status">Vérification du raccordement…</p></section>
           <section class="rail-card rail-plus"><span class="rail-eyebrow">COTEGO PLUS</span><h3>Allez au bout de l'analyse.</h3><p>À terme : cible 1,50 en gratuit ; les trois cibles et analyses détaillées avec Plus.</p><span class="beta-note">Toutes les cibles restent ouvertes pendant la bêta gratuite.</span><button class="btn btn-outline" data-link="membership">Découvrir Plus <span>↗</span></button></section>
         </aside></div>
@@ -233,7 +233,7 @@ body{font-size:14px;letter-spacing:0}
         <div class="hero">
           <div class="hero-copy">
             <div class="hero-overline">COTEGO / ANALYSES SPORTIVES</div>
-            <h1>Le match, vu par<br><em>les chiffres.</em></h1>
+            <h1>Matchs & analyses</h1>
             <p>Calendriers, résultats et probabilités expliquées. Une lecture statistique des rencontres, avec leurs sources et leurs limites.</p>
             <div class="hero-actions"><button class="btn btn-primary" id="jump-matches">Voir les rencontres <span>↗</span></button><button class="btn btn-outline" data-link="method">Comprendre les calculs <span>↗</span></button></div>
           </div>
@@ -352,6 +352,7 @@ body{font-size:14px;letter-spacing:0}
           <p>Archives complémentaires : <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball (CC0)</a> et <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB (ODbL)</a>.</p>
         </div>
         <div class="info-card"><h3>Ce que les probabilités signifient</h3><p>COTEGO étudie des résultats historiques, des moyennes et des distributions mathématiques. La formule exacte et ses paramètres peuvent constituer un savoir-faire propre ; les limites et la nature des sources restent accessibles pour éviter toute confusion. Les résultats passés ne garantissent aucun résultat futur.</p></div>
+        <div class="info-card media-credits"><h3>Photos & logos</h3><p>Les photos sont des illustrations d’archives : elles ne confirment ni les effectifs ni les compositions des rencontres affichées. Les images sont affichées avec un recadrage de mise en page ; les fichiers sont disponibles ci-dessous.</p><ul><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Paris_Saint-Germain_-_Manchester_City_FC,_22_January_2025_(1069)_(cropped).jpg">Psg Dembele</a> — Like tears in rain · <a target="_blank" rel="noopener noreferrer" href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a> · <a href="/media/psg-dembele.jpg" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Lille_vs_PSG_2019_-_Stade_Pierre_Mauroy.jpg">Lille Stadium</a> — Liondartois · <a target="_blank" rel="noopener noreferrer" href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a> · <a href="/media/lille-stadium.jpg" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Stade_V%C3%A9lodrome_closeup.jpg">Marseille Stadium</a> — Bernard Ddd · <a target="_blank" rel="noopener noreferrer" href="https://creativecommons.org/licenses/by-sa/2.0">CC BY-SA 2.0</a> · <a href="/media/marseille-stadium.jpg" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Adidas_soccer_ball_on_a_grass_pitch_(Unsplash).jpg">Football Pitch</a> — Peter Glaser baraida · <a target="_blank" rel="noopener noreferrer" href="http://creativecommons.org/publicdomain/zero/1.0/deed.en">CC0</a> · <a href="/media/football-pitch.jpg" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Ligue_1_2024_Logo.png">Ligue 1</a> — Ligue 1 · Public domain (classification Wikimedia Commons) · <a href="/media/ligue-1.png" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Premier_League.svg">Premier League</a> — Premier League · Public domain (classification Wikimedia Commons) · <a href="/media/premier-league.png" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Bundesliga_logo.svg">Bundesliga</a> — DFL Deutsche Fußball Liga GmbH · Public domain (classification Wikimedia Commons) · <a href="/media/bundesliga.png" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:LaLiga_2023_Horizontal_Logo.svg">Laliga</a> — La Liga Nacional de Fútbol Profesional · Public domain (classification Wikimedia Commons) · <a href="/media/laliga.png" download>Fichier</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/File:Serie_A_Made_in_Italy_logo.svg">Serie A</a> — LEGA NAZIONALE PROFESSIONISTI SERIE A | P. IVA · Public domain (classification Wikimedia Commons) · <a href="/media/serie-a.png" download>Fichier</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Mohamed_Salah_after_goal_v_Aston_Villa_2022.png" target="_blank" rel="noopener noreferrer">Liverpool — Mohamed Salah, 2022</a> — القناة الأولى المصرية (Egyptian Channel One) · <a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener noreferrer">CC BY 4.0</a> · <a href="/media/liverpool-salah.png" download>Fichier</a></li></ul><p>Les marques et logos restent la propriété de leurs titulaires. Ils identifient les compétitions ; COTEGO n’est affilié à aucune ligue ni à aucun bookmaker.</p></div>
         <div class="info-card"><h3>Informations légales et prévention</h3><p>Les mentions légales complètes, la politique de confidentialité et les conditions d'abonnement devront être finalisées et publiées avant l'ouverture commerciale. COTEGO ne prend pas de paris et ne garantit aucun gain. <a href="https://www.joueurs-info-service.fr/" target="_blank" rel="noopener noreferrer">Joueurs Info Service</a> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Autorité nationale des jeux</a>.</p></div>
       </section>
 
@@ -764,6 +765,15 @@ body{font-size:14px;letter-spacing:0}
     finally{state.featuredLoading=false;renderFeatured();}
   }
 
+  const LEAGUE_MEDIA={'fr.1':'ligue-1','en.1':'premier-league','es.1':'laliga','de-live':'bundesliga','it.1':'serie-a'};
+  function fixtureMedia(match) {
+    // Select illustrations by verified provider IDs, never fuzzy club names.
+    if(match.sourceId && match.teamIds?.includes(64))return {src:'liverpool-salah.png',alt:'Mohamed Salah avec Liverpool en décembre 2022',caption:'Photo d’archive · Liverpool, 2022'};
+    if(match.sourceId && match.teamIds?.includes(524))return {src:'psg-dembele.jpg',alt:'Ousmane Dembélé avec le Paris Saint-Germain en janvier 2025',caption:'Photo d’archive · PSG, 2025'};
+    if(match.sourceId && match.teamIds?.[0]===521)return {src:'lille-stadium.jpg',alt:'Le stade Pierre-Mauroy lors de Lille – PSG en 2019',caption:'Photo d’archive · Lille, 2019'};
+    if(match.sourceId && match.teamIds?.[0]===516)return {src:'marseille-stadium.jpg',alt:'Les tribunes du stade Vélodrome en 2021',caption:'Photo d’archive · Marseille, 2021'};
+    return {src:'football-pitch.jpg',alt:'Un ballon de football sur la pelouse',caption:'Photo d’illustration'};
+  }
   function renderFeatured() {
     const root = $('#featured-grid');
     const status = $('#home-data-status');
@@ -834,9 +844,15 @@ body{font-size:14px;letter-spacing:0}
       const m=item.match, f=item.analysis;
       const card=add(root,'article','featured-card');
       const head=add(card,'div','featured-top');
-      add(head,'span','featured-league',LEAGUES[item.league]?.name||'Football');
+      const league=add(head,'span','featured-league');
+      if(LEAGUE_MEDIA[item.league]){const logo=add(league,'img','league-logo');logo.src='/media/'+LEAGUE_MEDIA[item.league]+'.png';logo.alt='';logo.width=48;logo.height=28;}
+      add(league,'span','',LEAGUES[item.league]?.name||'Football');
       add(head,'span','featured-time',formatDate(m.date)+' · '+(m.time||'Heure à confirmer'));
-      const fixture=add(card,'div','featured-fixture');
+      const media=fixtureMedia(m);
+      const visual=add(card,'div','featured-visual');
+      const photo=add(visual,'img','fixture-photo');photo.src='/media/'+media.src;photo.alt=media.alt;photo.width=960;photo.height=540;photo.loading=root.children.length===1?'eager':'lazy';photo.decoding='async';
+      const credit=add(visual,'button','fixture-photo-credit',media.caption+' · Crédits');credit.type='button';credit.dataset.link='about';
+      const fixture=add(visual,'div','featured-fixture');
       add(fixture,'span','featured-team',m.home);
       add(fixture,'span','fixture-vs','VS');
       add(fixture,'span','featured-team',m.away);
@@ -860,7 +876,7 @@ body{font-size:14px;letter-spacing:0}
             : 'Probabilité indisponible');
         }
       } else add(textEl,'span','', 'Analyse statistique indisponible');
-      const action=add(bottom,'button','featured-action',f?'Voir l’analyse ↗':'Données insuffisantes');
+      const action=add(bottom,'button','featured-action',f?'Voir l’analyse':'Données insuffisantes');
       action.type='button';
       if(f) {featuredAnalyses.set(m.id,item);action.dataset.analyze=m.id;action.dataset.analyzeLeague=item.league;}
       else action.disabled=true;
@@ -1103,6 +1119,7 @@ body{font-size:14px;letter-spacing:0}
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv;charset=utf-8'}));a.download='cotego-modele.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
   }
   document.addEventListener('click',e=>{
+    const view=e.target.closest('[data-fixture-view]');if(view){const compact=view.dataset.fixtureView==='list';$('#featured-grid').classList.toggle('compact',compact);$$('[data-fixture-view]').forEach(button=>button.setAttribute('aria-pressed',String(button===view)));return;}
     const retry=e.target.closest('[data-retry-league]');if(retry){loadLeague(state.league,true);return;}
     const chip=e.target.closest('[data-featured-league]');if(chip){const league=chip.dataset.featuredLeague;if(LEAGUES[league])loadLeague(league);return;}
     const competition=e.target.closest('[data-competition]');if(competition){loadLeague(competition.dataset.competition);navigate('home');return;}
