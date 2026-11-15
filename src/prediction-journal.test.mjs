@@ -63,3 +63,26 @@ test('missing storage is explicit rather than presenting retrospective results a
   assert.equal((await journalFeed({competitions:[comp]},null)).journal.configured,false);
   assert.deepEqual(await readJournal(null,'fr.1'),{ok:true,configured:false,records:[],summary:null});
 });
+
+test('a journal failure in one competition does not discard another competition audit',async()=>{
+  const db=auditDatabase();
+  const broken={...comp,league:'en.1',matches:[{...match,_sourceId:456}]};
+  const originalPrepare=db.prepare.bind(db);
+  db.prepare=(sql)=>{
+    if(sql.includes('SELECT * FROM predictions')) {
+      const prepared=originalPrepare(sql);
+      const bind=prepared.bind.bind(prepared);
+      prepared.bind=(league,...rest)=>{
+        if(league==='en.1')throw new Error('simulated league-specific storage failure');
+        return bind(league,...rest);
+      };
+      return prepared;
+    }
+    return originalPrepare(sql);
+  };
+  const result=await journalFeed({competitions:[broken,comp]},db);
+  assert.equal(result.journal.available,false);
+  assert.equal(result.journal.failedCompetitions,1);
+  assert.equal(result.competitions[0].journalAvailable,false);
+  assert.equal(result.competitions[1].matches[0]._prediction.matchId,123);
+});
