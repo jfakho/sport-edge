@@ -25,6 +25,15 @@ function safeDateTime(utcDate) {
   if (typeof utcDate !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(utcDate)) return null;
   // Date.parse normalizes impossible calendar dates (e.g. February 30) on
   // some runtimes. Reject them before accepting a provider fixture.
+  // Reject impossible UTC offsets before Date.parse: provider timestamps must
+  // represent a real civil timezone (maximum UTC+14, minimum UTC-12).
+  const offset = /([+-])(\d{2}):(\d{2})$/.exec(utcDate);
+  if (offset) {
+    const hours = Number(offset[2]);
+    const minutes = Number(offset[3]);
+    const maximum = offset[1] === '+' ? 14 : 12;
+    if (hours > maximum || minutes > 59 || (hours === maximum && minutes !== 0)) return null;
+  }
   const fields = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/.exec(utcDate);
   if (!fields) return null;
   const [, year, month, day, hour, minute, second] = fields.map(Number);
