@@ -67,11 +67,17 @@ export async function synchronizeJournal(db,competition,{now=new Date(),captureI
 
 export async function journalFeed(payload,db) {
   if(!db)return {...payload,journal:{configured:false,available:false}};
-  try {
-    const competitions=[];
-    for(const competition of payload.competitions)competitions.push(await synchronizeJournal(db,competition));
-    return {...payload,competitions,journal:{configured:true,available:true}};
-  } catch {return {...payload,journal:{configured:true,available:false}};}
+  const competitions=[];
+  let failed=0;
+  for(const competition of payload.competitions) {
+    try { competitions.push(await synchronizeJournal(db,competition)); }
+    catch {
+      failed++;
+      // Preserve provider fixtures while making missing audit coverage explicit.
+      competitions.push({...competition,journalAvailable:false});
+    }
+  }
+  return {...payload,competitions,journal:{configured:true,available:failed===0,failedCompetitions:failed}};
 }
 
 export async function readJournal(db,league) {
