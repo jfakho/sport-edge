@@ -45,12 +45,14 @@ jobs:
             exit 1
           fi
           configured=$(jq -r '.footballDataConfigured' /tmp/cotego-preview-status.json)
-          echo "Public preview is reachable; provider binding configured: $configured"
+          deployment=$(jq -r '.deploymentId // "unknown"' /tmp/cotego-preview-status.json)
+          echo "Public preview is reachable; provider binding configured: $configured; Worker version: $deployment"
           {
             echo '### Public preview availability (independent of API key)'
             echo "- Homepage: HTTP 200, COTEGO branding present"
             echo "- /api/status: HTTP 200, valid response"
             echo "- Football API binding configured: $configured"
+            echo "- Worker version ID: $deployment"
             echo 'This check does not establish data freshness or successful football-provider access.'
           } >> "$GITHUB_STEP_SUMMARY"
 
