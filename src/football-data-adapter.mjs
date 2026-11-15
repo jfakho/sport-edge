@@ -25,7 +25,7 @@ function safeDateTime(utcDate) {
   if (typeof utcDate !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(utcDate)) return null;
   // Date.parse normalizes impossible calendar dates (e.g. February 30) on
   // some runtimes. Reject them before accepting a provider fixture.
-  const fields = /^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})/.exec(utcDate);
+  const fields = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/.exec(utcDate);
   if (!fields) return null;
   const [, year, month, day, hour, minute, second] = fields.map(Number);
   if (month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59 || second > 59) return null;
