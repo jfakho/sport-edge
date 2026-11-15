@@ -8,6 +8,20 @@ const base = {
  score:{fullTime:{home:2,away:1},halfTime:{home:1,away:1}},
 };
 test('supports Ligue 1 free-tier code',()=>assert.equal(COMPETITIONS['fr.1'],'FL1'));
+test('PSG and Paris FC use separate provider identities in every competition',()=>{
+ for(const league of Object.keys(COMPETITIONS)) {
+  const match={...base,homeTeam:{id:524,name:'Paris Saint-Germain FC'},awayTeam:{id:1045,name:'Paris FC'}};
+  const result=normalizeFootballDataMatch(match,league,fixedNow);
+  assert.equal(result.team1,'Paris Saint-Germain');
+  assert.equal(result.team2,'Paris FC');
+  assert.deepEqual(result._teamIds,[524,1045]);
+ }
+});
+test('display labels preserve legitimate FC names and do not fuzzy-merge unknown teams',()=>{
+ const result=normalizeFootballDataMatch({...base,homeTeam:{id:81,name:'FC Barcelona'},awayTeam:{id:999999,name:'Paris Saint-Germain FC amateur'}},'es.1',fixedNow);
+ assert.equal(result.team1,'FC Barcelona');
+ assert.equal(result.team2,'Paris Saint-Germain FC amateur');
+});
 test('maps a finished match into existing COTEGO dataset',()=>{
  const r=normalizeFootballDataMatch(base,'fr.1',fixedNow);
  assert.equal(r.date,'2026-11-10');

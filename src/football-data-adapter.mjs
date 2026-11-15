@@ -5,6 +5,8 @@
  * Aucune clé n'est demandée ici. Utiliser plus tard un secret Cloudflare côté serveur.
  */
 
+import {teamDisplayName} from './team-names.mjs';
+
 export const COMPETITIONS = Object.freeze({
   'fr.1': 'FL1', 'en.1': 'PL', 'es.1': 'PD',
   'de.1': 'BL1', 'it.1': 'SA',
@@ -62,7 +64,7 @@ function safeTeam(team) {
   const id = Number(team.id);
   const name = String(team.name || team.shortName || '').trim();
   if (!Number.isSafeInteger(id) || id <= 0 || !name) return null;
-  return {id, name};
+  return {id, name:teamDisplayName(id,name)};
 }
 
 /** Normalize a v4 match for COTEGO's existing decodeDataset() without
