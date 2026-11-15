@@ -112,6 +112,10 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
 export function normalizeFootballDataSeason(payload, league, now = new Date()) {
   if (!payload || !Array.isArray(payload.matches)) throw new Error('Invalid football-data.org match list');
   if (!COMPETITIONS[league]) throw new Error('Unknown competition');
+  // A provider response for the wrong competition must never be attributed to
+  // the requested league: that would contaminate fixtures and audit history.
+  if (payload.competition?.code != null && payload.competition.code !== COMPETITIONS[league])
+    throw new Error('Mismatched competition in provider response');
   const result = new Map();
   const conflicts = new Set();
   for (const match of payload.matches) {
