@@ -370,7 +370,7 @@ body{font-size:14px;letter-spacing:0}
     'fr.1': { name: 'Ligue 1', short: 'LIGUE 1', flag: '🇫🇷' },
     'en.1': { name: 'Premier League', short: 'PREMIER LEAGUE', flag: '🏴' },
     'es.1': { name: 'La Liga', short: 'LA LIGA', flag: '🇪🇸' },
-    'de.1': { name: 'Bundesliga · archives', short: 'BUNDESLIGA', flag: '🇩🇪' },
+    'de.1': { name: 'Bundesliga', short: 'BUNDESLIGA', flag: '🇩🇪' },
     'de-live': { name: 'Bundesliga · OpenLigaDB', short: 'BUNDESLIGA', flag: '🇩🇪' },
     'it.1': { name: 'Serie A', short: 'SERIE A', flag: '🇮🇹' },
     demo: { name: 'Ligue fictive', short: 'DÉMONSTRATION', flag: '◈' },
@@ -381,7 +381,7 @@ body{font-size:14px;letter-spacing:0}
     { name: 'Niveau B · fréquence intermédiaire', target: 2.0, color: 'tier-balanced', brief: 'Cible ~2,00' },
     { name: 'Niveau C · fréquence plus faible', target: 3.0, color: 'tier-risk', brief: 'Cible ~3,00' }
   ];
-  const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason(), dataError:'', featuredData:null, featuredLoading:false };
+  const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason(), dataError:'', featuredData:null, featuredLoading:false, featuredLoadedAt:0 };
   const featuredAnalyses = new Map();
   const MARKET_TYPES = [
     ['home', 'Victoire domicile', 'result', (a,b)=>a>b],
@@ -512,6 +512,12 @@ body{font-size:14px;letter-spacing:0}
     if(league==='demo') {applyData(makeDemo(),'demo');setNotice('DÉMONSTRATION : équipes, rencontres et résultats fictifs.','warning');return;}
     if(league==='custom') {if(state.custom){applyData(state.custom,'custom');setNotice('Fichier utilisateur non vérifié.');}else{state.matches=[];state.played=[];state.upcoming=[];state.loaded=true;updateUI();setNotice('Aucun fichier importé.','warning');}return;}
     setLoading();setNotice('Vérification des matchs, résultats et dates auprès du fournisseur.');
+    const cachedLeague=league==='de-live'?'de.1':league;
+    const cachedSelection=state.featuredData?.[cachedLeague];
+    if(!refresh && Date.now()-state.featuredLoadedAt<10*60*1000 && Array.isArray(cachedSelection) && cachedSelection.length){
+      applyData(cachedSelection,'football-data');
+      return;
+    }
     if(league==='de-live'){
       try{
         const fresh=await loadOpenLiga(refresh);
@@ -739,7 +745,7 @@ body{font-size:14px;letter-spacing:0}
         if(!c.ok||!Array.isArray(c.matches)||!Array.isArray(c.historicalMatches))continue;
         data[c.league]=decodeDataset([...c.historicalMatches,...c.matches],c.league);
       }
-      if(Object.keys(data).length){state.featuredData=data;renderFeatured();}
+      if(Object.keys(data).length){state.featuredData=data;state.featuredLoadedAt=Date.now();renderFeatured();}
     }catch{/* Preserve the current-league selection when the feed is unavailable. */}
     finally{state.featuredLoading=false;renderFeatured();}
   }
@@ -792,7 +798,7 @@ body{font-size:14px;letter-spacing:0}
     // after the visitor selects Premier League, Bundesliga, etc.
     const selectedLeague=state.league==='de-live'?'de.1':state.league;
     const selectedMatches=state.featuredData && state.mode!=='demo' && state.mode!=='custom'
-      ? state.featuredData[selectedLeague]
+      ? (state.loaded && !state.dataError ? state.matches : state.featuredData[selectedLeague])
       : null;
     const featuredLeagues=[{league:selectedLeague,matches:selectedMatches||state.matches}];
     const upcoming=featuredLeagues.flatMap(({league,matches})=>matches
@@ -803,7 +809,7 @@ body{font-size:14px;letter-spacing:0}
       const popularity=prestige(match.home)+prestige(match.away);
       const days=daysBetween(today(),match.date);
       const score=(analysis?30:0)+(analysis?.historyCount||0)*.25+popularity*11-days*.45;
-      return {match,analysis,score,league,matches,mode:selectedMatches?'football-data':state.mode};
+      return {match,analysis,score,league,matches,mode:matches===state.matches?state.mode:'football-data'};
     }).sort((a,b)=>b.score-a.score || a.match.date.localeCompare(b.match.date)).slice(0,3);
     $('#home-selection-count').textContent=scored.length+' match'+(scored.length>1?'s':'')+' sélectionné'+(scored.length>1?'s':'');
     if (!scored.length) {
@@ -1097,8 +1103,9 @@ body{font-size:14px;letter-spacing:0}
   });
   $('#copyright-year').textContent=new Date().getFullYear();
   window.SportEdgeTest = {tabularCSV,importTennisCSV,importBasketCSV,decodeOpenLiga,normalize,decodeDataset,forecast,poissonList,makeDemo,parseCSV,MARKET_TYPES,today,goalTotals,scorerProbability,halfTimeDistribution,gameHoldProbability,normalCdf};
-  loadLeague('fr.1');
-  loadFeatured();
+  // One initial verified feed also supplies normal league-tab navigation.
+  // Explicit refresh still requests the selected league from the provider.
+  loadFeatured().finally(()=>loadLeague(state.league));
   // Foreground refresh only; 10 minutes for the verified API, 3 hours for archives.
   setInterval(()=>{if(document.visibilityState==='visible' && state.mode==='football-data' && state.loaded)loadLeague(state.league,true);},10*60*1000);
   setInterval(()=>{if(document.visibilityState==='visible' && state.mode!=='football-data' && state.mode!=='demo' && state.mode!=='custom' && state.loaded)loadLeague(state.league,false);},3*3600*1000);
