@@ -76,7 +76,7 @@ test('status endpoint exposes only configuration availability, not the token',as
   assert.equal((await unconfigured.json()).footballDataConfigured,false);
 });
 
-test('cross-league endpoint exposes five independent competitions and never leaks token',async()=>{
+test('cross-league endpoint exposes eight independent competitions and never leaks token',async()=>{
   const seen=[];
   mock.method(globalThis,'fetch',async url=>{
     seen.push(String(url));
@@ -86,14 +86,14 @@ test('cross-league endpoint exposes five independent competitions and never leak
     const response=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:'private-token'},{});
     assert.equal(response.status,200);
     const payload=await response.json();
-    assert.equal(payload.competitions.length,5);
-    assert.deepEqual(payload.competitions.map(x=>x.league),['fr.1','en.1','es.1','de.1','it.1']);
-    assert.equal(seen.length,5);
+    assert.equal(payload.competitions.length,8);
+    assert.deepEqual(payload.competitions.map(x=>x.league),['fr.1','en.1','es.1','de.1','it.1','intl.cl','intl.wc','intl.ec']);
+    assert.equal(seen.length,8);
     assert.ok(!JSON.stringify(payload).includes('private-token'));
   } finally {mock.restoreAll();}
 });
 
-test('partial five-league failures are not cached and are retried',async()=>{
+test('partial eight-competition failures are not cached and are retried',async()=>{
   const cached=[];
   let calls=0;
   mock.method(globalThis,'fetch',async ()=>{
@@ -122,7 +122,7 @@ test('partial five-league failures are not cached and are retried',async()=>{
     assert.equal(second.competitions.filter(x=>!x.ok).length,0);
     await Promise.all(pending);
     assert.equal(cached.length,1);
-    assert.equal(calls,10);
+    assert.equal(calls,16);
   } finally {
     if(previousCaches===undefined) delete globalThis.caches;
     else globalThis.caches=previousCaches;
@@ -143,7 +143,7 @@ test('featured feed stops further upstream calls on rate limit and marks remaini
     assert.equal(res.headers.get('cache-control'),'no-store');
     const body=await res.json();
     assert.equal(calls,2);
-    assert.equal(body.competitions.length,5);
+    assert.equal(body.competitions.length,8);
     assert.equal(body.competitions[0].ok,true);
     assert.ok(body.competitions.slice(1).every(x=>!x.ok && /Quota/.test(x.error)));
   } finally {mock.restoreAll();}
@@ -189,7 +189,7 @@ test('featured feed never follows upstream redirects or exposes the private key'
     const res=await worker.fetch(api('/api/football-featured'),{...envWithoutSecret,FOOTBALL_DATA_API_KEY:TOKEN},{});
     assert.equal(res.status,503);
     assert.equal(res.headers.get('cache-control'),'no-store');
-    assert.equal(requests.length,5);
+    assert.equal(requests.length,8);
     assert.ok(requests.every(x=>x.redirect==='manual' && x.token===TOKEN));
     const body=await res.text();
     assert.ok(!body.includes(TOKEN));
@@ -267,7 +267,7 @@ test('featured feed preserves available matches but skips remaining leagues afte
     assert.equal(res.headers.get('cache-control'),'no-store');
     assert.equal(calls,2);
     const body=await res.json();
-    assert.equal(body.competitions.length,5);
+    assert.equal(body.competitions.length,8);
     assert.equal(body.competitions[0].ok,true);
     assert.ok(body.competitions.slice(1).every(x=>!x.ok));
   } finally {mock.restoreAll();}
