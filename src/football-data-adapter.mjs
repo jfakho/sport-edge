@@ -116,7 +116,11 @@ export function normalizeFootballDataSeason(payload, league, now = new Date()) {
     }
     result.set(normalized._sourceId, normalized);
   }
-  return [...result.values()].sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  // Sort by absolute kick-off instant, not Paris wall-clock time: during the
+  // autumn DST transition 02:30 can occur twice and local ordering is wrong.
+  // A deterministic provider-ID tie-breaker also stabilizes audit exports.
+  return [...result.values()].sort((a,b) => Date.parse(a._kickoffUtc) - Date.parse(b._kickoffUtc)
+    || a._sourceId - b._sourceId);
 }
 
 /** Source metadata for the UI, not a guarantee of truth or live status. */
