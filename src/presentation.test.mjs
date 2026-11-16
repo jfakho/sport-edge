@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import view from '../public/cotego-presentation.js';
 test('team-specific wording preserves the home/away side and goal threshold',()=>{
  const match={home:'LOSC',away:'Olympique Lyonnais'};
@@ -10,4 +11,12 @@ test('team-specific wording preserves the home/away side and goal threshold',()=
 test('unrecognized markets retain the source wording without inventing a scenario',()=>{
  assert.equal(view.marketLabel({code:'u25',name:'Moins de 2,5 buts'},{}),'Moins de 2,5 buts');
  assert.equal(view.marketLabel(null,{}),'Données insuffisantes');
+});
+
+test('beta journal keeps all three targets visible without inventing paid gating',()=>{
+ const source=readFileSync(new URL('../public/cotego-platform.js',import.meta.url),'utf8');
+ assert.match(source,/\[1\.5,2,3\]\.map\(target=>/);
+ assert.match(source,/Non disponible/);
+ assert.doesNotMatch(source,/journal-pick-locked">Plus</);
+ assert.match(source,/data-journal-detail/);
 });
