@@ -130,15 +130,30 @@ jobs:
         run: |
           set -euo pipefail
           BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
-          code=$(curl --silent --show-error --max-time 55 --output /tmp/cotego-featured.json --write-out '%{http_code}' "$BASE/api/football-featured" || true)
-          if [ "$code" != '200' ] || ! jq -e '
+          # A reset after HTTP headers can leave a truncated JSON body with HTTP 200.
+          # Preserve curl's exit code: HTTP status alone is not proof of a complete feed.
+          curl_exit=0
+          code=$(curl --silent --show-error --max-time 55 --output /tmp/cotego-featured.json --write-out '%{http_code}' "$BASE/api/football-featured") || curl_exit=$?
+          if [ "$curl_exit" -ne 0 ]; then
+            echo "::error title=Preview feed transport interrupted::curl exited $curl_exit (HTTP $code). Response may be incomplete; no provider retry was attempted."
+            exit 1
+          fi
+          if [ "$code" != '200' ]; then
+            echo "::error title=Preview feed HTTP failure::Featured endpoint returned HTTP $code."
+            exit 1
+          fi
+          if ! jq -e . /tmp/cotego-featured.json >/dev/null 2>&1; then
+            echo '::error title=Preview feed truncated or invalid JSON::The response completed but was not valid JSON. No provider retry was attempted.'
+            exit 1
+          fi
+          if ! jq -e '
             .ok==true and .source=="football-data.org" and
             (.competitions|type=="array" and length==8) and
             ([.competitions[].league]|sort)==(["fr.1","en.1","es.1","de.1","it.1","intl.cl","intl.wc","intl.ec"]|sort) and
             any(.competitions[]; .ok==true and ((.matches|type)=="array") and ((.historicalMatches|type)=="array") and ((.matches|length)+(.historicalMatches|length)>0)) and
             all(.competitions[]; (.ok|type)=="boolean" and (if .ok then (.matches|type)=="array" else (.error|type)=="string" end))
           ' /tmp/cotego-featured.json >/dev/null 2>&1; then
-            echo '::error title=Five-league feed invalid::The preview featured feed is unavailable or missing a competition/status.'
+            echo '::error title=Five-league feed schema invalid::The complete JSON is missing a competition/status or a usable match snapshot.'
             echo "HTTP $code; response body withheld to avoid leaking provider details"
             exit 1
           fi
