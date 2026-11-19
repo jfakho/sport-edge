@@ -198,7 +198,9 @@ jobs:
   browser-preview:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
     needs: unit-tests
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 Chromium is not supported on ubuntu-26.04 (ubuntu-latest).
+    # Pin the browser runner until the pinned Playwright release supports newer images.
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
