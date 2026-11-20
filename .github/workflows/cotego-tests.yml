@@ -1,9 +1,13 @@
 name: COTEGO tests
 on:
+  workflow_dispatch: # Recheck preview without changing code or production
   push:
-    branches: [main, feature/fresh-football-data-adapter]
+    branches: [main, feature/fresh-football-data-adapter, feature/cotego-premium-ux]
   pull_request:
     branches: [main]
+concurrency:
+  group: cotego-tests-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -15,5 +19,197 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install pinned deployment tooling for executable regression check
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: Test des résultats et du proxy (sans clé réelle)
-        run: node --test src/football-data-adapter.test.mjs src/worker.test.mjs
+        run: node --test src/*.test.mjs
+
+  preview-public-reachability:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check public preview independently of provider credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          status=$(curl --silent --show-error --max-time 20 --output /tmp/cotego-preview-home.html --write-out '%{http_code}' "$BASE/" || true)
+          if [ "$status" != '200' ]; then
+            echo "::error title=Preview website unreachable::Preview home returned HTTP $status"
+            exit 1
+          fi
+          if ! grep -qi 'COTEGO' /tmp/cotego-preview-home.html; then
+            echo '::error title=Unexpected preview content::The public preview home does not contain COTEGO branding.'
+            exit 1
+          fi
+          status=$(curl --silent --show-error --max-time 20 --output /tmp/cotego-preview-status.json --write-out '%{http_code}' "$BASE/api/status" || true)
+          if [ "$status" != '200' ] || ! jq -e '.ok==true and (.footballDataConfigured|type=="boolean")' /tmp/cotego-preview-status.json >/dev/null 2>&1; then
+            echo "::error title=Preview status unavailable::Preview API status returned HTTP $status or unexpected JSON."
+            exit 1
+          fi
+          configured=$(jq -r '.footballDataConfigured' /tmp/cotego-preview-status.json)
+          deployment=$(jq -r '.deploymentId // "unknown"' /tmp/cotego-preview-status.json)
+          echo "Public preview is reachable; provider binding configured: $configured; Worker version: $deployment"
+          {
+            echo '### Public preview availability (independent of API key)'
+            echo "- Homepage: HTTP 200, COTEGO branding present"
+            echo "- /api/status: HTTP 200, valid response"
+            echo "- Football API binding configured: $configured"
+            echo "- Worker version ID: $deployment"
+            echo 'This check does not establish data freshness or successful football-provider access.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  smoke-preview:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Cloudflare Preview API configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          ready=0
+          missing_secret_count=0
+          last_http='none'
+          last_version='unknown'
+          # Distinguish an accessible Worker from a configured football provider.
+          # Never print the secret or raw status response in CI logs.
+          for attempt in $(seq 1 10); do
+            rm -f /tmp/cotego-health.json
+            status=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-health.json --write-out '%{http_code}' "$BASE/api/status" || true)
+            last_http="$status"
+            if [ "$status" = '200' ] && jq -e '.deploymentId == null or (.deploymentId|type=="string")' /tmp/cotego-health.json >/dev/null 2>&1; then
+              last_version=$(jq -r '.deploymentId // "unknown"' /tmp/cotego-health.json)
+            fi
+            if [ "$status" = '200' ] && jq -e '.ok==true and .footballDataConfigured==true' /tmp/cotego-health.json >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            if [ "$status" = '200' ] && jq -e '.ok==true and .footballDataConfigured==false' /tmp/cotego-health.json >/dev/null 2>&1; then
+              missing_secret_count=$((missing_secret_count + 1))
+              echo "Preview Worker version $last_version responds but API key binding is missing (attempt $attempt)"
+              if [ "$missing_secret_count" -ge 3 ]; then
+                echo '::error title=Cloudflare Worker binding absent::Preview Worker returned footballDataConfigured=false three times. Verify FOOTBALL_DATA_API_KEY is bound to the deployed preview Worker (not just the GitHub Actions environment or a different Cloudflare environment).'
+                {
+                  echo '### Cloudflare Preview: runtime secret absent'
+                  echo "The preview URL is reachable, but three successive /api/status responses reported footballDataConfigured=false (Worker version: $last_version)."
+                  echo 'Inspect the latest Cloudflare Preview build and its ensure-preview-secret result before requesting any key entry. The pinned Wrangler and build hook preserve or restore the existing Preview secret.'
+                  echo 'Do not paste the secret into GitHub logs, issues, or chat. No production deployment is required.'
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 1
+              fi
+            else
+              missing_secret_count=0
+              echo "Preview status unavailable or malformed: HTTP $status (attempt $attempt)"
+            fi
+            if [ "$attempt" -lt 10 ]; then sleep 12; fi
+          done
+          if [ "$ready" != '1' ]; then
+            echo "::error title=Cloudflare Preview unavailable::Health check did not become ready (last HTTP $last_http). Inspect preview URL, deployment and Worker logs."
+            exit 1
+          fi
+          echo 'Preview API status is healthy'
+      - name: Check actual Ligue 1 match feed and freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          code=$(curl --silent --show-error --max-time 25 --output /tmp/cotego-football.json --write-out '%{http_code}' "$BASE/api/football/fr.1" || true)
+          if [ "$code" != '200' ] || ! jq -e '.ok==true and .source=="football-data.org" and (.matches|type=="array" and length>0) and (.freshness|type=="object") and any(.matches[]; .score!=null)' /tmp/cotego-football.json >/dev/null 2>&1; then
+            echo 'COTEGO Preview football data missing; inspect Cloudflare Preview secret and API provider'
+            echo "HTTP $code; response body withheld to avoid leaking provider details"
+            exit 1
+          fi
+          echo 'Verified delayed football data available'
+      - name: Verify five major leagues and three international competitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          # A reset after HTTP headers can leave a truncated JSON body with HTTP 200.
+          # Preserve curl's exit code: HTTP status alone is not proof of a complete feed.
+          curl_exit=0
+          code=$(curl --silent --show-error --max-time 55 --output /tmp/cotego-featured.json --write-out '%{http_code}' "$BASE/api/football-featured") || curl_exit=$?
+          if [ "$curl_exit" -ne 0 ]; then
+            echo "::error title=Preview feed transport interrupted::curl exited $curl_exit (HTTP $code). Response may be incomplete; no provider retry was attempted."
+            exit 1
+          fi
+          if [ "$code" != '200' ]; then
+            echo "::error title=Preview feed HTTP failure::Featured endpoint returned HTTP $code."
+            exit 1
+          fi
+          if ! jq -e . /tmp/cotego-featured.json >/dev/null 2>&1; then
+            echo '::error title=Preview feed truncated or invalid JSON::The response completed but was not valid JSON. No provider retry was attempted.'
+            exit 1
+          fi
+          if ! jq -e '
+            .ok==true and .source=="football-data.org" and
+            (.competitions|type=="array" and length==8) and
+            ([.competitions[].league]|sort)==(["fr.1","en.1","es.1","de.1","it.1","intl.cl","intl.wc","intl.ec"]|sort) and
+            any(.competitions[]; .ok==true and ((.matches|type)=="array") and ((.historicalMatches|type)=="array") and ((.matches|length)+(.historicalMatches|length)>0)) and
+            all(.competitions[]; (.ok|type)=="boolean" and (if .ok then (.matches|type)=="array" else (.error|type)=="string" end))
+          ' /tmp/cotego-featured.json >/dev/null 2>&1; then
+            echo '::error title=Five-league feed schema invalid::The complete JSON is missing a competition/status or a usable match snapshot.'
+            echo "HTTP $code; response body withheld to avoid leaking provider details"
+            exit 1
+          fi
+          jq -r '.competitions[] | "\(.league): \(if .ok then "available" else "unavailable" end)"' /tmp/cotego-featured.json
+          echo 'All eight competitions explicitly represented; at least one has actual matches and upstream failures are not hidden.'
+      - name: Recheck preview secret binding after feed checks
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev'
+          ready=0
+          missing=0
+          last_http=none
+          for attempt in $(seq 1 5); do
+            rm -f /tmp/cotego-status-after.json
+            code=$(curl --silent --show-error --max-time 15 --output /tmp/cotego-status-after.json --write-out '%{http_code}' "$BASE/api/status" || true)
+            last_http="$code"
+            if [ "$code" = '200' ] && jq -e '.ok==true and .footballDataConfigured==true' /tmp/cotego-status-after.json >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            if [ "$code" = '200' ] && jq -e '.ok==true and .footballDataConfigured==false' /tmp/cotego-status-after.json >/dev/null 2>&1; then
+              missing=$((missing + 1))
+              if [ "$missing" -ge 3 ]; then
+                echo '::error title=Preview secret binding absent::Three responses explicitly reported footballDataConfigured=false after feed checks.'
+                exit 1
+              fi
+            else
+              missing=0
+              echo "Preview status temporarily unavailable (HTTP $code, attempt $attempt)"
+            fi
+            if [ "$attempt" -lt 5 ]; then sleep 5; fi
+          done
+          if [ "$ready" != '1' ]; then
+            echo "::error title=Preview health unavailable::Post-feed status did not recover (last HTTP $last_http). This does not establish that the secret was removed."
+            exit 1
+          fi
+          echo 'Preview runtime secret binding still present after data checks'
+
+
+  browser-preview:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/cotego-premium-ux'
+    needs: unit-tests
+    # Playwright 1.56.1 Chromium is not supported on ubuntu-26.04 (ubuntu-latest).
+    # Pin the browser runner until the pinned Playwright release supports newer images.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium for UI regression checks
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Check mobile and desktop navigation, modal and demo forecast
+        run: node src/e2e-preview.mjs

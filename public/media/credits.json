@@ -1,0 +1,121 @@
+[
+  {
+    "id": "ligue-1",
+    "kind": "logo",
+    "path": "/media/ligue-1.png",
+    "title": "File:Ligue 1 2024 Logo.png",
+    "source": "https://commons.wikimedia.org/wiki/File:Ligue_1_2024_Logo.png",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Ligue_1_2024_Logo.png/330px-Ligue_1_2024_Logo.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "author": "Ligue 1",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "credit": "https://static.wikia.nocookie.net/logopedia/images/3/31/Ligue_1_2024.png",
+    "date": "",
+    "bytes": 9618
+  },
+  {
+    "id": "premier-league",
+    "kind": "logo",
+    "path": "/media/premier-league.png",
+    "title": "File:Premier League.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Premier_League.svg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Premier_League.svg/330px-Premier_League.svg.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "author": "Premier League",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "credit": "English Wikipedia, without the copyrighted depiction of a lion",
+    "date": "2016",
+    "bytes": 6708
+  },
+  {
+    "id": "bundesliga",
+    "kind": "logo",
+    "path": "/media/bundesliga.png",
+    "title": "File:Bundesliga logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Bundesliga_logo.svg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Bundesliga_logo.svg/330px-Bundesliga_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "author": "DFL Deutsche Fußball Liga GmbH",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "credit": "DFL Deutsche Fußball Liga GmbH - extracted from PDF",
+    "date": "",
+    "bytes": 3404
+  },
+  {
+    "id": "laliga",
+    "kind": "logo",
+    "path": "/media/laliga.png",
+    "title": "File:LaLiga 2023 Horizontal Logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:LaLiga_2023_Horizontal_Logo.svg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e9/LaLiga_2023_Horizontal_Logo.svg/330px-LaLiga_2023_Horizontal_Logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "author": "La Liga Nacional de Fútbol Profesional",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "credit": "https://www.laliga.com/",
+    "date": "2023-07-05",
+    "bytes": 4125
+  },
+  {
+    "id": "serie-a",
+    "kind": "logo",
+    "path": "/media/serie-a.png",
+    "title": "File:Serie A Made in Italy logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Serie_A_Made_in_Italy_logo.svg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0b/Serie_A_Made_in_Italy_logo.svg/330px-Serie_A_Made_in_Italy_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "author": "LEGA NAZIONALE PROFESSIONISTI SERIE A | P. IVA",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "credit": "https://www.beinsports.com/en-my/football/serie-a/news",
+    "date": "2024-07-01",
+    "bytes": 37706
+  },
+  {
+    "id": "64",
+    "kind": "club-crest",
+    "path": "/media/clubs/64.png",
+    "source": "https://crests.football-data.org/64.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "516",
+    "kind": "club-crest",
+    "path": "/media/clubs/516.png",
+    "source": "https://crests.football-data.org/516.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "521",
+    "kind": "club-crest",
+    "path": "/media/clubs/521.png",
+    "source": "https://crests.football-data.org/521.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "522",
+    "kind": "club-crest",
+    "path": "/media/clubs/522.png",
+    "source": "https://crests.football-data.org/522.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "523",
+    "kind": "club-crest",
+    "path": "/media/clubs/523.png",
+    "source": "https://crests.football-data.org/523.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "524",
+    "kind": "club-crest",
+    "path": "/media/clubs/524.png",
+    "source": "https://crests.football-data.org/524.png",
+    "rights": "Club trademark, identification only"
+  },
+  {
+    "id": "535",
+    "kind": "club-crest",
+    "path": "/media/clubs/535.png",
+    "source": "https://crests.football-data.org/535.png",
+    "rights": "Club trademark, identification only"
+  }
+]
