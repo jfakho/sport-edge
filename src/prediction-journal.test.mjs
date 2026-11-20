@@ -86,3 +86,34 @@ test('a journal failure in one competition does not discard another competition 
   assert.equal(result.competitions[0].journalAvailable,false);
   assert.equal(result.competitions[1].matches[0]._prediction.matchId,123);
 });
+
+
+test('recording rejects the exact kickoff boundary and invalid fixture identities',async()=>{
+  const db=auditDatabase();
+  const cases=[
+    {...match,_kickoffUtc:now.toISOString()},
+    {...match,_teamIds:[524,524]},
+    {...match,_teamIds:[524,null]},
+    {...match,_sourceId:NaN},
+    {...match,_status:'IN_PLAY'},
+    {...match,score:{ft:[0,0]}}
+  ];
+  for(const candidate of cases){
+    await synchronizeJournal(db,{...comp,matches:[candidate]},{now,captureId:candidate._sourceId});
+  }
+  assert.equal((await readJournal(db,'fr.1')).records.length,0,
+    'No forecast may be backdated, derived from a played match or assigned to an ambiguous fixture');
+});
+
+test('unverified and postponed results do not change hit rates or rewrite the saved prediction',async()=>{
+  const db=auditDatabase();
+  await synchronizeJournal(db,comp,{now});
+  const original=(await readJournal(db,'fr.1')).records[0];
+  await synchronizeJournal(db,{...comp,matches:[],historicalMatches:[
+    {...match,_status:'FINISHED',score:{ft:[3,1]},_kickoffUtc:'2026-11-22T19:00:00.000Z'}
+  ]},{now:new Date('2026-11-23T12:00:00Z')});
+  const result=await readJournal(db,'fr.1');
+  assert.equal(result.records[0].finalScore,null);
+  assert.deepEqual(result.records[0].analysis,original.analysis);
+  assert.ok(result.summary.every(t=>t.evaluated===0&&t.hitRate===null));
+});
