@@ -83,7 +83,7 @@ export async function journalFeed(payload,db) {
 export async function readJournal(db,league) {
   if(!db)return {ok:true,configured:false,records:[],summary:null};
   const rows=await db.prepare(`SELECT p.*,r.home_goals,r.away_goals,r.observed_at FROM predictions p
-    LEFT JOIN verified_results r ON p.match_id=r.match_id WHERE p.competition=?
+    LEFT JOIN verified_results r ON p.match_id=r.match_id AND r.observed_at>=p.kickoff_utc\n    WHERE p.competition=? AND p.created_at<p.kickoff_utc
     ORDER BY p.kickoff_utc DESC LIMIT 200`).bind(league).all();
   const model=createFootballModel();
   const records=rows.results.map(row=>{
