@@ -117,3 +117,19 @@ test('unverified and postponed results do not change hit rates or rewrite the sa
   assert.deepEqual(result.records[0].analysis,original.analysis);
   assert.ok(result.summary.every(t=>t.evaluated===0&&t.hitRate===null));
 });
+
+test('public accuracy ignores a result observed before kickoff even if a row exists',async()=>{
+  const db=auditDatabase();
+  await synchronizeJournal(db,comp,{now});
+  db.sqlite.prepare(`INSERT INTO verified_results(match_id,home_goals,away_goals,observed_at,source)
+    VALUES(?,?,?,?,?)`).run(123,2,1,'2026-11-20T12:00:00.000Z','football-data.org');
+  const premature=await readJournal(db,'fr.1');
+  assert.equal(premature.records.length,1);
+  assert.equal(premature.records[0].finalScore,null);
+  assert.ok(premature.summary.every(t=>t.evaluated===0&&t.hitRate===null));
+  db.sqlite.prepare('UPDATE verified_results SET observed_at=? WHERE match_id=?')
+    .run('2026-11-22T12:00:00.000Z',123);
+  const verified=await readJournal(db,'fr.1');
+  assert.deepEqual(verified.records[0].finalScore,[2,1]);
+  assert.ok(verified.summary.every(t=>t.evaluated===1));
+});
