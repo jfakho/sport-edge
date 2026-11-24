@@ -64,7 +64,10 @@ test('missing storage is explicit rather than presenting retrospective results a
   assert.deepEqual(await readJournal(null,'fr.1'),{ok:true,configured:false,records:[],summary:null});
 });
 
-test('a journal failure in one competition does not discard another competition audit',async()=>{
+test('a journal failure in one competition does not discard another competition audit',async(t)=>{
+  // journalFeed uses the server clock. Keep this fixture before kickoff even
+  // after November 2026; production must continue rejecting past predictions.
+  t.mock.timers.enable({apis:['Date'],now});
   const db=auditDatabase();
   const broken={...comp,league:'en.1',matches:[{...match,_sourceId:456}]};
   const originalPrepare=db.prepare.bind(db);
