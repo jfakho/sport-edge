@@ -8,6 +8,7 @@
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {filterPremiumPayload} from './premium-access.mjs';
+import {verifyMobileJourney} from '../tests/mobile-journey.mjs';
 
 const base='https://feature-cotego-premium-ux-cotego.salama-jimmy.workers.dev/';
 const browser=await chromium.launch({headless:true});
@@ -209,6 +210,13 @@ try {
           'Featured panel must show match cards or an explicit availability message for '+league);
       }
       console.log('PASS featured league tabs: all five selectable at '+viewport.width+'px');
+      if(viewport.width===390){
+        const english=featuredFeed.competitions.find(c=>c.league==='en.1'&&c.ok);
+        const otherTeams=new Set(featuredFeed.competitions.filter(c=>c.league!=='en.1'&&c.ok).flatMap(c=>c.matches.flatMap(m=>[m.team1,m.team2])));
+        const searchTeam=english.matches.flatMap(m=>[m.team1,m.team2]).find(name=>!otherTeams.has(name));
+        assert.ok(searchTeam,'An English fixture is required for cross-competition search');
+        for(const check of await verifyMobileJourney(page,{searchTeam}))console.log('PASS mobile journey: '+check);
+      }
       // Switch to isolated synthetic fixtures. No dependency on private APIs.
       const nav=viewport.width<700?'.cotego-bottom-nav button':'.sidebar button';
       await page.locator(nav+'[data-page="dashboard"]').click();

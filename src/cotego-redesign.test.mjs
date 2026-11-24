@@ -140,14 +140,14 @@ test('home competition tabs filter featured matches by the selected league',()=>
 });
 
 test('failed single-league API uses only verified matches from the same league',()=>{
- assert.match(source,/const cached=state\.featuredData\?\.\[league\]/);
+ assert.match(source,/const cached=state\.featuredData\?\.\[providerLeague\]/);
  assert.match(source,/applyData\(cached,'football-data'\)/);
  assert.match(source,/if\(Array\.isArray\(cached\) && cached\.length\)/);
  assert.match(source,/Aucune donnée fictive ne sera substituée/);
 });
 
 test('league fallback requests verified feed if it has not loaded yet',()=>{
- assert.match(source,/if\(!state\.featuredData\?\.\[league\] && !state\.featuredLoading\)/);
+ assert.match(source,/if\(!state\.featuredData\?\.\[providerLeague\] && !state\.featuredLoading\)/);
  assert.match(source,/await loadFeatured\(\)/);
- assert.match(source,/if\(requestId!==leagueRequestId\)return;\s*const cached=state\.featuredData\?\.\[league\]/);
+ assert.match(source,/if\(requestId!==leagueRequestId\)return;\s*const cached=state\.featuredData\?\.\[providerLeague\]/);
 });

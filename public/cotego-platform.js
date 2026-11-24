@@ -5,9 +5,10 @@ const $=s=>document.querySelector(s);
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const time=s=>new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(s));
 const percentage=p=>Number.isFinite(p)?(100*p).toFixed(1)+' %':'—';
-const histories=new Map();
+const histories=new Map(),pendingHistories=new Map();
 let selectedLeague='fr.1',requestNumber=0,activeModal=0;
 async function json(url){const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw Error('Unavailable');return res.json();}
+const statusPromise=json('/api/status').catch(()=>null);
 function renderJournal(data,league){
   const host=$('#journal-content');if(!host)return;
   const count=$('#rail-recorded-count'),status=$('#rail-journal-status');
@@ -24,15 +25,22 @@ function renderJournal(data,league){
 }
 async function loadJournal(league=selectedLeague,force=false){
   league=league==='de-live'?'de.1':league;selectedLeague=league;
+  const request=++requestNumber;
   document.querySelectorAll('[data-competition]').forEach(b=>b.classList.toggle('selected',(b.dataset.competition==='de-live'?'de.1':b.dataset.competition)===league));
   if(['demo','custom'].includes(league)){
     $('#journal-content').innerHTML='<section class="journal-intro"><h2>Données locales ou de démonstration</h2><p>Ces simulations ne sont pas enregistrées dans le bilan public des prévisions réelles.</p></section>';
     if(league==='demo')$('.retrospective-section').open=true;return;
   }
   const cached=histories.get(league);if(cached&&!force&&Date.now()-cached.at<30000){renderJournal(cached.data,league);return;}
-  const request=++requestNumber;
-  try {const data=await json('/api/predictions?league='+encodeURIComponent(league));if(request!==requestNumber)return;
-    histories.set(league,{at:Date.now(),data});renderJournal(data,league);
+  try {
+    if(!pendingHistories.has(league)){
+      const pending=json('/api/predictions?league='+encodeURIComponent(league))
+        .then(data=>{histories.set(league,{at:Date.now(),data});return data;})
+        .finally(()=>pendingHistories.delete(league));
+      pendingHistories.set(league,pending);
+    }
+    const data=await pendingHistories.get(league);if(request!==requestNumber)return;
+    renderJournal(data,league);
   }catch{if(request===requestNumber){$('#rail-journal-status').textContent='Journal momentanément indisponible.';$('#journal-content').innerHTML='<section class="journal-intro"><h2>Journal momentanément indisponible</h2><p>Les prévisions conservées ne sont pas remplacées par des simulations. Réessayez ultérieurement.</p></section>';}}
 }
 window.addEventListener('cotego:competition',e=>loadJournal(e.detail.league));
@@ -46,7 +54,7 @@ window.addEventListener('cotego:analysis',async e=>{
   const {match,league,recordedAt}=e.detail,number=++activeModal;
   if(!match.sourceId||['demo','custom'].includes(league))return;
   let data;
-  try{data=await json('/api/odds/'+encodeURIComponent(league==='de-live'?'de.1':league)+'/'+match.sourceId);}catch{data={status:'unavailable'};}
+  try{const status=await statusPromise;data=status?.oddsConfigured===false?{status:'not_configured'}:await json('/api/odds/'+encodeURIComponent(league==='de-live'?'de.1':league)+'/'+match.sourceId);}catch{data={status:'unavailable'};}
   if(number!==activeModal||$('#analysis-modal').classList.contains('hidden'))return;
   const panel=document.createElement('section');panel.className='odds-import';panel.id='odds-import';
   const quotes=data.scenarios||[];
@@ -54,6 +62,6 @@ window.addEventListener('cotego:analysis',async e=>{
   if(recordedAt)panel.innerHTML+=`<small>Prévision statistique enregistrée le ${time(recordedAt)}, avant le coup d’envoi.</small>`;
   $('#modal-content').prepend(panel);
 });
-json('/api/status').then(status=>{if($('#rail-odds-status'))$('#rail-odds-status').textContent=status.oddsConfigured?'Flux connecté · relevés ciblés à l’approche des matchs.':'Connexion au fournisseur en préparation.';}).catch(()=>{$('#rail-odds-status').textContent='État du flux momentanément indisponible.';});
+statusPromise.then(status=>{if(!status)throw Error('Unavailable');if($('#rail-odds-status'))$('#rail-odds-status').textContent=status.oddsConfigured?'Flux connecté · relevés ciblés à l’approche des matchs.':'Connexion au fournisseur en préparation.';}).catch(()=>{$('#rail-odds-status').textContent='État du flux momentanément indisponible.';});
 loadJournal();
 })();
