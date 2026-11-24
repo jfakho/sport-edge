@@ -10,7 +10,12 @@ const parisDate=now=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Paris',ye
 const marketKey=code=>['home','draw','away'].includes(code)?'h2h':['1X','X2','12'].includes(code)?'double_chance':
   /^(o|u)(05|15|25|35)$/.test(code)?'alternate_totals':['btts','notbtts'].includes(code)?'btts':
   /^(hg|ag)(05|15)$/.test(code)?'alternate_team_totals':null;
-export const neededMarkets=tiers=>[...new Set(tiers.map(t=>marketKey(t.market.code)).filter(Boolean))];
+// Standard and alternate markets can expose the same exact line. Never infer a price.
+const marketKeys=code=>{
+  const market=marketKey(code);
+  return market==='alternate_totals'?['totals',market]:market==='alternate_team_totals'?['team_totals',market]:market?[market]:[];
+};
+export const neededMarkets=tiers=>[...new Set(tiers.flatMap(t=>marketKeys(t.market.code)))];
 
 export function matchOddsEvent(fixture,events,league) {
   const aliases=fixture.aliases??[[fixture.home],[fixture.away]];
@@ -42,7 +47,7 @@ export function summarizeBookmakerOdds(event,tiers,now=new Date()) {
     const books=[];
     for(const book of event.bookmakers||[]){
       if(!BOOKS[book.key])continue;
-      const quotes=(book.markets||[]).filter(m=>m.key===marketKey(tier.market.code)).flatMap(m=>{
+      const quotes=(book.markets||[]).filter(m=>marketKeys(tier.market.code).includes(m.key)).flatMap(m=>{
         const updatedAt=m.last_update||book.last_update;
         const timestamp=Date.parse(updatedAt);
         if(typeof updatedAt!=='string'||!/(Z|[+-]\d{2}:\d{2})$/.test(updatedAt)||!Number.isFinite(timestamp)

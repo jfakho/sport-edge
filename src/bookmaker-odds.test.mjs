@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {auditDatabase} from './sqlite-test-helper.mjs';
-import {matchOddsEvent,summarizeBookmakerOdds,reserveOddsCredits,readOddsBudget,getBookmakerOdds,dailyPriorityMatches} from './bookmaker-odds.mjs';
+import {matchOddsEvent,summarizeBookmakerOdds,reserveOddsCredits,readOddsBudget,getBookmakerOdds,dailyPriorityMatches,neededMarkets} from './bookmaker-odds.mjs';
 const now=new Date('2026-11-21T18:00:00Z');
 const fixture={home:'Paris Saint-Germain',away:'Paris FC',aliases:[['Paris Saint-Germain FC','Paris Saint-Germain','PSG'],['Paris FC']],kickoffUtc:'2026-11-21T19:00:00.000Z'};
 const tiers=[{target:1.5,market:{code:'home',name:'Victoire domicile',p:.66}},{target:2,market:{code:'o25',name:'Plus de 2,5 buts',p:.5}},{target:3,market:{code:'btts',name:'Les deux équipes marquent',p:.33}}];
@@ -65,7 +65,7 @@ test('one successful snapshot is reused without additional provider calls or exp
  assert.equal(first.status,'recorded');assert.equal(second.status,'recorded');assert.equal(calls.length,2);
  assert.ok(calls.every(c=>!c.url.includes(token)&&c.options.headers['x-api-key']===token&&c.options.redirect==='manual'));
  assert.ok(!JSON.stringify(first).includes(token));
- assert.equal((await readOddsBudget(db,now)).usedCredits,3);
+ assert.equal((await readOddsBudget(db,now)).usedCredits,4);
 });
 test('missing provider quota header stops before any credit-consuming request',async()=>{
  const db=auditDatabase();await seed(db);let calls=0;
@@ -73,4 +73,25 @@ test('missing provider quota header stops before any credit-consuming request',a
  loadFeed:async()=>({competitions:[{ok:true,league:'fr.1',matches:[raw]}]}),fetcher:async()=>{calls++;return Response.json([event]);}});
  assert.equal(result.status,'budget_exhausted');assert.equal(calls,1);
  assert.equal((await readOddsBudget(db,now)).usedCredits,0);
+});
+
+test('standard totals are included, exact lines only, with no double count or invented price',()=>{
+ const markets=neededMarkets(tiers);
+ assert.deepEqual(markets,['h2h','totals','alternate_totals','btts']);
+ const standard={key:'betclic_fr',last_update:now.toISOString(),markets:[{key:'totals',outcomes:[{name:'Over',point:2.5,price:1.95},{name:'Over',point:3.5,price:8}]}]};
+ assert.equal(summarizeBookmakerOdds({...event,bookmakers:[standard]},tiers,now)[1].average,1.95);
+ standard.markets.push({...standard.markets[0],key:'alternate_totals'});
+ const same=summarizeBookmakerOdds({...event,bookmakers:[standard]},tiers,now)[1];
+ assert.equal(same.average,1.95);assert.equal(same.books.length,1);
+ standard.markets[1]={key:'alternate_totals',outcomes:[{name:'Over',point:2.5,price:2.05}]};
+ assert.equal(summarizeBookmakerOdds({...event,bookmakers:[standard]},tiers,now)[1].average,null);
+});
+test('standard team totals match the exact team and the credit ceiling covers every three-scenario mix',()=>{
+ const teamTiers=[{market:{code:'hg15'}},{market:{code:'ag05'}},{market:{code:'o25'}}];
+ const payload={...event,bookmakers:[{key:'winamax_fr',last_update:now.toISOString(),markets:[{key:'team_totals',outcomes:[
+ {name:'Over',description:event.home_team,point:1.5,price:2},{name:'Over',description:event.away_team,point:0.5,price:1.6}]}]}]};
+ const result=summarizeBookmakerOdds(payload,teamTiers,now);
+ assert.deepEqual(result.map(q=>q.average),[2,1.6,null]);
+ const codes=['home','draw','away','1X','X2','12','o05','u15','o25','u35','btts','notbtts','hg05','ag15'];
+ for(const a of codes)for(const b of codes)for(const c of codes)assert.ok(neededMarkets([a,b,c].map(code=>({market:{code}}))).length<=5);
 });

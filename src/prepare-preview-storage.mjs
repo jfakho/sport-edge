@@ -24,12 +24,17 @@ export function preparePreviewStorage({env=process.env,run=spawnSync,read=readFi
   // Its value is sent on stdin, never written into configuration or logs.
   const config=JSON.parse(read('wrangler.jsonc','utf8'));
   if(config.name!=='cotego')throw new Error('Unexpected Worker; Preview setup stopped');
-  const list=JSON.parse(invoke(['preview','secret','list','--json','--name',PREVIEW,'--worker-name','cotego']));
-  const hasOdds=Array.isArray(list)&&list.some(s=>s?.name==='ODDS_API_KEY'&&s.type==='secret_text');
+  const hasOddsSecret=()=>{
+    const list=JSON.parse(invoke(['preview','secret','list','--json','--name',PREVIEW,'--worker-name','cotego']));
+    return Array.isArray(list)&&list.some(s=>s?.name==='ODDS_API_KEY'&&s.type==='secret_text');
+  };
+  let hasOdds=hasOddsSecret();
   if(!hasOdds&&typeof env.ODDS_API_KEY==='string'&&env.ODDS_API_KEY.trim()){
-    invoke(['preview','secret','bulk','--name',PREVIEW,'--worker-name','cotego'],JSON.stringify({ODDS_API_KEY:env.ODDS_API_KEY}));
+    invoke(['preview','secret','bulk','--name',PREVIEW,'--worker-name','cotego'],JSON.stringify({ODDS_API_KEY:env.ODDS_API_KEY.trim()}));
+    hasOdds=hasOddsSecret();
+    if(!hasOdds)throw new Error('Preview odds secret restoration was not confirmed');
   }
-  if(hasOdds||env.ODDS_API_KEY?.trim()){
+  if(hasOdds){
     config.secrets??={};config.secrets.required=[...new Set([...(config.secrets.required||[]),'ODDS_API_KEY'])];
     write('wrangler.jsonc',JSON.stringify(config,null,2)+'\n');
   }

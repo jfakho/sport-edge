@@ -28,3 +28,24 @@ test('denied storage authorization does not prevent the visual update or invent 
   }}),'unavailable');
   assert.equal(writes,1,'Only non-secret setup metadata is saved on failure');
 });
+
+test('odds build secret is restored privately on the exact Preview and confirmed before deploying',()=>{
+ const calls=[],writes=[];
+ const responses=[result([]),result({}),result([{name:'ODDS_API_KEY',type:'secret_text'}]),result([database]),result({})];
+ const token='test-only-not-a-real-key';
+ assert.equal(preparePreviewStorage({env:{...env,ODDS_API_KEY:token},cli:'mock',
+ run:(exe,args,options)=>{calls.push({args,options});return responses.shift();},
+ read:()=>JSON.stringify(config),write:(path,body)=>writes.push(body)}),'ready');
+ const bulk=calls.find(c=>c.args.includes('bulk'));
+ assert.equal(bulk.options.input,JSON.stringify({ODDS_API_KEY:token}));
+ assert.equal(bulk.options.env.ODDS_API_KEY,undefined);
+ assert.ok(bulk.args.includes('feature/cotego-premium-ux'));
+ assert.ok(calls.every(c=>!c.args.join(' ').includes(token)));
+ assert.ok(writes.every(body=>!body.includes(token)));
+ assert.equal(calls.filter(c=>c.args.includes('secret')&&c.args.includes('list')).length,2);
+});
+test('unconfirmed odds secret stops before database or configuration changes',()=>{
+ const responses=[result([]),result({}),result([])];
+ assert.throws(()=>preparePreviewStorage({env:{...env,ODDS_API_KEY:'fake'},cli:'mock',run:()=>responses.shift(),
+ read:()=>JSON.stringify(config),write:()=>assert.fail('Must not claim configured')}),/restoration was not confirmed/);
+});
