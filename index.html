@@ -764,6 +764,12 @@ body{font-size:14px;letter-spacing:0}
     const status = $('#home-data-status');
     if (!root || !status) return;
     $$('.home-tab').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.featuredLeague===state.league)));
+    const tabs=$('.home-tabs'),activeTab=tabs?.querySelector('[aria-pressed="true"]');
+    if(activeTab){
+      const bounds=tabs.getBoundingClientRect(),active=activeTab.getBoundingClientRect();
+      if(active.left<bounds.left)tabs.scrollLeft-=bounds.left-active.left;
+      else if(active.right>bounds.right)tabs.scrollLeft+=active.right-bounds.right;
+    }
     root.replaceChildren();
     featuredAnalyses.clear();
     const add = (parent,tag,className,value) => {

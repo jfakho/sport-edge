@@ -39,6 +39,10 @@ export async function verifyMobileJourney(page,{searchTeam='Chelsea',capture=asy
   for(const league of ['fr.1','en.1','es.1','it.1','de-live','intl.cl']){
     await page.locator('.home-tab[data-featured-league="'+league+'"]').click();
     assert.equal(await cards.count(),3);
+    assert.ok(await page.locator('.home-tab[aria-pressed="true"]').evaluate(el=>{
+      const tab=el.getBoundingClientRect(),strip=el.parentElement.getBoundingClientRect();
+      return tab.left>=strip.left-1&&tab.right<=strip.right+1;
+    }),'The selected competition must stay visible in the mobile tab strip');
     const names=await cards.first().locator('.featured-scenario-market').allTextContents();
     const probs=(await cards.first().locator('.scenario-probability').allTextContents()).map(t=>parseInt(t,10));
     await cards.first().locator('.featured-action').click();
