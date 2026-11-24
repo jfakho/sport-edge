@@ -1,32 +1,73 @@
 /**
  * COTEGO — adaptation des rencontres football-data.org v4.
- * Préparatoire : NON branché au site public ou au Worker.
+ * Adaptateur utilisé par le Worker /api/football/:league.
  * API : https://www.football-data.org/documentation/api
  * Aucune clé n'est demandée ici. Utiliser plus tard un secret Cloudflare côté serveur.
  */
 
+import {teamDisplayName} from './team-names.mjs';
+import {editorialPriority} from './featured-priority.mjs';
+
 export const COMPETITIONS = Object.freeze({
   'fr.1': 'FL1', 'en.1': 'PL', 'es.1': 'PD',
   'de.1': 'BL1', 'it.1': 'SA',
+  'intl.cl': 'CL', 'intl.wc': 'WC', 'intl.ec': 'EC',
 });
 
 const INVALID_STATUS = new Set(['CANCELLED', 'POSTPONED', 'SUSPENDED']);
 const FINAL_STATUS = 'FINISHED';
+const PARIS_TIME_FORMAT = new Intl.DateTimeFormat('en-GB', {
+    timeZone:'Europe/Paris',
+    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',
+    hourCycle:'h23',
+});
 
 function validGoal(value) {
   return Number.isInteger(value) && value >= 0 && value <= 35;
 }
 
 function safeDateTime(utcDate) {
-  if (typeof utcDate !== 'string') return null;
+  // Provider timestamps must include an explicit timezone. Date.parse otherwise
+  // interprets local-time strings differently across runtimes, corrupting
+  // kick-off ordering and potentially pre-match audit boundaries.
+  if (typeof utcDate !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(utcDate)) return null;
+  // Date.parse normalizes impossible calendar dates (e.g. February 30) on
+  // some runtimes. Reject them before accepting a provider fixture.
+  // Reject impossible UTC offsets before Date.parse: provider timestamps must
+  // represent a real civil timezone (maximum UTC+14, minimum UTC-12).
+  const offset = /([+-])(\d{2}):(\d{2})$/.exec(utcDate);
+  if (offset) {
+    const hours = Number(offset[2]);
+    const minutes = Number(offset[3]);
+    const maximum = offset[1] === '+' ? 14 : 12;
+    if (hours > maximum || minutes > 59 || (hours === maximum && minutes !== 0)) return null;
+  }
+  const fields = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/.exec(utcDate);
+  if (!fields) return null;
+  const [, year, month, day, hour, minute, second] = fields.map(Number);
+  if (month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59 || second > 59) return null;
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (day > daysInMonth) return null;
   const milliseconds = Date.parse(utcDate);
   if (!Number.isFinite(milliseconds)) return null;
   const date = new Date(milliseconds);
+  // France-facing UI uses the local Paris kick-off date and time, including DST.
+  const pieces = PARIS_TIME_FORMAT.formatToParts(date);
+  const p = Object.fromEntries(pieces.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
   return {
-    date: date.toISOString().slice(0, 10),
-    time: date.toISOString().slice(11, 16),
+    date: p.year+'-'+p.month+'-'+p.day,
+    time: p.hour+':'+p.minute,
     timestamp: milliseconds,
   };
+}
+
+function safeCrest(value) {
+  if(typeof value!=='string')return null;
+  try {
+    const u=new URL(value);
+    return u.origin==='https://crests.football-data.org'&&!u.username&&!u.password&&!u.search&&!u.hash
+      &&/^\/[a-zA-Z0-9_-]+\.(png|svg|webp)$/.test(u.pathname)?u.href:null;
+  }catch{return null;}
 }
 
 function safeTeam(team) {
@@ -34,7 +75,7 @@ function safeTeam(team) {
   const id = Number(team.id);
   const name = String(team.name || team.shortName || '').trim();
   if (!Number.isSafeInteger(id) || id <= 0 || !name) return null;
-  return {id, name};
+  return {id, crest:safeCrest(team.crest), name:teamDisplayName(id,name),aliases:[...new Set([name,team.shortName,teamDisplayName(id,name)].filter(s=>typeof s==='string'&&s.trim()).map(s=>s.trim()))]};
 }
 
 /** Normalize a v4 match for COTEGO's existing decodeDataset() without
@@ -52,8 +93,15 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
   if (home.id === away.id) return null;
   const nowMs = now instanceof Date ? now.getTime() : NaN;
   if (!Number.isFinite(nowMs)) throw new TypeError('now must be a valid Date');
-  const finished = status === FINAL_STATUS && time.timestamp <= nowMs;
-  const ft = match.score?.fullTime;
+  // A provider record marked FINISHED before its scheduled kick-off is
+  // contradictory. Reject it rather than exposing a fake upcoming fixture
+  // or silently treating the unverified final score as a scheduled match.
+  if (status === FINAL_STATUS && time.timestamp > nowMs) return null;
+  const finished = status === FINAL_STATUS;
+  // All modeled markets refer to 90 minutes plus stoppage time. In v4,
+  // fullTime can include extra time and even a shootout aggregate.
+  const extended=['EXTRA_TIME','PENALTY_SHOOTOUT'].includes(match.score?.duration);
+  const ft = extended ? match.score?.regularTime : match.score?.fullTime;
   // A live/paused match is NEVER considered finished for COTEGO's model.
   const hasScore = finished && validGoal(ft?.home) && validGoal(ft?.away);
   if (finished && !hasScore) return null;
@@ -68,8 +116,13 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
     score: hasScore ? {ft:[ft.home, ft.away], ...(validHt ? {ht:[ht.home,ht.away]} : {})} : null,
     _source: 'football-data.org',
     _sourceId: id,
+    _kickoffUtc: new Date(time.timestamp).toISOString(),
     _teamIds: [home.id,away.id],
+    _teamCrests: [home.crest,away.crest],
+    _teamAliases:[home.aliases,away.aliases],
+    _editorialPriority:editorialPriority({_teamIds:[home.id,away.id]},league),
     _status: status,
+    _scoreScope:'REGULAR_TIME',
   };
 }
 
@@ -77,19 +130,36 @@ export function normalizeFootballDataMatch(match, league, now = new Date()) {
 export function normalizeFootballDataSeason(payload, league, now = new Date()) {
   if (!payload || !Array.isArray(payload.matches)) throw new Error('Invalid football-data.org match list');
   if (!COMPETITIONS[league]) throw new Error('Unknown competition');
+  // A provider response for the wrong competition must never be attributed to
+  // the requested league: that would contaminate fixtures and audit history.
+  if (payload.competition?.code != null && payload.competition.code !== COMPETITIONS[league])
+    throw new Error('Mismatched competition in provider response');
   const result = new Map();
+  const conflicts = new Set();
   for (const match of payload.matches) {
     const normalized = normalizeFootballDataMatch(match,league,now);
-    if (!normalized) continue;
+    if (!normalized || conflicts.has(normalized._sourceId)) continue;
+    const previous = result.get(normalized._sourceId);
+    // Never silently overwrite contradictory records for the same provider ID:
+    // a different fixture, status or final score makes the result unauditable.
+    if (previous && JSON.stringify(previous) !== JSON.stringify(normalized)) {
+      result.delete(normalized._sourceId);
+      conflicts.add(normalized._sourceId);
+      continue;
+    }
     result.set(normalized._sourceId, normalized);
   }
-  return [...result.values()].sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  // Sort by absolute kick-off instant, not Paris wall-clock time: during the
+  // autumn DST transition 02:30 can occur twice and local ordering is wrong.
+  // A deterministic provider-ID tie-breaker also stabilizes audit exports.
+  return [...result.values()].sort((a,b) => Date.parse(a._kickoffUtc) - Date.parse(b._kickoffUtc)
+    || a._sourceId - b._sourceId);
 }
 
 /** Source metadata for the UI, not a guarantee of truth or live status. */
 export function footballDataFreshness(matches, now = new Date()) {
   const timestamps = matches.filter(m=>Array.isArray(m.score?.ft))
-    .map(m=>Date.parse(m.date+'T'+(m.time||'00:00')+':00Z'))
+    .map(m=>m._kickoffUtc ? Date.parse(m._kickoffUtc) : Date.parse(m.date+'T'+(m.time||'00:00')+':00Z'))
     .filter(Number.isFinite);
   const latest = timestamps.length ? Math.max(...timestamps) : null;
   const ageHours = latest === null ? null : Math.max(0,(now.getTime()-latest)/3600000);
@@ -101,4 +171,23 @@ export function footballDataFreshness(matches, now = new Date()) {
       : ageHours > 7*24 ? 'Résultats anciens : analyse à contrôler'
       : 'Dates à recouper avec la source',
   };
+}
+
+/** Upcoming fixtures must be genuinely scheduled, not matches already in play. */
+export function selectUpcomingMatches(matches, now = new Date(), limit = 12) {
+  const nowMs = now.getTime();
+  if (!Number.isFinite(nowMs)) throw new TypeError('now must be a valid Date');
+  // Never rely on the upstream API ordering: always show the next real fixtures first.
+  // Avoid mutating the cached source array, and break same-kickoff ties consistently.
+  if (!Array.isArray(matches)) throw new TypeError('matches must be an array');
+  if (!Number.isSafeInteger(limit) || limit < 0) throw new RangeError('limit must be a non-negative integer');
+  return matches.filter(m => m && m.score === null
+    && (m._status === 'SCHEDULED' || m._status === 'TIMED')
+    && Number.isFinite(Date.parse(m._kickoffUtc))
+    && Date.parse(m._kickoffUtc) > nowMs
+    // Do not advertise distant fixtures as current editorial picks.
+    && Date.parse(m._kickoffUtc) <= nowMs + 30 * 24 * 60 * 60 * 1000)
+    .sort((a,b) => Date.parse(a._kickoffUtc) - Date.parse(b._kickoffUtc)
+      || Number(a._sourceId || 0) - Number(b._sourceId || 0))
+    .slice(0,limit);
 }

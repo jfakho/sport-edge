@@ -1,10 +1,12 @@
-const CACHE='cotego-shell-github-v01';
-const SHELL=['/','/manifest.webmanifest','/favicon.svg'];
+const CACHE='cotego-shell-20261124-odds-01';
+const SHELL=['/','/manifest.webmanifest','/favicon.svg','/cotego-rework.css','/cotego-sport.css?v=20261124-mobile-2','/cotego-platform.js?v=20261124-odds-1','/live-scores.js','/cotego-media.js?v=20261115-1','/cotego-presentation.js?v=20261115-1'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener('activate', event => event.waitUntil((async()=>{for(const name of await caches.keys()) if(name !== CACHE) await caches.delete(name);await self.clients.claim()})()));
+self.addEventListener('activate', event => event.waitUntil((async()=>{for(const name of await caches.keys()) if(name.startsWith('cotego-shell-') && name !== CACHE) await caches.delete(name);await self.clients.claim()})()));
 self.addEventListener('fetch', event => {
   const request=event.request;
   if(request.method!=='GET' || new URL(request.url).origin!==self.location.origin)return;
+  // Live match feeds and prediction audit must never be served from the offline shell cache.
+  if(new URL(request.url).pathname === '/api' || new URL(request.url).pathname.startsWith('/api/'))return;
   if(request.mode==='navigate')event.respondWith(fetch(request).catch(()=>caches.match('/')));
   else event.respondWith(caches.match(request).then(response=>response||fetch(request)));
 });

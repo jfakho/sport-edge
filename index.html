@@ -3,9 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a1019">
+  <meta name="theme-color" content="#f6f4ef">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="COTEGO">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="description" content="COTEGO : statistiques de matchs et probabilités football, tennis et basket. Retrouvez les buts attendus, les scénarios et les sources des données.">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex,nofollow">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="COTEGO">
@@ -133,46 +138,111 @@ body{font-size:14px;letter-spacing:0}
 .cotego-live-header button:disabled{opacity:.5;cursor:wait}
 @media(max-width:800px){.cotego-live-list{grid-template-columns:1fr}.cotego-live-panel{padding:17px}.cotego-live-header h2{font-size:17px}.cotego-live-tag{font-size:8px}.cotego-live-header button{flex-shrink:0}}
 
+
+/* COTEGO · amélioration mobile : informations clés visibles plus rapidement.
+   Exclusivement écran étroit, sans supprimer aucun élément ou action. */
+@media (max-width:760px) {
+  #page-dashboard > .hero { min-height:0; padding:22px 23px; border-radius:14px; }
+  #page-dashboard > .hero .hero-overline { font-size:9px; letter-spacing:1.35px; }
+  #page-dashboard > .hero h1 { font-size:clamp(26px,7.2vw,32px); line-height:1.13; margin:10px 0 8px; }
+  #page-dashboard > .hero p { font-size:12px; line-height:1.48; }
+  #page-dashboard > .hero .hero-actions { margin-top:15px; gap:8px; }
+  #page-dashboard > .hero .hero-actions .btn { min-height:44px; padding:10px 12px; white-space:normal; text-align:center; gap:7px; }
+  #page-dashboard > .data-status { padding:11px 12px; margin-top:12px; }
+  #page-dashboard > .stats-grid { gap:10px; margin-top:12px; }
+  #page-dashboard > .stats-grid .stat { padding:14px 12px; border-radius:11px; }
+  #page-dashboard > .stats-grid .stat-number { font-size:30px; line-height:1.25; margin-top:5px; }
+  #page-dashboard > .stats-grid .stat-number.stat-date { font-size:21px; }
+  #page-dashboard > .cotego-live-panel { margin-top:14px; }
+  #page-dashboard > .section-heading { margin-top:25px; }
+}
+@media (max-width:390px) {
+  #page-dashboard > .hero .hero-actions .btn { font-size:11px; }
+}
+/* Un bouton indisponible ne doit jamais ressembler à une action activable. */
+.analysis-btn:disabled{background:#18212b;color:#7d8997;border-color:#344254;cursor:not-allowed;opacity:.85}
+.analysis-btn:disabled:hover{background:#18212b}
 </style>
-  <title>COTEGO | Analyses football, tennis et basket</title>
+  <title>COTEGO | Le football, vu par les chiffres</title>
+  <link rel="stylesheet" href="/cotego-rework.css?v=20261124-mobile-2">
+  <link rel="stylesheet" href="/cotego-sport.css?v=20261124-mobile-2">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand"><div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></div><div><strong>COTE<span>GO</span></strong><small>SPORTS DATA / ANALYSES</small></div></div>
-      <div class="sidebar-label">ESPACE DE TRAVAIL</div>
+      <div class="brand"><div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></div><div><strong>COTE<span>GO</span></strong><small>Analyses football</small></div></div>
+      <div class="sidebar-label">NAVIGATION</div>
       <nav class="sidebar-nav" aria-label="Navigation principale">
-        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">◫</span> Tableau de bord</button>
-        <button class="nav-item" data-page="history"><span class="nav-icon">◷</span> Historique & tests</button>
-        <button class="nav-item" data-page="lab"><span class="nav-icon">◈</span> Tennis & basket <span class="alpha-tag">TEST</span></button>
-        <button class="nav-item" data-page="method"><span class="nav-icon">◎</span> Notre méthode</button>
-        <button class="nav-item" data-page="import"><span class="nav-icon">↥</span> Importer des données</button>
-        <button class="nav-item" data-page="membership"><span class="nav-icon">▤</span> Abonnements</button>
+        <button class="nav-item active" data-page="home"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10h-6v-6H9v6H3Z"/></svg></span> À la une</button>
+        <button class="nav-item" data-page="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></span> Les matchs</button>
+        <button class="nav-item" data-link="dashboard" data-favs="1"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></svg></span> Mes favoris</button>
+        <button class="nav-item" data-page="membership"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 9-9 9-9-9Z"/><path d="M8 12h8m-4-4v8"/></svg></span> COTEGO Plus <span class="alpha-tag">BÊTA</span></button>
+        <div class="sidebar-label competition-label">COMPÉTITIONS</div>
+        <button class="competition-link" data-competition="fr.1"><img class="league-logo" src="/media/ligue-1.png" alt="" width="48" height="28"> Ligue 1 <i>›</i></button>
+        <button class="competition-link" data-competition="en.1"><img class="league-logo" src="/media/premier-league.png" alt="" width="48" height="28"> Premier League <i>›</i></button>
+        <button class="competition-link" data-competition="es.1"><img class="league-logo" src="/media/laliga.png" alt="" width="48" height="28"> La Liga <i>›</i></button>
+        <button class="competition-link" data-competition="de-live"><img class="league-logo" src="/media/bundesliga.png" alt="" width="48" height="28"> Bundesliga <i>›</i></button>
+        <button class="competition-link" data-competition="it.1"><img class="league-logo" src="/media/serie-a.png" alt="" width="48" height="28"> Serie A <i>›</i></button>
+        <button class="competition-link" data-competition="intl.cl"><span>UE</span> Ligue des champions <i>›</i></button>
+        <div class="sidebar-label" style="margin:18px 13px 6px">EXPLORER</div>
+        <button class="nav-item" data-page="history"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg></span> Historique & tests</button>
+        <button class="nav-item" data-page="lab"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18 5-5 5-13 0-18"/></svg></span> Tennis & basket <span class="alpha-tag">TEST</span></button>
+        <button class="nav-item" data-page="method"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 15v-3m4 3V7m4 8v-5"/></svg></span> La méthode</button>
+        <button class="nav-item" data-page="import"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6"/></svg></span> Importer</button>
+        <button class="nav-item" data-page="install"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4"/></svg></span> Installer COTEGO</button>
+        <button class="nav-item" data-page="about"><span class="nav-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.01"/></svg></span> À propos & sources</button>
       </nav>
       <div class="sidebar-grow"></div>
-      <div class="side-highlight"><span class="mini-light"></span><div><strong>Version 0.3 · Bêta</strong><p>Modèle ouvert · Sans promesse de gain</p></div></div>
-      <div class="side-bottom">COTEGO · nom candidat (non validé) © <span id="copyright-year"></span><br>Analyse statistique, pas conseil financier.</div>
+      <div class="side-highlight"><span class="mini-light"></span><div><strong>Bêta football gratuite</strong><p>Modèle ouvert · Sans promesse de gain</p></div></div>
+      <div class="side-bottom">COTEGO · Analyses sportives © <span id="copyright-year"></span><br>Analyse statistique, pas conseil financier.</div>
     </aside>
     <main class="main-area">
       <header class="topbar">
         <button class="mobile-menu" id="mobile-menu" aria-label="Ouvrir le menu">☰</button>
-        <div class="breadcrumb">COTEGO <span>/</span> <span id="breadcrumb-page">Tableau de bord</span></div>
-        <div class="topbar-right"><span class="live-badge"><i></i> BÊTA</span><div class="avatar">CG</div></div>
+        <div class="breadcrumb">COTEGO <span>/</span> <span id="breadcrumb-page">À la une</span></div>
+        <form class="global-search" id="global-search" role="search"><label class="sr-only" for="global-search-input">Rechercher une équipe</label><span aria-hidden="true">⌕</span><input id="global-search-input" placeholder="Rechercher une équipe…" autocomplete="off"><button type="submit" aria-label="Rechercher">OK</button></form>
+        <div class="topbar-right"><button class="header-plus" data-link="membership">COTEGO Plus</button><span class="live-badge"><i></i> BÊTA</span><div class="avatar">CG</div></div>
       </header>
 
-      <section class="page visible" id="page-dashboard">
+      <section class="page visible" id="page-home">
+        <nav class="sports-nav" aria-label="Sports et résultats"><button class="selected" data-page="home"><span>⚽</span> Football</button><button data-page="lab"><span>◉</span> Tennis <small>LAB</small></button><button data-page="lab"><span>◈</span> Basket <small>LAB</small></button><button data-page="history" class="sports-results">Historique & résultats <span>›</span></button></nav>
+        <section class="matchday-banner" aria-labelledby="matchday-title"><div><h1 id="matchday-title">Football</h1><p>Calendrier, analyses et résultats.</p></div><button class="btn btn-outline" data-link="dashboard">Tous les matchs</button></section>
+        <div class="home-workspace"><div class="home-center">
+        <div class="home-intro"><div><h2>À l’affiche</h2></div><span class="home-status" id="home-data-status" role="status">Chargement des rencontres…</span></div>
+        <div class="home-tabs" role="group" aria-label="Choisir un championnat">
+          <button type="button" class="home-tab" data-featured-league="fr.1" aria-pressed="true"><img class="league-logo" src="/media/ligue-1.png" alt="" width="48" height="28">Ligue 1</button>
+          <button type="button" class="home-tab" data-featured-league="en.1" aria-pressed="false"><img class="league-logo" src="/media/premier-league.png" alt="" width="48" height="28">Premier League</button>
+          <button type="button" class="home-tab" data-featured-league="es.1" aria-pressed="false"><img class="league-logo" src="/media/laliga.png" alt="" width="48" height="28">Liga</button>
+          <button type="button" class="home-tab" data-featured-league="it.1" aria-pressed="false"><img class="league-logo" src="/media/serie-a.png" alt="" width="48" height="28">Serie A</button>
+          <button type="button" class="home-tab" data-featured-league="de-live" aria-pressed="false"><img class="league-logo" src="/media/bundesliga.png" alt="" width="48" height="28">Bundesliga</button>
+          <button type="button" class="home-tab" data-featured-league="intl.cl" aria-pressed="false">Ligue des champions</button>
+        </div>
+        <div class="home-section-head"><div><h2 class="sr-only">Sélection de rencontres</h2><span class="home-count" id="home-selection-count">3 rencontres</span></div><div class="fixture-view" role="group" aria-label="Présentation des rencontres"><button type="button" data-fixture-view="photos" aria-pressed="true">Affiches</button><button type="button" data-fixture-view="list" aria-pressed="false">Liste</button></div></div>
+        <div class="featured-grid" id="featured-grid" aria-live="polite">
+          <div class="featured-empty">Chargement de la sélection de matchs…</div>
+        </div>
+        <div class="home-all"><button type="button" class="btn btn-outline" data-link="dashboard">Explorer tous les matchs</button></div>
+        </div><aside class="insight-rail" aria-label="Suivi COTEGO">
+          <section class="rail-card"><div class="rail-heading"><span class="status-dot"></span><span>Vos prévisions</span></div><h3>Les résultats</h3><p>Prévisions avant match, résultats après match.</p><div class="rail-metric"><strong id="rail-recorded-count">—</strong><span>prévisions archivées</span></div><div id="rail-journal-status" class="rail-status" role="status">Vérification du journal…</div><button class="rail-link" data-page="history">Voir l'historique <span>›</span></button></section>
+          <section class="rail-card odds-policy"><span class="rail-eyebrow">LES COTES RÉELLES</span><h3>Raccordement en cours.</h3><p id="rail-odds-status" class="rail-status">Vérification du raccordement…</p></section>
+          <section class="rail-card rail-plus"><span class="rail-eyebrow">BÊTA GRATUITE</span><h3>Trois cibles ouvertes.</h3><p>Après la bêta : cible 1,50 gratuite, analyses complètes avec Plus.</p><button class="btn btn-outline" data-link="membership">COTEGO Plus <span>›</span></button></section>
+        </aside></div>
+        <p class="home-disclaimer">Probabilités estimées, pas des cotes de bookmaker. Modèle expérimental ; aucun gain garanti. <button type="button" data-link="method">Comprendre les estimations</button></p>
+      </section>
+
+      <section class="page" id="page-dashboard">
         <div class="hero">
           <div class="hero-copy">
             <div class="hero-overline">COTEGO / ANALYSES SPORTIVES</div>
-            <h1>Le match, vu par<br><em>les chiffres.</em></h1>
+            <h1>Matchs & analyses</h1>
             <p>Calendriers, résultats et probabilités expliquées. Une lecture statistique des rencontres, avec leurs sources et leurs limites.</p>
-            <div class="hero-actions"><button class="btn btn-primary" id="jump-matches">Voir les rencontres <span>↗</span></button><button class="btn btn-outline" data-link="method">Comprendre les calculs <span>↗</span></button></div>
+            <div class="hero-actions"><button class="btn btn-primary" id="jump-matches">Voir les rencontres <span>›</span></button><button class="btn btn-outline" data-link="method">Comprendre les calculs <span>›</span></button></div>
           </div>
           <div class="hero-aside" aria-hidden="true"><span class="hero-aside-label">FOOTBALL / TENNIS / BASKET</span><div class="hero-aside-rule"></div><span class="hero-aside-small">Données avant opinions.</span></div>
         </div>
         <div class="data-status" id="source-status" role="status"><div><span class="source-dot"></span><strong id="source-name">Vérification des données</strong><span id="source-details">Chargement de la compétition sélectionnée…</span></div><span id="source-flag" class="source-flag">En attente</span></div>
         <div class="stats-grid">
-          <div class="stat"><div class="stat-top">MATCHS À VENIR <span>↗</span></div><div class="stat-number" id="metric-upcoming">—</div><div class="stat-desc" id="metric-window">Sur la période choisie</div></div>
+          <div class="stat"><div class="stat-top">MATCHS À VENIR <span>›</span></div><div class="stat-number" id="metric-upcoming">—</div><div class="stat-desc" id="metric-window">Sur la période choisie</div></div>
           <div class="stat"><div class="stat-top">MATCHS HISTORIQUES <span>◷</span></div><div class="stat-number" id="metric-played">—</div><div class="stat-desc">Utilisables pour les calculs</div></div>
           <div class="stat"><div class="stat-top">MODÈLES DE SCÉNARIOS <span>◎</span></div><div class="stat-number">03</div><div class="stat-desc">Cibles théoriques : 1,5 · 2 · 3</div></div>
           <div class="stat"><div class="stat-top">DERNIER SCORE ARCHIVÉ <span>◌</span></div><div class="stat-number stat-date" id="metric-latest">—</div><div class="stat-desc" id="metric-freshness">Vérifiez la fraîcheur des données</div></div>
@@ -185,24 +255,26 @@ body{font-size:14px;letter-spacing:0}
           <div id="cotego-live-status" class="cotego-live-status" role="status">Connexion au flux de scores…</div>
           <div id="cotego-live-list" class="cotego-live-list" aria-live="off"></div>
           <p class="cotego-live-refreshed" id="cotego-live-refreshed">Fréquence visée : consultation toutes les 2 minutes lorsque la page est ouverte.</p>
-          <div class="cotego-live-foot"><span><a href="https://sportscore.com/" rel="dofollow" title="Sports data by SportScore" target="_blank">Powered by SportScore</a> · données fournies sans garantie d'exhaustivité ni de délai</span><a href="https://www.flashscore.fr/football/france/ligue-1/" target="_blank" rel="noopener noreferrer">Comparer avec Flashscore ↗</a></div>
+          <div class="cotego-live-foot"><span><a href="https://sportscore.com/" rel="dofollow" title="Sports data by SportScore" target="_blank">Powered by SportScore</a> · données fournies sans garantie d'exhaustivité ni de délai</span><a href="https://www.flashscore.fr/football/france/ligue-1/" target="_blank" rel="noopener noreferrer">Comparer avec Flashscore ›</a></div>
         </section>
         <div class="section-heading" id="matches-anchor"><div><div class="section-overline">FOOTBALL / CALENDRIER</div><h2>Rencontres à analyser <span id="visible-count" class="count-tag">0</span></h2><p id="dataset-subtitle">Choisissez une compétition pour charger les rencontres.</p></div><button class="btn btn-outline btn-small" id="refresh-data">↻ Actualiser</button></div>
-        <div class="filters"><label class="filter-control">COMPÉTITION<select id="league-select"><option value="fr.1">🇫🇷 Ligue 1</option><option value="en.1">🏴 Premier League</option><option value="es.1">🇪🇸 La Liga</option><option value="de-live">🇩🇪 Bundesliga · résultats récents</option><option value="de.1">🇩🇪 Bundesliga · archives CC0</option><option value="it.1">🇮🇹 Serie A</option><option value="demo">◈ Ligue démo</option><option value="custom">↥ Mes données</option></select></label><label class="filter-control">HORIZON<select id="window-select"><option value="14">14 jours</option><option value="30" selected>30 jours</option><option value="90">90 jours</option><option value="365">Toute la saison</option></select></label><label class="filter-control filter-search">RECHERCHER<input id="search-input" autocomplete="off" placeholder="Nom d'une équipe…"></label><button class="filter-fav" id="favorites-toggle" aria-pressed="false" title="Afficher uniquement les favoris">☆ <span>Mes favoris</span></button></div>
+        <div class="filters"><label class="filter-control">COMPÉTITION<select id="league-select"><option value="all">Toutes les compétitions</option><option value="fr.1">🇫🇷 Ligue 1</option><option value="en.1">🏴 Premier League</option><option value="es.1">🇪🇸 La Liga</option><option value="de-live">🇩🇪 Bundesliga</option><option value="it.1">🇮🇹 Serie A</option><option value="intl.cl">🌍 Ligue des champions</option><option value="intl.wc">🌍 Coupe du monde</option><option value="intl.ec">🇪🇺 Euro</option><option value="demo">◈ Ligue démo</option><option value="custom">↥ Mes données</option></select></label><label class="filter-control">HORIZON<select id="window-select"><option value="14">14 jours</option><option value="30" selected>30 jours</option><option value="90">90 jours</option><option value="365">Toute la saison</option></select></label><label class="filter-control filter-search">RECHERCHER<input id="search-input" autocomplete="off" placeholder="Nom d'une équipe…"></label><button class="filter-fav" id="favorites-toggle" aria-pressed="false" title="Afficher uniquement les favoris">☆ <span>Mes favoris</span></button></div>
         <div id="data-notice" class="notice hidden" role="status"></div>
         <div id="matches-list" class="matches-grid"><div class="loading-state"><div class="spinner"></div><strong>Chargement de la compétition…</strong><p>Nous récupérons les données ouvertes disponibles.</p></div></div>
         <div class="bottom-disclaimer"><span>ⓘ</span> Les chiffres affichés dans les cartes sont <strong>des simulations statistiques, et non des prévisions validées</strong>. Les cotes théoriques sont calculées comme 1 / probabilité modélisée ; ce ne sont pas des offres de bookmakers. Le modèle n'a pas encore fait l'objet d'une validation prédictive suffisante pour être utilisé comme conseil de mise.</div>
       </section>
 
       <section class="page" id="page-history">
-        <div class="page-intro"><div class="section-overline">TRANSPARENCE</div><h1>Historique <em>& test rétrospectif</em></h1><p>Le modèle est évalué chronologiquement : pour prévoir un match passé, il n'utilise que les matchs antérieurs. Un échantillon limité ne démontre pas une rentabilité.</p></div>
-        <div id="backtest-content"><div class="empty-panel">Chargez une compétition pour calculer les performances rétrospectives.</div></div>
+        <div class="page-intro"><div class="section-overline">LA TRANSPARENCE DU MODÈLE</div><h1>Nos analyses.<br><em>Les résultats du terrain.</em></h1><p>Les prévisions enregistrées avant le coup d'envoi sont suivies séparément des simulations recalculées sur les matchs passés. Les réussites et les échecs sont tous conservés.</p></div>
+        <label class="filter-control">COMPÉTITION<select id="history-league-select"><option value="fr.1">Ligue 1</option><option value="en.1">Premier League</option><option value="es.1">La Liga</option><option value="de-live">Bundesliga</option><option value="it.1">Serie A</option><option value="intl.cl">Ligue des champions</option><option value="intl.wc">Coupe du monde</option><option value="intl.ec">Euro</option><option value="demo">Ligue démo</option><option value="custom">Mes données</option></select></label>
+        <div id="journal-content" class="journal-content" aria-live="polite"><div class="empty-panel">Vérification des prévisions enregistrées…</div></div>
+        <details class="retrospective-section"><summary>Explorer les simulations rétrospectives <span>Recalculs après match · distincts des prévisions enregistrées</span></summary><div id="backtest-content"><div class="empty-panel">Chargez une compétition pour calculer les performances rétrospectives.</div></div></details>
       </section>
 
       <section class="page" id="page-method">
         <div class="page-intro"><div class="section-overline">NOTRE MÉTHODE</div><h1>Des chiffres, <em>pas de certitudes.</em></h1><p>COTEGO calcule des probabilités pour apprendre à lire un match. Les résultats sont indicatifs et le modèle n'est pas encore validé pour un usage de paris.</p></div>
         <div class="info-grid"><article class="info-card"><div class="info-index">01</div><h3>Données historiques</h3><p>Résultats à domicile et à l'extérieur, moyenne de buts du championnat et évolution récente. Les rencontres à venir ne sont jamais utilisées pour entraîner les probabilités.</p></article><article class="info-card"><div class="info-index">02</div><h3>Modèle de Poisson</h3><p>Estimation du nombre de buts attendus pour chaque équipe à partir des forces offensives et défensives, puis calcul de la distribution de scores et des marchés usuels.</p></article><article class="info-card"><div class="info-index">03</div><h3>Trois niveaux de lecture</h3><p>Trois marchés différents, choisis par proximité avec des cotes théoriques de 1,50, 2,00 et 3,00. Ces niveaux ne constituent pas des garanties de réussite.</p></article><article class="info-card"><div class="info-index">04</div><h3>Vérification et limites</h3><p>Indicateur de fraîcheur des données, test chronologique (Brier 1X2), comparaison optionnelle avec une cote saisie manuellement. Aucun gain ou retour sur investissement garanti.</p></article></div>
-        <div class="method-long"><h2>Comment sont calculées les probabilités ?</h2><p>Les moyennes de buts des équipes sont comparées aux moyennes du championnat. Pour éviter les extrêmes sur un petit échantillon, chaque force est régularisée par cinq rencontres fictives de force neutre. Le modèle prend ensuite en compte le terrain et génère tous les scores de 0 à 10 buts pour les deux équipes avec une loi de Poisson.</p><p>La probabilité d'un événement est la somme des scores compatibles avec cet événement. Sa cote théorique sans marge est <strong>1 / probabilité</strong>. Si vous saisissez une cote réelle relevée vous-même, l'application affiche l'écart théorique, <strong>(probabilité × cote – 1)</strong>, qui reste tributaire de la précision du modèle.</p><p><strong>Ce que la V0 ne prend pas en compte :</strong> composition probable, blessures, cartons, météo, changements d'entraîneur, xG réels, calendrier européen, dynamique psychologique et marge effective des bookmakers. Les « buts attendus » de l'application sont des espérances Poisson issues des scores passés, et non des xG fondés sur les tirs.</p><p class="method-alert">Avertissement : modèle exploratoire non calibré sur une période hors échantillon assez longue. Ne pas en déduire un avantage de pari ou une prédiction certaine. Réservé à l'analyse sportive ; 18+ si utilisé dans un contexte de paris. Pour toute difficulté liée au jeu : <a href="https://www.joueurs-info-service.fr/" target="_blank" rel="noopener noreferrer">Joueurs Info Service ↗</a>.</p></div>
+        <div class="method-long"><h2>Comment sont calculées les probabilités ?</h2><p>Les moyennes de buts des équipes sont comparées aux moyennes du championnat. Pour éviter les extrêmes sur un petit échantillon, chaque force est régularisée par cinq rencontres fictives de force neutre. Le modèle prend ensuite en compte le terrain et génère tous les scores de 0 à 10 buts pour les deux équipes avec une loi de Poisson.</p><p>La probabilité d'un événement est la somme des scores compatibles avec cet événement. Sa cote théorique sans marge est <strong>1 / probabilité</strong>. Si vous saisissez une cote réelle relevée vous-même, l'application affiche l'écart théorique, <strong>(probabilité × cote – 1)</strong>, qui reste tributaire de la précision du modèle.</p><p><strong>Ce que la V0 ne prend pas en compte :</strong> composition probable, blessures, cartons, météo, changements d'entraîneur, xG réels, calendrier européen, dynamique psychologique et marge effective des bookmakers. Les « buts attendus » de l'application sont des espérances Poisson issues des scores passés, et non des xG fondés sur les tirs.</p><p class="method-alert">Avertissement : modèle exploratoire non calibré sur une période hors échantillon assez longue. Ne pas en déduire un avantage de pari ou une prédiction certaine. Réservé à l'analyse sportive ; 18+ si utilisé dans un contexte de paris. Pour toute difficulté liée au jeu : <a href="https://www.joueurs-info-service.fr/" target="_blank" rel="noopener noreferrer">Joueurs Info Service ›</a>.</p></div>
       </section>
 
 
@@ -218,32 +290,81 @@ body{font-size:14px;letter-spacing:0}
         </div>
         <div class="method-long"><h2>Actualiser les résultats tennis et basket</h2><p>Les sources automatiques avec droit de réutilisation commerciale ne sont pas raccordées. Vous pouvez importer localement vos propres résultats documentés : COTEGO en déduit des paramètres indicatifs pour les simulateurs. Aucun fichier n'est transmis à notre serveur.</p>
         <div class="sport-import-grid">
-          <div class="sport-import-card"><h3>Résultats tennis</h3><p>CSV : <code>date,player_a,player_b,winner</code>. Elo historique simplifié : chaque rencontre enregistrée modifie le score des deux joueurs, sans prise en compte de la surface.</p><input id="tennis-csv-file" type="file" accept=".csv,text/csv" aria-label="Importer des résultats tennis"><div class="sport-import-status" id="tennis-csv-status" role="status">Aucun fichier importé</div><button type="button" class="btn btn-outline btn-small" id="tennis-download-csv">Modèle CSV ↗</button></div>
-          <div class="sport-import-card"><h3>Résultats basket</h3><p>CSV : <code>date,home,away,home_points,away_points</code>. Les moyennes récentes alimentent la projection de points et la distribution normale.</p><input id="basket-csv-file" type="file" accept=".csv,text/csv" aria-label="Importer des résultats basket"><div class="sport-import-status" id="basket-csv-status" role="status">Aucun fichier importé</div><button type="button" class="btn btn-outline btn-small" id="basket-download-csv">Modèle CSV ↗</button></div>
+          <div class="sport-import-card"><h3>Résultats tennis</h3><p>CSV : <code>date,player_a,player_b,winner</code>. Elo historique simplifié : chaque rencontre enregistrée modifie le score des deux joueurs, sans prise en compte de la surface.</p><input id="tennis-csv-file" type="file" accept=".csv,text/csv" aria-label="Importer des résultats tennis"><div class="sport-import-status" id="tennis-csv-status" role="status">Aucun fichier importé</div><button type="button" class="btn btn-outline btn-small" id="tennis-download-csv">Modèle CSV ›</button></div>
+          <div class="sport-import-card"><h3>Résultats basket</h3><p>CSV : <code>date,home,away,home_points,away_points</code>. Les moyennes récentes alimentent la projection de points et la distribution normale.</p><input id="basket-csv-file" type="file" accept=".csv,text/csv" aria-label="Importer des résultats basket"><div class="sport-import-status" id="basket-csv-status" role="status">Aucun fichier importé</div><button type="button" class="btn btn-outline btn-small" id="basket-download-csv">Modèle CSV ›</button></div>
         </div></div>
         <div class="method-long"><h2>Prochaine phase multisport</h2><p>Tennis : intégration de données <strong>expressément autorisées pour un usage commercial</strong>, modèles par surface, probabilité de gagner un set puis le match, contrôle de calibration. Basket : données sous licence, nombre de possessions, efficacité offensive/défensive, fatigue, absences et modèles par ligue. Aucun scrape de données ATP/NBA sans droit de réutilisation.</p></div>
       </section>
 
       <section class="page" id="page-import">
         <div class="page-intro"><div class="section-overline">DONNÉES PERSONNALISÉES</div><h1>Importez <em>vos propres matchs.</em></h1><p>Analysez une compétition locale ou un fichier dont vous détenez les droits. Les fichiers restent dans votre navigateur : aucun serveur, aucun compte.</p></div>
-        <div class="import-panel"><div class="upload-symbol">↥</div><h2>Charger un fichier JSON ou CSV</h2><p>Formats acceptés : JSON OpenFootball, ou CSV avec en-têtes <code>date,home,away,home_goals,away_goals</code> et colonnes facultatives <code>ht_home,ht_away</code> pour les scores de mi-temps. Laissez les deux colonnes de buts vides pour les matchs à venir.</p><input id="file-input" type="file" accept=".json,.csv,application/json,text/csv" aria-label="Choisir un fichier CSV ou JSON"><label for="file-input" class="btn btn-primary choose-file">Choisir un fichier <span>↗</span></label><p class="file-hint" id="file-status">Aucun fichier chargé</p><button id="download-template" class="text-link">↓ Télécharger un modèle CSV</button></div>
+        <div class="import-panel"><div class="upload-symbol">↥</div><h2>Charger un fichier JSON ou CSV</h2><p>Formats acceptés : JSON OpenFootball, ou CSV avec en-têtes <code>date,home,away,home_goals,away_goals</code> et colonnes facultatives <code>ht_home,ht_away</code> pour les scores de mi-temps. Laissez les deux colonnes de buts vides pour les matchs à venir.</p><input id="file-input" type="file" accept=".json,.csv,application/json,text/csv" aria-label="Choisir un fichier CSV ou JSON"><label for="file-input" class="btn btn-primary choose-file">Choisir un fichier <span>›</span></label><p class="file-hint" id="file-status">Aucun fichier chargé</p><button id="download-template" class="text-link">↓ Télécharger un modèle CSV</button></div>
         <div class="import-tip"><strong>Données intégrées :</strong> le mode en ligne lit les calendriers et scores disponibles depuis <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball</a> (CC0). Les archives ne sont pas nécessairement à jour : une date de match passée sans résultat reste exclue des analyses. Le bouton « Démo » génère des données entièrement fictives.</div>
       </section>
 
       <section class="page" id="page-membership">
-        <div class="page-intro"><div class="section-overline">COTEGO / ABONNEMENTS</div><h1>Découvrir <em>COTEGO Plus.</em></h1><p>Les outils restent gratuits. Le paiement ci-dessous sert uniquement à tester le parcours d’abonnement Stripe : aucune carte réelle ne sera débitée et aucun accès premium n’est débloqué automatiquement.</p></div>
-        <div class="membership-grid">
-          <article class="membership-plan"><div class="membership-label">ACCÈS ACTUEL</div><h2>Découverte</h2><div class="membership-price">Gratuit</div><p>Accès aux statistiques disponibles, simulations football et calculateurs tennis/basket.</p><p class="membership-meta">Aucun compte requis · aucune donnée bancaire demandée</p><button class="btn btn-outline" data-link="dashboard">Consulter les matchs ↗</button></article>
-          <article class="membership-plan highlighted"><div class="membership-label">ENVIRONNEMENT DE TEST · AUCUN ENCAISSEMENT RÉEL</div><h2>COTEGO Plus</h2><div class="membership-price">9,90 € <span>/ mois · tarif de simulation</span></div><p>Historique enrichi, comparaisons et tableaux de bord personnels sont des fonctionnalités prévues, et non encore réservées à des abonnés.</p><div class="billing-alert" id="billing-status"><strong>SIMULATION STRIPE :</strong> ce lien ouvre Stripe en mode test. Utilisez uniquement des moyens de paiement fictifs officiels de Stripe. Les virements réels et l’accès premium sont désactivés.</div><a class="btn btn-primary" id="checkout-test-link" href="https://buy.stripe.com/test_00wdRae3p3iMfwJ0mk2VG00" rel="noopener noreferrer" target="_blank" aria-label="Ouvrir Stripe en mode test pour simuler un abonnement à 9,90 euros par mois">Simuler l’abonnement · Stripe TEST ↗</a><p class="membership-meta"><a href="https://billing.stripe.com/p/login/test_00wdRae3p3iMfwJ0mk2VG00" target="_blank" rel="noopener noreferrer">Gérer une souscription de test sur Stripe ↗</a></p><p class="membership-meta">Aucun accès premium n’est accordé au retour du paiement : seul un futur serveur pourra vérifier un événement Stripe signé et attribuer les droits. Aucune vraie vente n’est ouverte.</p></article>
+        <div class="page-intro">
+          <div class="section-overline">COTEGO / ACCÈS</div>
+          <h1>Votre accès COTEGO</h1>
+          <p>Trois cibles ouvertes pendant la bêta. Aucun paiement réel.</p>
         </div>
-        <div class="method-long"><h2>Informations avant vente</h2><p>Les abonnements ne seront ouverts qu'après mise en place d'une identification des abonnés, de la vérification des paiements côté serveur, d'un processus d'annulation et des mentions légales/CGV/gestion des données personnelles. Nous ne vendons ni gains garantis ni méthodes censées augmenter les chances de gagner aux jeux d'argent.</p></div>
+        <div class="membership-grid">
+          <article class="membership-plan">
+            <div class="membership-label">BÊTA OUVERTE</div>
+            <h2>Découverte</h2><div class="membership-price">Gratuit</div>
+            <p>La sélection du moment, les matchs à venir, les statistiques de base et des explications sur les modèles expérimentaux.</p>
+            <p class="membership-meta">Accès gratuit pendant la phase de validation technique.</p>
+            <button type="button" class="btn btn-outline" data-link="home">Découvrir les matchs ›</button>
+          </article>
+          <article class="membership-plan highlighted">
+            <div class="membership-label">PROJET D'ABONNEMENT · NON COMMERCIALISÉ</div>
+            <h2>COTEGO Plus</h2>
+            <div class="membership-price">9,90 € <span>/ mois envisagés</span></div>
+            <p>Après la bêta : toutes les cibles et analyses détaillées.</p>
+            <p class="membership-meta">Le tarif et les fonctionnalités devront être confirmés avant ouverture. Aucun achat réel n'est possible actuellement.</p>
+            <div class="billing-alert" id="billing-status"><strong>BÊTA GRATUITE :</strong> il n'existe pas encore de compte VIP ni de paiement en production. Les accès payants exigeront une identification fiable, des événements Stripe vérifiés et un contrôle serveur des droits.</div>
+
+          </article>
+        </div>
+        <div class="method-long"><h2>Avant l'ouverture commerciale</h2><p>Des droits d'accès gérés côté serveur, des CGV et mentions légales complètes, le traitement de la TVA, des procédures de résiliation et les obligations des plateformes mobiles restent à finaliser. COTEGO n'est pas une plateforme de paris et ne promet aucun gain ou amélioration des chances de gagner aux jeux d'argent.</p></div>
       </section>
 
-      <footer class="footer"><span>COTEGO · Prévisualisation du nom — version TEST Stripe — analyses expérimentales</span><span>Sources : <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball CC0 ↗</a> · <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB ODbL ↗</a> · <a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Données fournies par football-data.org ↗</a> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Prévention ANJ ↗</a></span></footer>
+      <section class="page" id="page-install">
+        <div class="section-overline">COTEGO / APPLICATION</div>
+        <h1>COTEGO, toujours à portée de main.</h1>
+        <p class="home-desc">Installez dès maintenant la version web de COTEGO depuis votre navigateur, sans achat et sans passer par une boutique d'applications.</p>
+        <div class="info-card"><h3>Sur iPhone</h3><p>Ouvrez <strong>cotego.fr</strong> dans Safari, touchez <strong>Partager</strong> puis <strong>Sur l'écran d'accueil</strong>. Confirmez l'ajout. Ce n'est pas encore une application native de l'App Store.</p></div>
+        <div class="info-card"><h3>Sur Android</h3><p>Ouvrez <strong>cotego.fr</strong> dans Chrome, utilisez le menu du navigateur puis <strong>Installer l'application</strong> ou <strong>Ajouter à l'écran d'accueil</strong> selon votre appareil.</p></div>
+        <div class="info-card"><h3>App Store et Google Play</h3><p>Les versions natives nécessitent des comptes développeur, des validations techniques et le respect des règles de facturation de chaque plateforme. Elles seront proposées après la stabilisation de la bêta.</p></div>
+      </section>
+
+      <section class="page" id="page-about">
+        <div class="section-overline">COTEGO / TRANSPARENCE</div>
+        <h1>À propos & sources.</h1>
+        <p class="home-desc">COTEGO propose une lecture statistique de rencontres sportives. Nos probabilités sont des estimations expérimentales et non des recommandations de paris.</p>
+        <div class="info-card"><h3>Origine des données</h3>
+          <p><a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Football data provided by the Football-Data.org API</a> : calendrier et scores finaux différés, selon les compétitions disponibles et les limites du fournisseur.</p>
+          <p><a href="https://sportscore.com/" target="_blank" rel="noopener noreferrer">Powered by SportScore</a> : scores consultatifs dans la rubrique correspondante, fournis séparément du modèle d'analyse.</p>
+          <p>Archives complémentaires : <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener noreferrer">OpenFootball (CC0)</a> et <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB (ODbL)</a>.</p>
+        </div>
+        <div class="info-card"><h3>Ce que les probabilités signifient</h3><p>COTEGO étudie des résultats historiques, des moyennes et des distributions mathématiques. La formule exacte et ses paramètres peuvent constituer un savoir-faire propre ; les limites et la nature des sources restent accessibles pour éviter toute confusion. Les résultats passés ne garantissent aucun résultat futur.</p></div>
+        <div class="info-card media-credits"><h3>Visuels & écussons</h3><p>Football et basket : seules des photos prises depuis un an au maximum, avec une date de prise de vue vérifiée, peuvent être affichées. Une photo sans date vérifiable ou plus ancienne est remplacée par les écussons des clubs. Pour le tennis, aucune limite d’ancienneté n’est appliquée.</p><p>Les écussons sont fournis par <a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Football-Data.org</a> et associés aux identifiants des équipes du calendrier. Si un écusson est indisponible, les initiales du club prennent sa place.</p><p>Logos des compétitions : <a href="https://commons.wikimedia.org/wiki/File:Ligue_1_2024_Logo.png" target="_blank" rel="noopener noreferrer">Ligue 1</a>, <a href="https://commons.wikimedia.org/wiki/File:Premier_League.svg" target="_blank" rel="noopener noreferrer">Premier League</a>, <a href="https://commons.wikimedia.org/wiki/File:Bundesliga_logo.svg" target="_blank" rel="noopener noreferrer">Bundesliga</a>, <a href="https://commons.wikimedia.org/wiki/File:LaLiga_2023_Horizontal_Logo.svg" target="_blank" rel="noopener noreferrer">La Liga</a>, <a href="https://commons.wikimedia.org/wiki/File:Serie_A_Made_in_Italy_logo.svg" target="_blank" rel="noopener noreferrer">Serie A</a> (sources Wikimedia Commons).</p><p>Les marques, logos et écussons restent la propriété de leurs titulaires. Ils identifient les équipes et les compétitions ; COTEGO n’est affilié à aucune ligue, aucun club ni aucun bookmaker.</p></div>
+        <div class="info-card"><h3>Informations légales et prévention</h3><p>Les mentions légales complètes, la politique de confidentialité et les conditions d'abonnement devront être finalisées et publiées avant l'ouverture commerciale. COTEGO ne prend pas de paris et ne garantit aucun gain. <a href="https://www.joueurs-info-service.fr/" target="_blank" rel="noopener noreferrer">Joueurs Info Service</a> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Autorité nationale des jeux</a>.</p></div>
+      </section>
+
+      <footer class="footer"><span>COTEGO · Bêta gratuite · Analyses expérimentales</span><span class="footer-references"><a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer">Football data provided by the Football-Data.org API</a> · <button type="button" data-link="about" style="background:none;color:inherit;border:0;text-decoration:underline;cursor:pointer;font:inherit">À propos & sources</button> · <a href="https://www.anj.fr/" target="_blank" rel="noopener noreferrer">Prévention</a></span></footer>
     </main>
+    <nav class="cotego-bottom-nav" aria-label="Navigation rapide mobile">
+      <button type="button" data-page="home" class="active"><span>⌂</span>Accueil</button>
+      <button type="button" data-page="dashboard"><span>▦</span>Matchs</button>
+      <button type="button" data-link="dashboard" data-favs="1"><span>☆</span>Favoris</button>
+      <button type="button" data-page="membership"><span>◇</span>Plus</button>
+    </nav>
   </div>
 
   <div class="modal-overlay hidden" id="analysis-modal" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-header"><div><div class="section-overline">FICHE MATCH / PROBABILITÉS</div><h2 id="modal-title">Analyse de la rencontre</h2><p id="modal-subtitle"></p></div><button class="close-modal" id="close-modal" aria-label="Fermer">×</button></div><div id="modal-content"></div></div></div>
+  <script src="/cotego-media.js?v=20261115-1"></script>
+  <script src="/cotego-presentation.js?v=20261115-1"></script>
   <script>
 /* COTEGO 0.2 — no build tools, no keys, zero paid dependencies.
    Public-domain fixtures: https://github.com/openfootball/football.json
@@ -256,9 +377,12 @@ body{font-size:14px;letter-spacing:0}
     'fr.1': { name: 'Ligue 1', short: 'LIGUE 1', flag: '🇫🇷' },
     'en.1': { name: 'Premier League', short: 'PREMIER LEAGUE', flag: '🏴' },
     'es.1': { name: 'La Liga', short: 'LA LIGA', flag: '🇪🇸' },
-    'de.1': { name: 'Bundesliga · archives', short: 'BUNDESLIGA', flag: '🇩🇪' },
-    'de-live': { name: 'Bundesliga · OpenLigaDB', short: 'BUNDESLIGA', flag: '🇩🇪' },
+    'de.1': { name: 'Bundesliga', short: 'BUNDESLIGA', flag: '🇩🇪' },
+    'de-live': { name: 'Bundesliga', short: 'BUNDESLIGA', flag: '🇩🇪' },
     'it.1': { name: 'Serie A', short: 'SERIE A', flag: '🇮🇹' },
+    'intl.cl': { name: 'Ligue des champions', short: 'LIGUE DES CHAMPIONS', flag: '🌍' },
+    'intl.wc': { name: 'Coupe du monde', short: 'COUPE DU MONDE', flag: '🌍' },
+    'intl.ec': { name: 'Euro', short: 'EURO', flag: '🇪🇺' },
     demo: { name: 'Ligue fictive', short: 'DÉMONSTRATION', flag: '◈' },
     custom: { name: 'Mes données', short: 'DONNÉES IMPORTÉES', flag: '↥' }
   };
@@ -267,7 +391,8 @@ body{font-size:14px;letter-spacing:0}
     { name: 'Niveau B · fréquence intermédiaire', target: 2.0, color: 'tier-balanced', brief: 'Cible ~2,00' },
     { name: 'Niveau C · fréquence plus faible', target: 3.0, color: 'tier-risk', brief: 'Cible ~3,00' }
   ];
-  const state = { league: 'fr.1', matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'dashboard', currentSeason: getSeason() };
+  const state = { league: 'fr.1', allCompetitions: false, matches: [], played: [], upcoming: [], favorites: readFavorites(), custom: null, mode: 'remote', loaded: false, selectedId: null, currentPage: 'home', currentSeason: getSeason(), dataError:'', featuredData:null, featuredLoading:false, featuredLoadedAt:0 };
+  const featuredAnalyses = new Map();
   const MARKET_TYPES = [
     ['home', 'Victoire domicile', 'result', (a,b)=>a>b],
     ['draw', 'Match nul', 'result', (a,b)=>a===b],
@@ -311,11 +436,12 @@ body{font-size:14px;letter-spacing:0}
     const htVal=raw.score?.ht ?? raw.half_time ?? null;
     let ht=null;
     if(score && Array.isArray(htVal) && htVal.length>=2 && htVal.slice(0,2).every((v,i)=>v!=='' && v!==null && Number.isInteger(Number(v)) && Number(v)>=0 && Number(v)<=score[i])) ht=htVal.slice(0,2).map(Number);
-    return {date, time: String(raw.time || ''), home:String(raw.team1).trim(), away:String(raw.team2).trim(), score, ht, league, id:[league,date,raw.team1,raw.team2].join('|')};
+    const sourceId=Number.isSafeInteger(raw._sourceId)&&raw._sourceId>0?raw._sourceId:null;
+    return {date, time: String(raw.time || ''), home:String(raw.team1).trim(), away:String(raw.team2).trim(), score, ht, league, sourceId, kickoffUtc:raw._kickoffUtc??null, sourceStatus:raw._status??null, teamIds:raw._teamIds??null, teamCrests:raw._teamCrests??null, recordedPrediction:raw._prediction??null, analysisAccess:raw._analysisAccess??null, editorialPriority:raw._editorialPriority??0, id:sourceId?[league,'football-data.org',sourceId].join('|'):[league,date,raw.team1,raw.team2].join('|')};
   }
   function decodeDataset(data, league) { const arr=Array.isArray(data) ? data : data?.matches; if(!Array.isArray(arr)) throw new Error('Format JSON non reconnu.'); return arr.map(m=>normalize(m,league)).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date) || a.home.localeCompare(b.home)); }
   function setNotice(message, type='info') { const el=$('#data-notice'); if(!message) {el.className='notice hidden';el.textContent='';return;} el.className=`notice ${type}`;el.textContent=message; }
-  function setLoading() { $('#matches-list').innerHTML='<div class="loading-state"><div class="spinner"></div><strong>Chargement des données…</strong><p>Connexion à une archive publique sans clé API.</p></div>'; }
+  function setLoading() { $('#matches-list').innerHTML='<div class="loading-state"><div class="spinner"></div><strong>Connexion aux données sportives…</strong><p>Recherche des dernières rencontres disponibles.</p></div>'; }
   async function fetchJSON(url,refresh) {
     const cacheKey='sportedge_cache_'+url;
     if(!refresh){try{let c=JSON.parse(localStorage.getItem(cacheKey)||'null'); if(c&&Date.now()-c.saved<6*3600*1000) return c.data;}catch{}}
@@ -373,68 +499,89 @@ body{font-size:14px;letter-spacing:0}
     return result;
   }
 
-  async function loadLeague(league,refresh=false) {
-    state.league=league; $('#league-select').value=league; state.loaded=false; state.archiveFallback=false;
-    $('#source-name').textContent=league==='de-live'?'OpenLigaDB':league==='demo'?'Démonstration':league==='custom'?'Import local':'OpenFootball';
-    $('#source-details').textContent='Récupération des derniers fichiers accessibles…';
-    $('#source-flag').textContent='Chargement';$('#source-flag').className='source-flag';
-    if(league==='demo') { applyData(makeDemo(), 'demo'); setNotice('DÉMONSTRATION : toutes les équipes, les rencontres et les scores sont fictifs. Aucune donnée de bookmaker.','warning'); return; }
-    if(league==='custom') { if(state.custom) {applyData(state.custom,'custom');setNotice('Données importées par vos soins, stockées uniquement dans cette session. Vérifiez leur exactitude.');} else {state.matches=[];state.played=[];state.upcoming=[];state.loaded=true;updateUI();setNotice('Aucun fichier importé. Ouvrez « Importer des données » pour charger vos rencontres.','warning');} return; }
-    setLoading(); setNotice('Connexion à une archive communautaire : résultats potentiellement incomplets et horaires non confirmés. Pas de données en direct.');
-    if(league==='de-live'){
-      try{
-        const fresh=await loadOpenLiga(refresh);
-        applyData(fresh,'openligadb');
-        return;
-      }catch(e){
-        state.loaded=true;state.matches=[];state.played=[];state.upcoming=[];updateUI();
-        setNotice(`OpenLigaDB indisponible (${e.message}). Sélectionnez « Bundesliga · archives CC0 » pour accéder aux archives ou utilisez la démo.`, 'error');
-        $('#matches-list').innerHTML='<div class="empty-panel">La source communautaire ne répond pas actuellement. Choisissez un autre championnat ou réessayez plus tard.</div>';
-        return;
-      }
-    }
-    // New scores source: server-side API proxy. The key never enters this browser.
-    // On API failure, clearly label the old archive as fallback.
-    let verifiedError = '';
-    try {
-      if (['fr.1','en.1','es.1','de.1','it.1'].includes(league)) {
-        const freshResponse = await fetch('/api/football/'+encodeURIComponent(league), {cache:'no-store'});
-        if (!freshResponse.ok) throw new Error('HTTP '+freshResponse.status);
-        const payload = await freshResponse.json();
-        if (!payload.ok || !Array.isArray(payload.matches)) throw new Error('Réponse non vérifiée');
-        const excludedLive = new Set(['IN_PLAY','PAUSED','LIVE','HALFTIME','EXTRA_TIME','PENALTY_SHOOTOUT']);
-        const rows = decodeDataset({matches:payload.matches.filter(m=>!excludedLive.has(m._status))},league);
-        if (!rows.length) throw new Error('Aucun match exploitable');
-        // Model training only uses finished games through applyData().
-        applyData(rows,'football-data');
-        return;
-      }
-    } catch (error) {
-      verifiedError = 'Résultats récents indisponibles ('+error.message+'). ';
-    }
-    const season=seasonName(state.currentSeason),previous=seasonName(state.currentSeason-1);
-    const path=s=>`https://raw.githubusercontent.com/openfootball/football.json/master/${s}/${league}.json`;
-    try {
-      const [current,old] = await Promise.all([fetchJSON(path(season),refresh),fetchJSON(path(previous),refresh).catch(()=>({matches:[]}))]);
-      const recent=decodeDataset(current,league), older=decodeDataset(old,league);
-      if(!recent.length) throw new Error('La compétition courante ne contient aucune rencontre.');
-      applyData([...older,...recent],'remote');
-      if (verifiedError) setNotice(verifiedError+'Données d’archives utilisées à la place : elles peuvent être anciennes et ne sont pas considérées comme actualisées.','warning');
-    } catch(e) {
-      state.loaded=true;state.matches=[];state.played=[];state.upcoming=[];updateUI();
-      setNotice(`Impossible de charger les archives en ligne (${e.message}). Vous pouvez tester le moteur avec « Ligue démo » ou importer votre propre fichier.`, 'error');
-      $('#matches-list').innerHTML='<div class="empty-panel"><strong>Aucune connexion aux archives</strong><p>Le moteur reste disponible sans connexion avec des données de démonstration.</p><div class="empty-state-actions"><button class="btn btn-primary" id="fallback-demo">Ouvrir la démo ↗</button><button class="btn btn-outline" id="retry-load">Réessayer</button></div></div>';
-      $('#fallback-demo').addEventListener('click',()=>loadLeague('demo'));
-      $('#retry-load').addEventListener('click',()=>loadLeague(state.league,true));
-    }
+  let leagueRequestId = 0;
+  function setSourceUnavailable(message) {
+    state.mode = 'unavailable';
+    state.loaded = true;
+    state.matches = [];
+    state.played = [];
+    state.upcoming = [];
+    state.dataError = message;
+    updateUI();
+    setNotice(message, 'error');
+    $('#matches-list').innerHTML = '<div class="empty-panel"><strong>Données récentes indisponibles</strong><p>Les analyses sont temporairement suspendues. Aucun résultat ancien ne sera présenté comme récent.</p><div class="empty-state-actions"><button class="btn btn-primary" type="button" data-retry-league="1">Réessayer la connexion</button></div></div>';
   }
-  function updateSourceHealth(){
+
+  async function loadLeague(league,refresh=false) {
+    if(league==='all'){state.allCompetitions=true;updateUI();return;}
+    state.allCompetitions=false;
+    const requestId=++leagueRequestId;
+    state.league=league;$('#league-select').value=league;state.loaded=false;
+    if(state.currentPage==='history')renderHistory();
+    state.archiveFallback=false;state.dataError='';
+    renderFeatured();
+    $('#source-name').textContent=league==='demo'?'Démonstration':league==='custom'?'Import local':'football-data.org';
+    $('#source-details').textContent='Vérification des données récentes…';
+    $('#source-flag').textContent='Chargement';$('#source-flag').className='source-flag';
+    if(league==='demo') {applyData(makeDemo(),'demo');setNotice('DÉMONSTRATION : équipes, rencontres et résultats fictifs.','warning');return;}
+    if(league==='custom') {if(state.custom){applyData(state.custom,'custom');setNotice('Fichier utilisateur non vérifié.');}else{state.matches=[];state.played=[];state.upcoming=[];state.loaded=true;updateUI();setNotice('Aucun fichier importé.','warning');}return;}
+    setLoading();setNotice('Vérification des matchs, résultats et dates auprès du fournisseur.');
+    const cachedLeague=league==='de-live'?'de.1':league;
+    const cachedSelection=state.featuredData?.[cachedLeague];
+    if(!refresh && Date.now()-state.featuredLoadedAt<10*60*1000 && Array.isArray(cachedSelection) && cachedSelection.length){
+      applyData(cachedSelection,'football-data');
+      return;
+    }
+    const providerLeague=league==='de-live'?'de.1':league;
+    if(!['fr.1','en.1','es.1','de.1','it.1','intl.cl','intl.wc','intl.ec'].includes(providerLeague)){
+      setSourceUnavailable('Ce championnat n’est pas pris en charge par la source récente.');
+      return;
+    }
+    const abort=new AbortController();
+    const deadline=setTimeout(()=>abort.abort(),12000);
+    try{
+      const response=await fetch('/api/football/'+encodeURIComponent(providerLeague),{cache:'no-store',signal:abort.signal});
+      if(requestId!==leagueRequestId)return;
+      if(!response.ok){
+        let reason='';
+        try{const payload=await response.json();reason=String(payload.error||'');}catch{}
+        throw new Error(reason||('Service indisponible (HTTP '+response.status+')'));
+      }
+      const payload=await response.json();
+      if(!payload?.ok||!Array.isArray(payload.matches))throw new Error('Réponse sportive non valide');
+      const excludedLive=new Set(['IN_PLAY','PAUSED','LIVE','HALFTIME','EXTRA_TIME','PENALTY_SHOOTOUT']);
+      const rows=decodeDataset({matches:payload.matches.filter(m=>!excludedLive.has(m._status))},providerLeague);
+      if(!rows.length)throw new Error('Aucune rencontre vérifiable');
+      if(requestId!==leagueRequestId)return;
+      applyData(rows,'football-data');
+    }catch(error){
+      if(requestId!==leagueRequestId)return;
+      const reason=error?.name==='AbortError'?'Délai de réponse dépassé':String(error?.message||'Connexion indisponible').slice(0,160);
+      // A verified multi-league feed can safely replace a failed single-league
+      // request; never substitute a different league or fictional data.
+      // The homepage feed may still be loading when a tab is selected.
+      // Try it once before declaring this competition unavailable.
+      if(!state.featuredData?.[providerLeague] && !state.featuredLoading){
+        await loadFeatured();
+      }
+      if(requestId!==leagueRequestId)return;
+      const cached=state.featuredData?.[providerLeague];
+      if(Array.isArray(cached) && cached.length){
+        applyData(cached,'football-data');
+        setNotice('Rencontres vérifiées via la sélection multi-championnats. Actualisation individuelle indisponible : '+reason,'warning');
+      }else{
+        setSourceUnavailable('Source sportive récente indisponible : '+reason+'. Aucune donnée fictive ne sera substituée.');
+      }
+    }finally{clearTimeout(deadline);}
+  }
+    function updateSourceHealth(){
     const label=$('#source-name'), details=$('#source-details'), flag=$('#source-flag');
     if(!label||!details||!flag)return;
-    const last=state.played.at(-1)?.date,age=last?daysBetween(last,today()):null;
-    const names={'football-data':'football-data.org · scores différés',openligadb:'OpenLigaDB · Bundesliga (ODbL)',remote:'OpenFootball · archives (CC0)',demo:'Jeu de démonstration',custom:'Fichier de l’utilisateur'};
+    const history=state.allCompetitions?Object.values(competitionPools()).flat().filter(m=>m.score).sort((a,b)=>a.date.localeCompare(b.date)):state.played;
+    const last=history.at(-1)?.date,age=last?daysBetween(last,today()):null;
+    const names={'football-data':'Résultats vérifiés · scores différés',openligadb:'Bundesliga · données communautaires',remote:'Archives historiques · fraîcheur variable',demo:'Jeu de démonstration',custom:'Fichier de l’utilisateur'};
     label.textContent=names[state.mode]||'Source non vérifiée';
-    details.textContent=last?`Dernier résultat disponible : ${formatDateFull(last)} · ${state.played.length} matchs terminés`:'Aucun résultat terminé dans cette source';
+    details.textContent=last?`Dernier résultat disponible : ${formatDateFull(last)} · ${history.length} matchs terminés`:'Aucun résultat terminé dans cette source';
     if(state.mode==='demo'){
       flag.textContent='Fictif';flag.className='source-flag warn';
     }else if(state.mode==='custom'){
@@ -456,7 +603,7 @@ body{font-size:14px;letter-spacing:0}
     const last=state.played.at(-1)?.date;
     if(mode==='football-data'){
       const stale=last?daysBetween(last,today()):null;
-      setNotice('Source : football-data.org · résultats définitifs différés, sans garantie de direct. '+(last?'Dernier match terminé : '+formatDateFull(last)+'.':'Aucun score final disponible.')+' Vérifier les horaires des prochaines rencontres. Données fournies sous conditions par football-data.org.',stale===null||stale>8?'warning':'info');
+      setNotice('Données de championnat : résultats définitifs différés, sans garantie de direct. '+(last?'Dernier match terminé : '+formatDateFull(last)+'.':'Aucun score final disponible.')+' Vérifier les horaires des prochaines rencontres. Méthode et crédits accessibles dans À propos & sources.',stale===null||stale>8?'warning':'info');
     }
     if(mode==='remote'){
       const stale= last ? daysBetween(last,today()) : null;
@@ -476,23 +623,20 @@ body{font-size:14px;letter-spacing:0}
     return sum/weights;
   }
   function forecast(match, all) {
-    // Refuse une prévision publique basée sur un historique trop ancien.
-    // Les tests rétrospectifs sur des rencontres passées restent possibles.
-    if (match.date >= today() && state.mode !== 'demo' && state.mode !== 'custom') {
-      const latest = all.filter(m=>m.score && m.date<today()).at(-1)?.date;
-      if (!latest || daysBetween(latest,today()) > 21) return null;
-    }
+    if(match.analysisAccess?.mode==='freemium')return match.recordedPrediction?.analysis??null;
+    if(match.recordedPrediction?.analysis?.tiers?.length===3)return match.recordedPrediction.analysis;
+    // Low-data fallback: estimates are always labeled by evidence quality.
     const previous=all.filter(m=>m.score && m.date<match.date && m.date<today() && daysBetween(m.date,match.date)<=550);
-    if(previous.length<24) return null;
     const rows=previous.map(m=>({ ...m, weight:Math.exp(-Math.max(0,daysBetween(m.date,match.date))/240), hg:m.score[0], ag:m.score[1] }));
     const totalWeight=rows.reduce((s,m)=>s+m.weight,0);
-    const avgHome=clamp(rows.reduce((s,m)=>s+m.hg*m.weight,0)/totalWeight,.6,3.4);
-    const avgAway=clamp(rows.reduce((s,m)=>s+m.ag*m.weight,0)/totalWeight,.45,3.1);
+    // Generic assumptions, not observed league statistics.
+    const priorWeight=12;
+    const avgHome=clamp((rows.reduce((s,m)=>s+m.hg*m.weight,0)+priorWeight*1.45)/(totalWeight+priorWeight),.6,3.4);
+    const avgAway=clamp((rows.reduce((s,m)=>s+m.ag*m.weight,0)+priorWeight*1.15)/(totalWeight+priorWeight),.45,3.1);
     const homeMatches=rows.filter(m=>m.home===match.home);
     const awayMatches=rows.filter(m=>m.away===match.away);
     const playedHome=rows.filter(m=>m.home===match.home || m.away===match.home).length;
     const playedAway=rows.filter(m=>m.home===match.away || m.away===match.away).length;
-    if(playedHome<2 || playedAway<2) return null;
     const homeOff=weightedMean(homeMatches,'hg',avgHome)/avgHome;
     const homeDef=weightedMean(homeMatches,'ag',avgAway)/avgAway;
     const awayOff=weightedMean(awayMatches,'ag',avgAway)/avgAway;
@@ -515,7 +659,13 @@ body{font-size:14px;letter-spacing:0}
       return {...t,market:pick};
     });
     const strength=Math.min(playedHome,playedAway);
-    return { lh,la,home,draw,away,tiers,playedHome,playedAway,quality:strength<6?'Échantillon limité':strength<12?'Échantillon modéré':'Échantillon étoffé',grid };
+    const latest=previous.at(-1)?.date;
+    const stale=!latest || daysBetween(latest,today())>21;
+    const quality=previous.length===0?'Simulation sans historique — hypothèses génériques uniquement'
+      :stale?'Fiabilité très faible — historique ancien'
+      :previous.length<24 || strength<2?'Fiabilité très faible — historique insuffisant'
+      :strength<6?'Échantillon limité':strength<12?'Échantillon modéré':'Échantillon étoffé';
+    return { lh,la,home,draw,away,tiers,playedHome,playedAway,historyCount:previous.length,quality,grid };
   }
   function poissonList(lambda) { let p=Math.exp(-lambda),arr=[p]; for(let k=1;k<=10;k++){p*=lambda/k;arr.push(p);} return arr; }
 
@@ -547,11 +697,11 @@ body{font-size:14px;letter-spacing:0}
   }
   function fairOdds(p){return p>0?(1/p).toFixed(2):'—';}
   function pct(p){return (100*p).toFixed(1)+' %';}
-  function footballExtrasMarkup(f,m) {
-    const t=goalTotals(f),half=halfTimeDistribution(f,m,state.matches),hs=half.prob;
+  function footballExtrasMarkup(f,m,all=state.matches) {
+    const t=goalTotals(f),half=halfTimeDistribution(f,m,all),hs=half.prob;
     return `<section class="extra-analysis"><h3>Nombre de buts total</h3><p class="small-line">Projection dérivée de la distribution de scores du modèle, non de xG tirs.</p><div class="total-goals-row">${t.exact.map((p,i)=>`<div><small>${i===5?'5+':i} but${i>1?'s':''}</small><b>${pct(p)}</b><span class="total-bar" style="--fill:${(100*p).toFixed(1)}%"></span></div>`).join('')}</div><div class="mini-metrics"><span>+ 1,5 : <b>${pct(t.over15)}</b></span><span>+ 2,5 : <b>${pct(t.over25)}</b></span><span>+ 3,5 : <b>${pct(t.over35)}</b></span><span>Total estimé : <b>${t.expected.toFixed(2)}</b></span></div>
     <h3>Quelle mi-temps compte le plus de buts ?</h3><p class="small-line">${half.type==='observed'?`Fréquence brute sur ${half.count} matchs historiques avec score à la mi-temps, sans ajustement à l'affiche.`:`Simulation <b>hypothétique</b> avec répartition 45 % / 55 % de l'intensité de buts. Seulement ${half.count} matchs avec score mi-temps disponibles ; <b>ce n'est pas une statistique observée</b>.`}</p><div class="half-row"><div><small>1re mi-temps</small><strong>${pct(hs[0])}</strong></div><div><small>Égalité des mi-temps</small><strong>${pct(hs[1])}</strong></div><div><small>2e mi-temps</small><strong>${pct(hs[2])}</strong></div></div>
-    <h3>Buteur — simulateur personnalisé</h3><p class="small-line">Aucune donnée de joueurs/buteurs n'est fournie par OpenFootball. Renseignez un joueur, votre hypothèse de <b>part des buts attendus de l'équipe</b> et son temps de jeu estimé. Le résultat n'est pas une prévision alimentée par ses statistiques officielles.</p>
+    <h3>Buteur — simulateur personnalisé</h3><p class="small-line">Aucune donnée de joueurs/buteurs n'est intégrée à cette analyse. Renseignez un joueur, votre hypothèse de <b>part des buts attendus de l'équipe</b> et son temps de jeu estimé. Le résultat n'est pas une prévision alimentée par ses statistiques officielles.</p>
     <div class="scorer-controls"><label>Équipe<select id="scorer-team"><option value="home">${escapeHtml(m.home)}</option><option value="away">${escapeHtml(m.away)}</option></select></label><label>Nom du joueur<input id="scorer-name" maxlength="70" placeholder="Nom du joueur"></label><label>Part des buts de l'équipe (%)<input id="scorer-share" type="number" min="0" max="100" step="1" value="20"></label><label>Minutes estimées<input id="scorer-minutes" type="number" min="0" max="130" step="1" value="80"></label></div><div class="scorer-result" id="scorer-result" role="status">Saisissez le nom d'un joueur pour obtenir la simulation conditionnelle.</div><p class="small-line">Hypothèse Poisson : P(marque au moins une fois) = 1 − exp(−buts équipe × part × minutes / 90). Les 20 % et 80 min préremplis sont des exemples, pas des données du joueur.</p></section>`;
   }
   function updateScorer(f) {
@@ -587,22 +737,200 @@ body{font-size:14px;letter-spacing:0}
     } else bout.textContent='Saisir des points projetés, un seuil et des dispersions valides.';
   }
 
+
+  /* Courte sélection éditoriale, sans garantie de succès. */
+  async function loadFeatured() {
+    if(state.featuredLoading)return;
+    state.featuredLoading=true;
+    try {
+      const response=await fetch('/api/football-featured',{cache:'no-store'});
+      if(!response.ok)throw new Error('Sélection multi-championnats indisponible');
+      const payload=await response.json();
+      if(!payload.ok||!Array.isArray(payload.competitions))throw new Error('Réponse invalide');
+      const data={};
+      for(const c of payload.competitions){
+        if(!c.ok||!Array.isArray(c.matches)||!Array.isArray(c.historicalMatches))continue;
+        data[c.league]=decodeDataset([...c.historicalMatches,...c.matches],c.league);
+      }
+      if(Object.keys(data).length){state.featuredData=data;state.featuredLoadedAt=Date.now();renderFeatured();}
+    }catch{/* Preserve the current-league selection when the feed is unavailable. */}
+    finally{state.featuredLoading=false;renderFeatured();}
+  }
+
+  const LEAGUE_MEDIA={'fr.1':'ligue-1','en.1':'premier-league','es.1':'laliga','de-live':'bundesliga','it.1':'serie-a'};
+  function fixtureMedia(match) {return window.CotegoMedia.fixturePhoto(match,'football');}
+  function renderFeatured() {
+    const root = $('#featured-grid');
+    const status = $('#home-data-status');
+    if (!root || !status) return;
+    $$('.home-tab').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.featuredLeague===state.league)));
+    const tabs=$('.home-tabs'),activeTab=tabs?.querySelector('[aria-pressed="true"]');
+    if(activeTab){
+      const bounds=tabs.getBoundingClientRect(),active=activeTab.getBoundingClientRect();
+      if(active.left<bounds.left)tabs.scrollLeft-=bounds.left-active.left;
+      else if(active.right>bounds.right)tabs.scrollLeft+=active.right-bounds.right;
+    }
+    root.replaceChildren();
+    featuredAnalyses.clear();
+    const add = (parent,tag,className,value) => {
+      const el=document.createElement(tag);
+      if(className)el.className=className;
+      if(value!==undefined)el.textContent=String(value);
+      parent.appendChild(el);return el;
+    };
+    // Featured matches from verified competitions remain usable when the selected
+    // league endpoint fails independently (e.g. provider rate limiting).
+    if (state.dataError && !state.featuredData) {
+      status.textContent='Source sportive indisponible';
+      add(root,'div','featured-empty',state.dataError);
+      const retry=add(root,'button','featured-action','Réessayer');
+      retry.type='button';retry.dataset.retryLeague='1';
+      $('#home-selection-count').textContent='Aucune donnée vérifiée';
+      return;
+    }
+    if (!state.loaded && !state.featuredData) {
+      status.textContent='Actualisation des rencontres…';
+      add(root,'div','featured-empty','Chargement de la sélection…');
+      $('#home-selection-count').textContent='Sélection en préparation';
+      return;
+    }
+    const last=state.played.at(-1)?.date;
+    const age=last?daysBetween(last,today()):null;
+    status.textContent=state.dataError && state.featuredData
+      ? 'Sélection multi-championnats disponible · championnat sélectionné temporairement indisponible'
+      : last
+      ? (age>8 ? 'Données à contrôler · '+age+' j depuis le dernier score' : 'Dernier résultat · '+formatDate(last))
+      : 'Aucun score terminé disponible';
+    const majors=['paris saint','psg','olympique de marseille','marseille','olympique lyonnais',
+      'lyon','as monaco','lille','lens','rennes','nice','manchester city','manchester united',
+      'arsenal','liverpool','chelsea','tottenham','newcastle','real madrid','barcelona',
+      'atletico','bayern munich','dortmund','leverkusen','inter milan','ac milan','juventus','napoli'];
+    const prestige = team => {
+      const normalized=String(team).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      return majors.some(v=>normalized.includes(v)) ? 1 : 0;
+    };
+    // Home tabs are competition filters: never show another league's fixtures
+    // after the visitor selects Premier League, Bundesliga, etc.
+    const selectedLeague=state.league==='de-live'?'de.1':state.league;
+    const selectedMatches=state.featuredData && state.mode!=='demo' && state.mode!=='custom'
+      ? (state.loaded && !state.dataError ? state.matches : state.featuredData[selectedLeague])
+      : null;
+    const featuredLeagues=[{league:selectedLeague,matches:selectedMatches||state.matches}];
+    const upcoming=featuredLeagues.flatMap(({league,matches})=>matches
+      .filter(m=>!m.score && daysBetween(today(),m.date)>=0 && daysBetween(today(),m.date)<=30)
+      .map(match=>({match,league,matches})));
+    const scored=upcoming.map(({match,league,matches})=>{
+      const analysis=forecast(match,matches);
+      const popularity=match.editorialPriority||prestige(match.home)+prestige(match.away);
+      const days=daysBetween(today(),match.date);
+      const score=(analysis?30:0)+(analysis?.historyCount||0)*.25+popularity*11-days*.45;
+      return {match,analysis,score,league,matches,mode:matches===state.matches?state.mode:'football-data'};
+    }).sort((a,b)=>Number(b.match.date===today())-Number(a.match.date===today()) || b.score-a.score || a.match.date.localeCompare(b.match.date)).slice(0,3);
+    $('#home-selection-count').textContent=scored.length+' match'+(scored.length>1?'s':'')+' sélectionné'+(scored.length>1?'s':'');
+    if (!scored.length) {
+      add(root,'div','featured-empty','Aucune rencontre vérifiée disponible pour ce championnat dans les 30 prochains jours. Choisissez un autre onglet ou réessayez l’actualisation.');
+      return;
+    }
+    for (const item of scored) {
+      const m=item.match, f=item.analysis;
+      const card=add(root,'article','featured-card');
+      const head=add(card,'div','featured-top');
+      const league=add(head,'span','featured-league');
+      if(LEAGUE_MEDIA[item.league]){const logo=add(league,'img','league-logo');logo.src='/media/'+LEAGUE_MEDIA[item.league]+'.png';logo.alt='';logo.width=48;logo.height=28;}
+      add(league,'span','',LEAGUES[item.league]?.name||'Football');
+      add(head,'span','featured-time',formatDate(m.date));
+      const media=fixtureMedia(m);
+      const visual=add(card,'div','featured-visual'+(media?'':' crest-only'));
+      if(media){
+        const photo=add(visual,'img','fixture-photo');photo.src=media.src;photo.alt=media.alt;photo.dataset.capturedAt=media.capturedAt;photo.width=960;photo.height=540;photo.loading=root.children.length===1?'eager':'lazy';photo.decoding='async';
+        const credit=add(visual,'button','fixture-photo-credit','Photo du '+formatDateFull(media.capturedAt)+' · Crédits');credit.type='button';credit.dataset.link='about';
+      }
+      const fixture=add(visual,'div','featured-fixture');
+      const team=(name,side)=>{
+        const block=add(fixture,'div','featured-team');
+        const badge=add(block,'span','club-badge');
+        const fallback=add(badge,'span','club-initial',initial(name));fallback.setAttribute('aria-hidden','true');
+        const src=m.sourceId?window.CotegoMedia.crestUrl(m.teamIds?.[side],m.teamCrests?.[side]):null;
+        if(src){
+          const crest=add(badge,'img','club-crest');crest.src=src;crest.alt='Écusson '+name;crest.width=64;crest.height=64;crest.decoding='async';crest.loading='eager';
+          crest.onload=()=>badge.classList.add('has-crest');
+          crest.onerror=()=>{crest.remove();badge.classList.remove('has-crest');};
+        }
+        add(block,'span','featured-team-name',name);
+      };
+      team(m.home,0);
+      const kickoff=add(fixture,'div','fixture-kickoff');
+      const time=add(kickoff,'time','',m.time||'À confirmer');if(m.kickoffUtc)time.dateTime=m.kickoffUtc;
+      add(kickoff,'span','',formatDate(m.date));add(kickoff,'small','','Heure de Paris');
+      team(m.away,1);
+      const favorite=add(head,'button','featured-favorite',state.favorites.has(m.id)?'★':'☆');
+      favorite.type='button';favorite.dataset.favorite=m.id;favorite.setAttribute('aria-label','Suivre '+m.home+' – '+m.away);
+      const bottom=add(card,'div','featured-bottom');
+      const textEl=add(bottom,'div','featured-prob');
+      if (f) {
+        add(textEl,'span','featured-confidence',f.historyCount+' résultats historiques'+' · '+f.quality);
+        const scenarioHeading=add(card,'div','scenarios-heading');
+        add(scenarioHeading,'h3','','Les scénarios du match');
+        add(scenarioHeading,'span','','Probabilités estimées');
+        const scenarios=add(card,'div','featured-scenarios');scenarios.setAttribute('role','list');scenarios.setAttribute('aria-label','Trois scénarios statistiques');
+        for(const tier of f.tiers){
+          const scenario=add(scenarios,'div','featured-scenario');scenario.setAttribute('role','listitem');
+          const target=add(scenario,'span','featured-scenario-target');
+          add(target,'small','','Cible');add(target,'b','',tier.target.toFixed(2).replace('.',','));
+          const probability=tier.market?.p;
+          const label=add(scenario,'div','scenario-copy');
+          add(label,'span','scenario-group',window.CotegoPresentation.marketGroup(tier.market));
+          add(label,'strong','featured-scenario-market',window.CotegoPresentation.marketLabel(tier.market,m));
+          const estimate=add(scenario,'span','featured-scenario-prob');
+          if(Number.isFinite(probability) && probability>0){
+            add(estimate,'b','scenario-probability',Math.round(probability*100)+' %');
+            const track=add(estimate,'span','scenario-track');track.setAttribute('aria-hidden','true');track.style.setProperty('--probability',clamp(Math.round(probability*100),0,100)+'%');
+            add(estimate,'span','scenario-odds sr-only',' estimés · cote théorique ×'+(1/probability).toFixed(2).replace('.',','));
+          }else estimate.textContent='Probabilité indisponible';
+        }
+        add(card,'p','scenarios-note','Cibles indicatives · Cotes théoriques et méthode dans l’analyse.');
+      } else add(textEl,'span','', 'Analyse statistique indisponible');
+      const canRequest=m.analysisAccess?.mode==='freemium'&&m.sourceId;
+      if(f?.restricted)add(card,'p','premium-lock','Cibles 2,00 et 3,00 · COTEGO Plus');
+      const action=add(bottom,'button','featured-action',f?'L’analyse complète':canRequest?'Charger l’analyse':'Données insuffisantes');
+      action.type='button';
+      if(f||canRequest) {featuredAnalyses.set(m.id,item);action.dataset.analyze=m.id;action.dataset.analyzeLeague=item.league;}
+      else action.disabled=true;
+      card.appendChild(bottom);
+      const provenance=add(card,'div','featured-recorded',m.recordedPrediction?'Enregistré avant le coup d’envoi':'Simulation non enregistrée');
+      if(m.recordedPrediction)provenance.title='Enregistrée le '+new Date(m.recordedPrediction.createdAt).toLocaleString('fr-FR');
+    }
+    window.dispatchEvent(new CustomEvent('cotego:competition',{detail:{league:state.league}}));
+  }
+
+  function competitionPools() {
+    const pools={...state.featuredData};
+    if(state.loaded&&!state.dataError&&state.matches.length&&(!state.allCompetitions||state.mode==='football-data'))pools[state.league==='de-live'?'de.1':state.league]=state.matches;
+    return pools;
+  }
+  function matchHistory(match) {
+    return competitionPools()[match.league==='de-live'?'de.1':match.league]||state.matches;
+  }
   function getCards() {
     const horizon=Number($('#window-select').value),key=today(),term=$('#search-input').value.trim().toLocaleLowerCase('fr-FR'),favs=$('#favorites-toggle').getAttribute('aria-pressed')==='true';
-    return state.upcoming.filter(m=>daysBetween(key,m.date)<=horizon && (m.home+' '+m.away).toLocaleLowerCase('fr-FR').includes(term) && (!favs || state.favorites.has(m.id))).slice(0,60);
+    const candidates=state.allCompetitions?Object.values(competitionPools()).flat().filter(m=>!m.score&&m.date>=key):state.upcoming;
+    return candidates.filter(m=>daysBetween(key,m.date)<=horizon && (m.home+' '+m.away).toLocaleLowerCase('fr-FR').includes(term) && (!favs || state.favorites.has(m.id))).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,60);
   }
   function updateUI() {
     $('#copyright-year').textContent=new Date().getFullYear();
+    updateBottomNavigation();
     updateSourceHealth();
-    const list=getCards(),last=state.played.at(-1)?.date;
+    $('#league-select').value=state.allCompetitions?'all':state.league;
+    const list=getCards(),completed=state.allCompetitions?Object.values(competitionPools()).flat().filter(m=>m.score).sort((a,b)=>a.date.localeCompare(b.date)):state.played,last=completed.at(-1)?.date;
     $('#metric-upcoming').textContent=list.length;
-    $('#metric-played').textContent=state.played.length;
+    $('#metric-played').textContent=completed.length;
     $('#metric-window').textContent=`Dans les ${$('#window-select').value} prochains jours`;
     $('#metric-latest').textContent=last?formatDate(last):'—';
     $('#metric-freshness').textContent=state.mode==='demo'?'Données fictives':state.mode==='custom'?'Import utilisateur':last?`${daysBetween(last,today())} j depuis le dernier score`:'Source non renseignée';
     $('#visible-count').textContent=list.length;
-    $('#dataset-subtitle').textContent=`${LEAGUES[state.league].flag} ${LEAGUES[state.league].name} · ${state.mode==='demo'?'données fictives':state.mode==='football-data'?'scores définitifs différés':'archives ouvertes, pas de direct'}`;
+    $('#dataset-subtitle').textContent=`${state.allCompetitions?'Toutes les compétitions':LEAGUES[state.league].flag+' '+LEAGUES[state.league].name} · ${state.mode==='demo'?'données fictives':state.mode==='football-data'?'scores définitifs différés':'archives ouvertes, pas de direct'}`;
     renderCards(list);
+    renderFeatured();
     if(state.currentPage==='history')renderHistory();
   }
   function initial(name) {return name.split(/\s+/).filter(x=>x.length>2).slice(0,2).map(x=>x[0]).join('').toUpperCase().slice(0,2) || name.slice(0,2).toUpperCase();}
@@ -614,23 +942,51 @@ body{font-size:14px;letter-spacing:0}
       $('#try-demo')?.addEventListener('click',()=>loadLeague('demo'));return;
     }
     el.innerHTML=list.map(m=>{
-      const a=forecast(m,state.matches), saved=state.favorites.has(m.id),safeId=escapeHtml(m.id),friendly=LEAGUES[state.league];
-      let levels=a?a.tiers.map(t=>`<div class="scenario-row"><div class="scenario-left"><i class="tier-dot ${t.color}"></i><div><span class="scenario-label">${escapeHtml(t.brief)}</span><span class="scenario-name">${escapeHtml(t.market?.name||'—')}</span></div></div><div class="scenario-right"><strong>${t.market?round(100*t.market.p,0)+' %':'—'}</strong><span>${t.market?'×'+(1/t.market.p).toFixed(2):''}</span></div></div>`).join(''):'<div class="small-line">Pas assez de résultats historiques pour calculer un modèle sur ce match.</div>';
-      const p=a?`<div class="prob"><strong>${(a.home*100).toFixed(0)}%</strong><span>1</span></div><div class="prob"><strong>${(a.draw*100).toFixed(0)}%</strong><span>N</span></div><div class="prob"><strong>${(a.away*100).toFixed(0)}%</strong><span>2</span></div>`:'<div class="small-line">Probabilités indisponibles</div>';
-      return `<article class="match-card"><div class="match-top"><span class="league-pill">${escapeHtml(friendly.short)}</span><span class="match-date">${formatDate(m.date)} · ${escapeHtml(m.time||'Heure inconnue')}</span></div><div class="match-teams"><div class="team-block"><div class="team-initial">${escapeHtml(initial(m.home))}</div><div class="team-name">${escapeHtml(m.home)}</div></div><div class="versus">VS</div><div class="team-block away"><div class="team-initial">${escapeHtml(initial(m.away))}</div><div class="team-name">${escapeHtml(m.away)}</div></div></div><div class="three-way">${p}</div><div class="scenario-list">${levels}</div><div class="match-bottom"><button class="analysis-btn" data-analyze="${safeId}" ${a?'':'disabled'}>Analyse détaillée ↗</button><span class="quality ${a&&a.quality==='Échantillon limité'?'low':''}">${a?escapeHtml(a.quality):'Données insuffisantes'}</span><button aria-label="${saved?'Retirer des':'Ajouter aux'} favoris" class="favorite-button ${saved?'saved':''}" data-favorite="${safeId}">${saved?'★':'☆'}</button></div></article>`;
+      const canRequest=m.analysisAccess?.mode==='freemium'&&m.sourceId;
+      const history=matchHistory(m),a=forecast(m,history), saved=state.favorites.has(m.id),safeId=escapeHtml(m.id),friendly=LEAGUES[m.league]||LEAGUES[state.league];
+      const lastVerified=history.filter(x=>x.score).at(-1)?.date;
+      const tooOld=state.mode!=='demo' && state.mode!=='custom' && (!lastVerified || daysBetween(lastVerified,today())>21);
+      const missingMessage=tooOld
+        ? 'Analyse suspendue : les résultats disponibles sont trop anciens. Actualisez la source avant de consulter les probabilités.'
+        : 'Analyse indisponible : historique insuffisant pour cette rencontre.';
+      let levels=a?a.tiers.map(t=>`<div class="scenario-row"><div class="scenario-left"><i class="tier-dot ${t.color}"></i><div><span class="scenario-label">${escapeHtml(t.brief)}</span><span class="scenario-name">${escapeHtml(t.market?.name||'—')}</span></div></div><div class="scenario-right"><strong>${t.market?round(100*t.market.p,0)+' %':'—'}</strong><span>${t.market?'×'+(1/t.market.p).toFixed(2):''}</span></div></div>`).join(''):`<div class="small-line">${escapeHtml(missingMessage)}</div>`;
+      const p=a&&!a.restricted?`<div class="prob"><strong>${(a.home*100).toFixed(0)}%</strong><span>1</span></div><div class="prob"><strong>${(a.draw*100).toFixed(0)}%</strong><span>N</span></div><div class="prob"><strong>${(a.away*100).toFixed(0)}%</strong><span>2</span></div>`:`<div class="small-line">Probabilités indisponibles</div>`;
+      return `<article class="match-card"><div class="match-top"><span class="league-pill">${escapeHtml(friendly.short)}</span><span class="match-date">${formatDate(m.date)} · ${escapeHtml(m.time||'Heure inconnue')}</span></div><div class="match-teams"><div class="team-block"><div class="team-initial">${escapeHtml(initial(m.home))}</div><div class="team-name">${escapeHtml(m.home)}</div></div><div class="versus">VS</div><div class="team-block away"><div class="team-initial">${escapeHtml(initial(m.away))}</div><div class="team-name">${escapeHtml(m.away)}</div></div></div><div class="three-way">${p}</div><div class="scenario-list">${levels}</div><div class="match-bottom"><button class="analysis-btn" data-analyze="${safeId}" ${a||canRequest?'':'disabled aria-disabled="true" title="'+escapeHtml(missingMessage)+'"'}>${a?'Analyse détaillée ›':canRequest?'Charger l’analyse':'Analyse indisponible'}</button><span class="quality ${a&&a.quality==='Échantillon limité'?'low':''}">${a?escapeHtml(a.quality):'Données insuffisantes'}</span><button aria-label="${saved?'Retirer des':'Ajouter aux'} favoris" class="favorite-button ${saved?'saved':''}" data-favorite="${safeId}">${saved?'★':'☆'}</button></div></article>`;
     }).join('');
   }
-  function openAnalysis(id) {
-    const m=state.upcoming.find(x=>x.id===id);if(!m)return;
-    const f=forecast(m,state.matches);if(!f)return;
+  async function openAnalysis(id,snapshot=null) {
+    // Preserve the data and calculation shown on the clicked featured card.
+    const m=snapshot?.match??Object.values(competitionPools()).flat().find(x=>x.id===id);if(!m)return;
+    const all=snapshot?.matches??matchHistory(m);
+    const mode=snapshot?.mode??(m.sourceId?'football-data':state.mode);
+    const league=snapshot?.league??m.league;
+    let f=snapshot?.analysis??forecast(m,all);
+    if(!f && m.analysisAccess?.mode==='freemium' && m.sourceId){
+      state.selectedId=id;
+      try{const result=await fetchJSON('/api/prediction/'+(league==='de-live'?'de.1':league)+'/'+m.sourceId,true);if(state.selectedId!==id)return;if(result.record?.analysis){m.recordedPrediction=result.record;f=result.record.analysis;}}
+      catch{setNotice('Analyse momentanément indisponible. Réessayez plus tard.','warning');return;}
+    }
+    if(!f){setNotice('Historique insuffisant pour cette analyse.','warning');return;}
+    const lastResult=all.filter(x=>x.score&&x.date<m.date).at(-1)?.date;
     state.selectedId=id;
     $('#modal-title').textContent=`${m.home} — ${m.away}`;
-    $('#modal-subtitle').textContent=`${LEAGUES[state.league].name} · ${formatDateFull(m.date)} · ${m.time || 'Horaire non publié'} · ${state.mode==='demo'?'DONNÉES FICTIVES':'ARCHIVES NON TEMPS RÉEL'}`;
+    window.dispatchEvent(new CustomEvent('cotego:analysis',{detail:{match:m,league,recordedAt:snapshot?.recordedAt||m.recordedPrediction?.createdAt}}));
+    const sourceInModal = mode==='demo' ? 'DONNÉES FICTIVES'
+      : mode==='football-data' ? 'Résultats définitifs différés · heure de Paris'
+      : mode==='openligadb' ? 'OpenLigaDB · données communautaires'
+      : mode==='custom' ? 'Données importées par vous'
+      : 'OpenFootball · archives communautaires non temps réel';
+    $('#modal-subtitle').textContent=`${LEAGUES[league].name} · ${formatDateFull(m.date)} · ${m.time || 'Horaire non publié'} · ${sourceInModal}`;
     const tierHTML=f.tiers.map((tier,i)=>{
       const p=tier.market?.p||0;
-      return `<div class="modal-pick"><div><div class="modal-pick-head"><i class="tier-dot ${tier.color}"></i>${escapeHtml(tier.name.toUpperCase())} · CIBLE ${tier.target.toFixed(2)}</div><h4>${escapeHtml(tier.market?.name||'Indisponible')}</h4><p>Probabilité estimée : <b>${(p*100).toFixed(1)} %</b> · Cote théorique sans marge : <b>${(1/p).toFixed(2)}</b></p></div><div class="modal-pick-quote"><div class="theoretical">×${(1/p).toFixed(2)}</div><label>Cote réelle saisie par vous<input class="odd-input" data-odd="${i}" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="Ex. 1.85"></label><div class="value-output" id="odd-output-${i}">Aucune cote de bookmaker importée</div></div></div>`;
+      const theoreticalOdd=p>0 ? (1/p).toFixed(2) : 'Indisponible';
+      const outcome=m.score?evaluateTiers(f,m.score)[i]:null;
+      const archived=!!(snapshot?.recordedAt||m.recordedPrediction);
+      const quote=m.score?`<strong>${outcome?.hit===true?'✓ Réussi':outcome?.hit===false?'✕ Non réalisé':'Non évaluable'}</strong><p>Score final (90 min) : ${m.score.join(' – ')}</p><small>${archived?'Prévision enregistrée avant le coup d’envoi.':'Scénario recalculé après match ; pas de prévision archivée.'}</small>`:`<details class="manual-odd"><summary>Comparer une cote</summary><label>Votre cote bookmaker<input class="odd-input" data-odd="${i}" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="Ex. 1.85"></label><div class="value-output" id="odd-output-${i}">Saisissez une cote réelle</div></details>`;
+      return `<div class="modal-pick"><div><div class="modal-pick-head"><i class="tier-dot ${tier.color}"></i>${escapeHtml(tier.name.toUpperCase())} · CIBLE ${tier.target.toFixed(2)}</div><h4>${escapeHtml(window.CotegoPresentation.marketLabel(tier.market,m))}</h4><p>Probabilité estimée : <b>${(p*100).toFixed(1)} %</b> · Cote théorique sans marge : <b>${theoreticalOdd}</b></p></div><div class="modal-pick-quote">${quote}</div></div>`;
     }).join('');
-    $('#modal-content').innerHTML=`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>${tierHTML}${footballExtrasMarkup(f,m)}<div class="model-warning">⚠ ${escapeHtml(f.quality)}. Matchs d'équipe recensés : ${f.playedHome} (domicile) et ${f.playedAway} (extérieur), tous terrains confondus. Ces probabilités dépendent de données parfois anciennes, et le modèle n'intègre pas les absences ni la composition. Aucune cote affichée n'est une offre de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div>`;
+    const overview=f.restricted?'<p class="analysis-brief">Accès Découverte · cible 1,50</p>':`<div class="modal-score"><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · DOMICILE</small><strong>${f.lh.toFixed(2)}</strong> <span>buts</span></div><div class="score-card"><small>BUTS ATTENDUS PAR LE MODÈLE · EXTÉRIEUR</small><strong>${f.la.toFixed(2)}</strong> <span>buts</span></div></div><div class="prob-title">Distribution des résultats (1 / N / 2)</div><div class="prob-plot"><div style="width:${f.home*100}%"></div><div style="width:${f.draw*100}%"></div><div style="width:${f.away*100}%"></div></div><div class="prob-labels"><span>1 · ${(f.home*100).toFixed(1)} %</span><span>N · ${(f.draw*100).toFixed(1)} %</span><span>2 · ${(f.away*100).toFixed(1)} %</span></div><div class="prob-title">Trois niveaux de probabilité</div>`;
+    $('#modal-content').innerHTML=`${overview}${tierHTML}${f.restricted?'<p class="premium-lock">Cibles 2,00 et 3,00 et statistiques avancées : COTEGO Plus.</p>':''}<p class="analysis-brief">Estimations expérimentales · Les scénarios peuvent être corrélés.</p>${f.restricted?'':`<details class="analysis-more"><summary>Buts, mi-temps et simulateur buteur</summary><div>${footballExtrasMarkup(f,m,all)}</div></details>`}<details class="analysis-method"><summary>Méthode et limites des estimations</summary><div><div class="model-warning">⚠ ${escapeHtml(f.quality)}. Calcul basé sur ${f.historyCount} résultats précédant ce match, dont ${f.playedHome} matchs de l'équipe à domicile et ${f.playedAway} de l'équipe à l'extérieur (tous terrains). Dernier résultat disponible : ${escapeHtml(formatDateFull(lastResult))}. Modèle expérimental non calibré sur des données de validation indépendantes ; il n'intègre pas les absences ou compositions. Les cotes affichées sont théoriques, jamais des offres de bookmaker.</div><div class="modal-footer">Une valeur positive après saisie de votre cote indique seulement un écart mathématique selon <b>nos hypothèses non validées</b>. Elle ne signifie pas qu'un pari est rentable ni recommandé. Les trois scénarios peuvent être corrélés ; ils ne doivent pas être présentés comme un combiné.</div></div></details>`;
     ['scorer-team','scorer-name','scorer-share','scorer-minutes'].forEach(id=>$('#'+id)?.addEventListener('input',()=>updateScorer(f)));
     $('#scorer-team')?.addEventListener('change',()=>updateScorer(f));
     $$('.odd-input').forEach(input=>input.addEventListener('input',e=>{
@@ -642,32 +998,53 @@ body{font-size:14px;letter-spacing:0}
     $('#analysis-modal').classList.remove('hidden');document.body.style.overflow='hidden';$('#close-modal').focus();
   }
   function closeModal() {$('#analysis-modal').classList.add('hidden');document.body.style.overflow='';state.selectedId=null;}
+  function updateBottomNavigation(){
+    const favoriteView=$('#favorites-toggle').getAttribute('aria-pressed')==='true';
+    $$('.cotego-bottom-nav button').forEach(b=>b.classList.toggle('active',(b.dataset.page||b.dataset.link)===state.currentPage && (state.currentPage!=='dashboard'||(b.dataset.favs==='1')===favoriteView)));
+  }
   function navigate(page){
     state.currentPage=page;
     $$('.page').forEach(p=>p.classList.toggle('visible',p.id===`page-${page}`));
     $$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
-    $('#breadcrumb-page').textContent={dashboard:'Tableau de bord',history:'Historique & tests',method:'Notre méthode',import:'Importer des données',lab:'Tennis & basket',membership:'Abonnements'}[page];
+    $('#breadcrumb-page').textContent={home:'À la une',dashboard:'Matchs & analyses',history:'Historique & tests',method:'Notre méthode',import:'Importer des données',lab:'Tennis & basket',membership:'COTEGO Plus',install:"Installer l'application",about:'À propos & sources'}[page]||'COTEGO';
+    updateBottomNavigation();
+    if(page==='home')renderFeatured();
     $('.sidebar').classList.remove('open');
     if(page==='history')renderHistory();
     window.scrollTo({top:0,behavior:'smooth'});
   }
+  function evaluateTiers(analysis,score) {
+    if(!Array.isArray(score)||score.length!==2||!score.every(n=>Number.isInteger(n)&&n>=0&&n<=35))return [];
+    return analysis.tiers.map(tier=>{
+      const market=MARKET_TYPES.find(([code])=>code===tier.market?.code);
+      return {target:tier.target,market:tier.market,hit:market?market[3](score[0],score[1]):null};
+    });
+  }
   function renderHistory() {
     const el=$('#backtest-content');
+    $('#history-league-select').value=state.league;
     if(!state.loaded){el.innerHTML='<div class="empty-panel">Chargement du championnat…</div>';return;}
     const finished=state.played.slice().sort((a,b)=>a.date.localeCompare(b.date));
     const test=[];
     for(const m of finished.slice(-110)) {
-      const p=forecast(m,state.matches);
+      const p=forecast({...m,recordedPrediction:null},state.matches);
       if(!p)continue;
       const observed=[Number(m.score[0]>m.score[1]),Number(m.score[0]===m.score[1]),Number(m.score[0]<m.score[1])];
       const probabilities=[p.home,p.draw,p.away];
       const brier=probabilities.reduce((s,x,i)=>s+(x-observed[i])**2,0);
       const predicted=probabilities.indexOf(Math.max(...probabilities)),actual=observed.indexOf(1);
-      test.push({...m,brier,correct:predicted===actual,probabilities});
+      test.push({...m,brier,correct:predicted===actual,probabilities,tiers:evaluateTiers(p,m.score)});
     }
-    if(test.length<10) {el.innerHTML=`<div class="empty-panel"><strong>Historique insuffisant</strong><p>Seulement ${test.length} match(s) évaluables par notre test chronologique. Il en faut au moins dix pour afficher un résumé, et bien davantage pour valider un modèle.</p></div>`;return;}
+    if(!test.length) {el.innerHTML='<div class="empty-panel"><strong>Aucun résultat terminé disponible</strong><p>Choisissez une autre compétition ou réessayez après la publication des résultats.</p></div>';return;}
     const brier=test.reduce((s,m)=>s+m.brier,0)/test.length,accuracy=test.filter(m=>m.correct).length/test.length;
-    el.innerHTML=`<div class="history-summary"><div class="history-stat"><small>MATCHS ÉVALUÉS</small><strong>${test.length}</strong></div><div class="history-stat"><small>TAUX DE BON 1N2</small><strong>${(100*accuracy).toFixed(1)} %</strong></div><div class="history-stat"><small>SCORE DE BRIER 1N2</small><strong>${brier.toFixed(3)}</strong></div></div><div class="history-log"><h3>Derniers résultats du test chronologique</h3><p>Le score de Brier mesure l'écart probabiliste (plus bas = mieux, entre 0 et 2 ici). Le taux de bon résultat ne mesure ni le rendement ni la rentabilité. Les données peuvent être incomplètes et les scores peuvent avoir été corrigés après coup.</p><div style="overflow-x:auto"><table class="history-table"><thead><tr><th>DATE</th><th>MATCH</th><th>RÉSULTAT</th><th class="right">BRIER</th></tr></thead><tbody>${test.slice(-16).reverse().map(m=>`<tr><td>${formatDate(m.date)}</td><td>${escapeHtml(m.home)} – ${escapeHtml(m.away)}</td><td>${m.score.join('–')}</td><td class="right">${m.brier.toFixed(3)}</td></tr>`).join('')}</tbody></table></div></div><div class="model-warning">Test rétrospectif exploratoire, non indépendant de la conception du modèle. Il ne valide ni la calibration sur données futures, ni l'existence d'un avantage sur les cotes proposées par les bookmakers. Aucun historique de paris simulés n'est présenté.</div>`;
+    const tierSummary=TIERS.map((tier,i)=>{
+      const evaluated=test.map(m=>m.tiers[i]).filter(t=>typeof t?.hit==='boolean');
+      const hits=evaluated.filter(t=>t.hit).length;
+      const mean=evaluated.length?evaluated.reduce((sum,t)=>sum+t.market.p,0)/evaluated.length:null;
+      return `<div class="history-stat"><small>CIBLE ${tier.target.toFixed(2)} · SIMULATION</small><strong>${evaluated.length?(100*hits/evaluated.length).toFixed(1)+' %':'—'}</strong><p>${hits} réussites / ${evaluated.length} scénarios évalués</p><p>Probabilité moyenne calculée : ${mean===null?'—':(100*mean).toFixed(1)+' %'}</p></div>`;
+    }).join('');
+    const tierCell=t=>!t?.market?'<td>Non évaluable</td>':`<td><strong>${t.hit?'✓ Réussi':'✕ Non réalisé'}</strong><br>${escapeHtml(t.market.name)}<br>${(100*t.market.p).toFixed(1)} % estimés</td>`;
+    el.innerHTML=`<div class="history-log"><h3>${escapeHtml(LEAGUES[state.league].name)} · test rétrospectif</h3><p>${state.mode==='demo'?'Données fictives de démonstration. ':''}Les simulations sont recalculées aujourd'hui avec les seuls scores antérieurs à chaque rencontre. Elles peuvent évoluer si la source corrige ses données. ${test.length<30?'Échantillon très limité : résultats particulièrement instables.':''}</p></div><div class="history-summary">${tierSummary}</div><div class="history-summary"><div class="history-stat"><small>MATCHS ÉVALUÉS</small><strong>${test.length}</strong></div><div class="history-stat"><small>TAUX DE BON 1N2</small><strong>${(100*accuracy).toFixed(1)} %</strong></div><div class="history-stat"><small>SCORE DE BRIER 1N2</small><strong>${brier.toFixed(3)}</strong></div></div><div class="history-log"><h3>Analyses des matchs terminés</h3><p>Les ${test.length} derniers matchs évaluables sont affichés, sans retirer les scénarios non réalisés. Ouvrez une fiche pour comparer les trois scénarios au score final. Sur mobile, faites défiler le tableau horizontalement.</p><div style="overflow-x:auto"><table class="history-table"><thead><tr><th>DATE / MATCH</th><th>SCORE À 90 MIN</th><th>CIBLE 1,50</th><th>CIBLE 2,00</th><th>CIBLE 3,00</th><th>DÉTAIL</th></tr></thead><tbody>${test.slice().reverse().map(m=>`<tr><td>${formatDate(m.date)}<br>${escapeHtml(m.home)} – ${escapeHtml(m.away)}</td><td>${m.score.join('–')}</td>${m.tiers.map(tierCell).join('')}<td><button class="btn btn-outline btn-small" type="button" data-analyze="${escapeHtml(m.id)}">Analyse passée ›</button></td></tr>`).join('')}</tbody></table></div></div><div class="model-warning">Le taux de réussite ne mesure pas la rentabilité. Le Brier 1N2 est compris entre 0 et 2 (plus bas = mieux). Test exploratoire non indépendant de la conception du modèle ; aucune cote réellement disponible à l'époque n'est archivée. Le bilan de prévisions enregistrées avant match et le rendement restent indisponibles.</div>`;
   }
   function makeDemo() {
     const names=['Atalante Bordeaux','Olympique des Alpes','Union Atlantique','Étoile du Nord','Sporting Limousin','Académie du Rhône','FC Armorique','Stade du Littoral','AS du Centre','Racing du Midi','US des Landes','Athlétic Pyrénées'];
@@ -781,17 +1158,36 @@ body{font-size:14px;letter-spacing:0}
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv;charset=utf-8'}));a.download='cotego-modele.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
   }
   document.addEventListener('click',e=>{
-    const nav=e.target.closest('[data-page], [data-link]');if(nav){navigate(nav.dataset.page||nav.dataset.link);return;}
-    const analyze=e.target.closest('[data-analyze]');if(analyze){openAnalysis(analyze.dataset.analyze);return;}
+    const view=e.target.closest('[data-fixture-view]');if(view){const compact=view.dataset.fixtureView==='list';$('#featured-grid').classList.toggle('compact',compact);$$('[data-fixture-view]').forEach(button=>button.setAttribute('aria-pressed',String(button===view)));return;}
+    const retry=e.target.closest('[data-retry-league]');if(retry){loadLeague(state.league,true);return;}
+    const chip=e.target.closest('[data-featured-league]');if(chip){const league=chip.dataset.featuredLeague;if(LEAGUES[league])loadLeague(league);return;}
+    const competition=e.target.closest('[data-competition]');if(competition){loadLeague(competition.dataset.competition);navigate('home');return;}
+    const nav=e.target.closest('[data-page], [data-link]');if(nav){
+      if(nav.dataset.favs==='1'){state.allCompetitions=true;$('#search-input').value='';$('#global-search-input').value='';$('#favorites-toggle').setAttribute('aria-pressed','true');updateUI();}
+      else if(nav.dataset.page==='dashboard'){$('#favorites-toggle').setAttribute('aria-pressed','false');updateUI();}
+      navigate(nav.dataset.page||nav.dataset.link);return;
+    }
+    const analyze=e.target.closest('[data-analyze]');if(analyze){const snapshot=analyze.closest('.featured-card')&&featuredAnalyses.get(analyze.dataset.analyze);if(snapshot){openAnalysis(analyze.dataset.analyze,snapshot);return;}const league=analyze.dataset.analyzeLeague;if(league && league!==state.league){const target=analyze.dataset.analyze;loadLeague(league).then(()=>{if(state.league===league)openAnalysis(target);});}else openAnalysis(analyze.dataset.analyze);return;}
     const fav=e.target.closest('[data-favorite]');if(fav){const id=fav.dataset.favorite;state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);saveFavorites();updateUI();return;}
   });
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden && state.currentPage==='home')renderFeatured();});
+  function scheduleMediaRollover(){
+    const now=new Date(),next=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1);
+    setTimeout(()=>{if(state.currentPage==='home')renderFeatured();scheduleMediaRollover();},next-now.getTime()+50);
+  }
+  scheduleMediaRollover();
+  $('#global-search').addEventListener('submit',e=>{e.preventDefault();$('#search-input').value=$('#global-search-input').value.trim();state.allCompetitions=true;$('#favorites-toggle').setAttribute('aria-pressed','false');navigate('dashboard');updateUI();});
+  window.addEventListener('cotego:archived-analysis',e=>{const r=e.detail;if(!r?.analysis)return;const m={id:[r.league,'football-data.org',r.matchId].join('|'),date:new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(r.kickoffUtc)),time:new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit'}).format(new Date(r.kickoffUtc)),home:r.home,away:r.away,score:r.finalScore,league:r.league,sourceId:r.matchId,kickoffUtc:r.kickoffUtc};openAnalysis(m.id,{match:m,analysis:r.analysis,matches:[],mode:'football-data',league:r.league,recordedAt:r.createdAt});});
+  window.addEventListener('cotego:account-changed',()=>{closeModal();state.featuredData=null;state.featuredLoadedAt=0;state.loaded=false;state.matches=[];state.played=[];state.upcoming=[];renderFeatured();loadLeague(state.league,true);});
+  window.addEventListener('cotego:refresh-history',()=>loadLeague(state.league,true));
   $('#league-select').addEventListener('change',e=>loadLeague(e.target.value));
+  $('#history-league-select').addEventListener('change',e=>loadLeague(e.target.value));
   ['tennis-form','basket-form'].forEach(id=>{const form=$('#'+id);form.addEventListener('input',renderLab);form.addEventListener('change',renderLab);form.addEventListener('submit',e=>e.preventDefault());});
   renderLab();
   $('#window-select').addEventListener('change',updateUI);
   $('#search-input').addEventListener('input',updateUI);
   $('#favorites-toggle').addEventListener('click',e=>{const b=e.currentTarget;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');updateUI();});
-  $('#refresh-data').addEventListener('click',()=>loadLeague(state.league,true));
+  $('#refresh-data').addEventListener('click',()=>state.allCompetitions?loadFeatured().then(updateUI):loadLeague(state.league,true));
   $('#jump-matches').addEventListener('click',()=>$('#matches-anchor').scrollIntoView({behavior:'smooth'}));
   $('#download-template').addEventListener('click',downloadTemplate);
   $('#close-modal').addEventListener('click',closeModal);
@@ -813,8 +1209,17 @@ body{font-size:14px;letter-spacing:0}
     e.target.value='';
   });
   $('#copyright-year').textContent=new Date().getFullYear();
-  window.SportEdgeTest = {tabularCSV,importTennisCSV,importBasketCSV,decodeOpenLiga,normalize,decodeDataset,forecast,poissonList,makeDemo,parseCSV,MARKET_TYPES,today,goalTotals,scorerProbability,halfTimeDistribution,gameHoldProbability,normalCdf};
-  loadLeague('fr.1');
+  window.SportEdgeTest = {tabularCSV,importTennisCSV,importBasketCSV,decodeOpenLiga,normalize,decodeDataset,forecast,poissonList,makeDemo,parseCSV,MARKET_TYPES,today,goalTotals,scorerProbability,halfTimeDistribution,gameHoldProbability,normalCdf,evaluateTiers};
+  // One initial verified feed also supplies normal league-tab navigation.
+  // Explicit refresh still requests the selected league from the provider.
+  loadFeatured().finally(()=>{
+    // Choose today's football only on initial arrival, never override a tab
+    // the visitor selected while the feed was loading.
+    if(leagueRequestId===0){
+      const active=Object.entries(state.featuredData||{}).find(([,matches])=>matches.some(m=>!m.score&&m.date===today()&&(!m.kickoffUtc||Date.parse(m.kickoffUtc)>Date.now())));
+      loadLeague(active?.[0]==='de.1'?'de-live':active?.[0]||state.league);
+    }
+  });
   // Foreground refresh only; 10 minutes for the verified API, 3 hours for archives.
   setInterval(()=>{if(document.visibilityState==='visible' && state.mode==='football-data' && state.loaded)loadLeague(state.league,true);},10*60*1000);
   setInterval(()=>{if(document.visibilityState==='visible' && state.mode!=='football-data' && state.mode!=='demo' && state.mode!=='custom' && state.loaded)loadLeague(state.league,false);},3*3600*1000);
@@ -822,5 +1227,16 @@ body{font-size:14px;letter-spacing:0}
 
 </script>
   <script src="/live-scores.js" defer></script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // L'application reste utilisable normalement si le mode hors ligne échoue.
+      });
+    }, {once:true});
+  }
+  </script>
+  <script src="/cotego-platform.js?v=20261124-odds-1" defer></script>
+  <script src="/cotego-account-test.js" defer></script>
 </body>
 </html>

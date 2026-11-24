@@ -44,3 +44,16 @@ Le domaine est exploité via Cloudflare Workers. Le code enregistré ici est une
 3. Tester les probabilités sur données hors échantillon.
 4. Ajouter authentification, contrôle d'accès premium côté serveur, gestion des droits par événements Stripe vérifiés.
 5. Tests de facturation en sandbox, puis activation commerciale seulement après validations juridiques et fiscales.
+
+
+## Preview : journal avant match et cotes ciblées (15 novembre 2026)
+
+- Le build `src/build-preview.mjs` conserve le secret football puis prépare une base dédiée `cotego-preview-audit`. La liaison D1 doit figurer sous `previews.d1_databases` ; la production ne reçoit pas cette liaison.
+- Les prévisions des affiches prioritaires sont créées côté serveur avant le coup d'envoi. La première version est conservée (`INSERT OR IGNORE` et protection SQL contre les modifications). Le même modèle est vérifié contre le calcul du navigateur. Les fiches réutilisent la prévision enregistrée lorsqu'elle existe.
+- `/api/predictions?league=fr.1` présente les dernières prévisions enregistrées, leurs dates, les résultats définitifs vérifiés, les taux par cible et les probabilités moyennes annoncées. Les simulations rétrospectives restent séparées. Les annulations, reports ou identités contradictoires ne deviennent pas artificiellement des réussites.
+- Le journal s'alimente à la consultation des flux ; aucune tâche serveur permanente n'est annoncée. Les prévisions anciennes ne sont jamais remplies après coup.
+- Le flux de cotes utilise uniquement **The Odds API**, avec la clé facultative `ODDS_API_KEY` stockée comme secret de build Cloudflare. Le build la raccorde à la Preview sans l'écrire dans les sources ou les logs. Aucun compte bookmaker n'est requis.
+- Les relevés concernent les trois affiches éditoriales prioritaires du jour, dans les 90 minutes précédant le coup d'envoi. Il s'agit de critères d'intérêt sportif, pas de chiffres d'audience mesurés.
+- Plafonds applicatifs : 450 crédits réservés au maximum sur 31 jours glissants, 15 par jour, trois rencontres par jour et une demande payante par rencontre. La réserve fournisseur de 50 crédits est protégée lorsqu'un quota fiable est communiqué. Une erreur ou un timeout conserve sa réservation, car le fournisseur peut avoir débité l'appel.
+- Les visiteurs partagent les relevés enregistrés. Les moyennes n'incluent que des prix réellement reçus de Betclic France, Unibet France et Winamax France pour le même marché/ligne, suffisamment récents lors du relevé. Les marchés absents restent indisponibles ; aucune cote n'est inventée ou dérivée d'un marché voisin. Les horodatages sont affichés.
+- L'offre gratuite/premium reste une règle commerciale préparée : cible 1,50 gratuite, trois cibles avec Plus. La bêta reste gratuite et n'active ni facturation réelle ni prétendu verrouillage de sécurité côté navigateur.
