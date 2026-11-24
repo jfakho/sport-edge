@@ -26,12 +26,27 @@ export async function verifyMobileJourney(page,{searchTeam='Chelsea',capture=asy
   checks.push('Global search from Ligue 1 finds an English team and opens its correct three-scenario analysis');
   await page.locator('.cotego-bottom-nav [data-favs="1"]').click();
   assert.equal(await catalog.count(),2);
+  assert.equal(await page.locator('.cotego-bottom-nav button.active').count(),1);
   assert.deepEqual(new Set(await catalog.locator('.league-pill').allTextContents()),new Set(['LIGUE 1','PREMIER LEAGUE']));
+  const contrast=await catalog.first().evaluate(card=>{
+    const luminance=color=>{
+      const rgb=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
+      return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+    };
+    return ['.scenario-name','.analysis-btn'].map(selector=>{
+      const style=getComputedStyle(card.querySelector(selector)),foreground=luminance(style.color);
+      const background=luminance(selector==='.analysis-btn'?style.backgroundColor:getComputedStyle(card).backgroundColor);
+      return (Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05);
+    });
+  });
+  assert.ok(contrast.every(ratio=>ratio>=4.5),'Scenario text and analysis buttons must remain readable on the light background');
+  await catalog.first().scrollIntoViewIfNeeded();
   await capture('favorites');
   await page.reload({waitUntil:'networkidle'});
   await cards.first().waitFor();
   await page.locator('.cotego-bottom-nav [data-favs="1"]').click();
   assert.equal(await catalog.count(),2);
+  assert.equal(await page.locator('.cotego-bottom-nav button.active').count(),1);
   await catalog.first().locator('.favorite-button').click();
   assert.equal(await catalog.count(),1);
   checks.push('Favorites from two competitions survive reload; removing one updates the list');
@@ -72,6 +87,7 @@ export async function verifyMobileJourney(page,{searchTeam='Chelsea',capture=asy
   await page.locator('#mobile-menu').click();
   await page.locator('.sidebar [data-competition="intl.cl"]').click();
   assert.ok(!await page.locator('.sidebar').evaluate(el=>el.classList.contains('open')));
+  await page.waitForFunction(()=>document.querySelector('.sidebar').getBoundingClientRect().right<=1);
   await capture('home');checks.push('Mobile menu opens, selects Champions League and closes');
   return checks;
 }

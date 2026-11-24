@@ -334,3 +334,15 @@ button{cursor:pointer}
 @media(max-width:700px){.cotego-test-account{padding:20px 16px}#cotego-account-form{grid-template-columns:1fr}.account-heading h2{font-size:20px}}
 
 .premium-lock{font-size:12px;color:#61758a;line-height:1.6;padding:12px 16px;margin:0 14px 14px;background:#f3f6f9;border-radius:5px}
+
+/* Match catalog and favorites share the light theme used by the homepage. */
+.match-card{background:#fff;color:#17253a;border-color:#dce2e8}
+.match-card .scenario-name,.match-card .team-name{color:#17253a;font-size:14px;line-height:1.5}
+.match-card .scenario-label,.match-card .match-date,.match-card .quality,.match-card .versus,.match-card .scenario-right span{color:#526176}
+.match-card .league-pill{color:#42536b;border-color:#c6d0dc;background:#f5f7fa}
+.match-card .scenario-row,.match-card .match-bottom{border-color:#dce2e8}
+.match-card .scenario-right strong{color:#17253a}
+.match-card .analysis-btn{background:#087b5a;color:#fff;border-color:#087b5a;min-height:44px}
+.match-card .analysis-btn:hover{background:#086147;color:#fff}
+.match-card .favorite-button{color:#087b5a;background:#fff;border:1px solid #b9c9c2;min-width:44px;min-height:44px}
+.match-card .favorite-button.saved{background:#e8f5ef;color:#076348}

@@ -164,8 +164,8 @@ body{font-size:14px;letter-spacing:0}
 .analysis-btn:disabled:hover{background:#18212b}
 </style>
   <title>COTEGO | Le football, vu par les chiffres</title>
-  <link rel="stylesheet" href="/cotego-rework.css?v=20261124-mobile-1">
-  <link rel="stylesheet" href="/cotego-sport.css?v=20261124-mobile-1">
+  <link rel="stylesheet" href="/cotego-rework.css?v=20261124-mobile-2">
+  <link rel="stylesheet" href="/cotego-sport.css?v=20261124-mobile-2">
 </head>
 <body>
   <div class="app-shell">
@@ -918,6 +918,7 @@ body{font-size:14px;letter-spacing:0}
   }
   function updateUI() {
     $('#copyright-year').textContent=new Date().getFullYear();
+    updateBottomNavigation();
     updateSourceHealth();
     $('#league-select').value=state.allCompetitions?'all':state.league;
     const list=getCards(),completed=state.allCompetitions?Object.values(competitionPools()).flat().filter(m=>m.score).sort((a,b)=>a.date.localeCompare(b.date)):state.played,last=completed.at(-1)?.date;
@@ -997,12 +998,16 @@ body{font-size:14px;letter-spacing:0}
     $('#analysis-modal').classList.remove('hidden');document.body.style.overflow='hidden';$('#close-modal').focus();
   }
   function closeModal() {$('#analysis-modal').classList.add('hidden');document.body.style.overflow='';state.selectedId=null;}
+  function updateBottomNavigation(){
+    const favoriteView=$('#favorites-toggle').getAttribute('aria-pressed')==='true';
+    $$('.cotego-bottom-nav button').forEach(b=>b.classList.toggle('active',(b.dataset.page||b.dataset.link)===state.currentPage && (state.currentPage!=='dashboard'||(b.dataset.favs==='1')===favoriteView)));
+  }
   function navigate(page){
     state.currentPage=page;
     $$('.page').forEach(p=>p.classList.toggle('visible',p.id===`page-${page}`));
     $$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
     $('#breadcrumb-page').textContent={home:'À la une',dashboard:'Matchs & analyses',history:'Historique & tests',method:'Notre méthode',import:'Importer des données',lab:'Tennis & basket',membership:'COTEGO Plus',install:"Installer l'application",about:'À propos & sources'}[page]||'COTEGO';
-    $$('.cotego-bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page || (b.dataset.favs==='1' && page==='dashboard' && $('#favorites-toggle').getAttribute('aria-pressed')==='true')));
+    updateBottomNavigation();
     if(page==='home')renderFeatured();
     $('.sidebar').classList.remove('open');
     if(page==='history')renderHistory();
@@ -1231,7 +1236,7 @@ body{font-size:14px;letter-spacing:0}
     }, {once:true});
   }
   </script>
-  <script src="/cotego-platform.js?v=20261124-mobile-1" defer></script>
+  <script src="/cotego-platform.js?v=20261124-mobile-2" defer></script>
   <script src="/cotego-account-test.js" defer></script>
 </body>
 </html>
